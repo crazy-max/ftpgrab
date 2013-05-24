@@ -1,10 +1,10 @@
 FTP Sync
 ========
 
-A shell script to synchronize files between a remote FTP server and your local server/computer.
-A file containing the MD5 hash of the name of each downloaded file will prevent re-download a file even if it is not present in the destination directory.
-You can also apply a filter to search for files with a regular expression.
-Ideal for those with a seedbox or a shared seedbox...
+A shell script to synchronize files between a remote FTP server and your local server/computer.<br />
+A file containing the MD5 hash of the name of each downloaded file will prevent re-download a file even if it is not present in the destination directory.<br />
+You can also apply a filter to search for files with a regular expression.<br />
+Ideal for those with a seedbox or a shared seedbox...<br />
 Tested on Debian and Ubuntu.
 
 Requirements
