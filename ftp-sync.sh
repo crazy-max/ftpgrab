@@ -82,12 +82,14 @@ function isDownloaded() {
     if [ "$srcsize" == "$destsize" ]
     then
       echo "1"
-      local hashexists=`isHashExists "$srchash"`
-      if [ ${hashexists:0:1} -eq 0 -a "$skipmd5" == "0" ]; then echo "$srchash $srcfiletr" >> "$MD5_FILE"; fi
+      if [ `isMd5Enabled "$skipmd5"` -a -z "`grep "$srchash" "$MD5_FILE"`" ]
+      then
+        echo "$srchash $srcfiletr" >> "$MD5_FILE"
+      fi
       exit 1
     fi
     echo "2"
-  elif [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" -a "$skipmd5" == "0" ]
+  elif [ `isMd5Enabled "$skipmd5"` ]
   then
     cat "$MD5_FILE" | while read line
     do
@@ -99,16 +101,13 @@ function isDownloaded() {
   echo "0"
 }
 
-function isHashExists() {
-  if [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" ]
+function isMd5Enabled() {
+  if [ -z "$1" ]; then local skipmd5=0; else local skipmd5=1; fi
+  if [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" -a "$skipmd5" == "0" ]
   then
-    cat "$MD5_FILE" | while read line
-    do
-      md5sum=`echo -n "$line" | cut -d ' ' -f 1`
-      if [ "$srchash" == "$md5sum" ]; then echo "1"; exit 1; fi
-    done
+    echo "1"
+    exit 1;
   fi
-
   echo "0"
 }
 
@@ -139,7 +138,10 @@ function downloadFile() {
   then
     dualEcho "File successfully downloaded!"
     changePerms "$destfile"
-    if [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" ]; then echo "$srchash $srcfiletr" >> "$MD5_FILE"; fi
+    if [ `isMd5Enabled` -a -z "`grep "$srchash" "$MD5_FILE"`" ]
+    then
+      echo "$srchash $srcfiletr" >> "$MD5_FILE"
+    fi
   else
     rm -rf "$destfile"
     if [ $retry -lt $DL_RETRY ]
@@ -289,13 +291,13 @@ fi
 dualEcho "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
 dualEcho "Destination: $DIR_DEST"
 dualEcho "Log file: $LOG"
-if [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" ]; then dualEcho "MD5 file: $MD5_FILE"; fi
+if [ `isMd5Enabled` ]; then dualEcho "MD5 file: $MD5_FILE"; fi
 dualEcho "--------------"
 
 # Start process
 starttime=$(awk 'BEGIN{srand();print srand()}')
 
-DL_PATTERN="*;$DL_PATTERN"
+if [ -z "$DL_PATTERN" ]; then DL_PATTERN="*;"; fi
 IFS=';' read -ra PATTERN <<< "$DL_PATTERN"
 for p in "${PATTERN[@]}"; do
   process "$p"
