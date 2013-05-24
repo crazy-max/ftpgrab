@@ -82,14 +82,14 @@ function isDownloaded() {
     if [ "$srcsize" == "$destsize" ]
     then
       echo "1"
-      if [ `isMd5Enabled "$skipmd5"` -a -z "`grep "$srchash" "$MD5_FILE"`" ]
+      if [ "$MD5_ACTIVATED" == "1" -a "$skipmd5" == "0" -a -z "`grep "$srchash" "$MD5_FILE"`" ]
       then
         echo "$srchash $srcfiletr" >> "$MD5_FILE"
       fi
       exit 1
     fi
     echo "2"
-  elif [ `isMd5Enabled "$skipmd5"` ]
+  elif [ "$MD5_ACTIVATED" == "1" -a "$skipmd5" == "0" ]
   then
     cat "$MD5_FILE" | while read line
     do
@@ -138,7 +138,7 @@ function downloadFile() {
   then
     dualEcho "File successfully downloaded!"
     changePerms "$destfile"
-    if [ `isMd5Enabled` -a -z "`grep "$srchash" "$MD5_FILE"`" ]
+    if [ "$MD5_ACTIVATED" == "1" -a -z "`grep "$srchash" "$MD5_FILE"`" ]
     then
       echo "$srchash $srcfiletr" >> "$MD5_FILE"
     fi
@@ -287,11 +287,13 @@ then
   if [ ! -d "$md5filepath" ]; then mkdir -p "$md5filepath"; fi
   if [ ! -f "$MD5_FILE" ]; then touch "$MD5_FILE"; fi
 fi
+if [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" ]; then MD5_ACTIVATED=1; else MD5_ACTIVATED=0; fi
 
 dualEcho "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
 dualEcho "Destination: $DIR_DEST"
 dualEcho "Log file: $LOG"
-if [ `isMd5Enabled` ]; then dualEcho "MD5 file: $MD5_FILE"; fi
+
+if [ "$MD5_ACTIVATED" == "1" ]; then dualEcho "MD5 file: $MD5_FILE"; fi
 dualEcho "--------------"
 
 # Start process
