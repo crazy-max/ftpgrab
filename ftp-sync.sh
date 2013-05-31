@@ -129,14 +129,14 @@ function downloadFile() {
   fi
 
   # Begin download
-  dualEcho "Start download to $destfile... Please wait..."
+  echo "Start download to $destfile... Please wait..."
   if [ -x `which pv` ]; then cp "$srcfile" "$destfile"; fi
   local cpstatus="$?"
 
   local dlstatus=`isDownloaded "$srcfile" "1"`
   if [ "$cpstatus" == "0" -a ${dlstatus:0:1} -eq 1 ]
   then
-    dualEcho "File successfully downloaded!"
+    echo "File successfully downloaded!"
     changePerms "$destfile"
     if [ "$MD5_ACTIVATED" == "1" -a -z "`grep "$srchash" "$MD5_FILE"`" ]
     then
@@ -147,10 +147,10 @@ function downloadFile() {
     if [ $retry -lt $DL_RETRY ]
     then
       retry=`expr $retry + 1`
-      dualEcho "ERROR: Download failed... retry $retry/3"
+      echo "ERROR: Download failed... retry $retry/3"
       downloadFile "$srcfile" "$destfile" "$retry"
     else
-      dualEcho "ERROR: Download failed and too many retries..."
+      echo "ERROR: Download failed and too many retries..."
     fi
   fi
 }
@@ -160,9 +160,9 @@ function mountFtp() {
   if grep -qs "$mountpoint" /proc/mounts; then umountFtp; fi
   if [ ! -d $mountpoint ]; then mkdir -p $mountpoint; fi
 
-  dualEcho "Connecting to $FTP_HOST:$FTP_PORT..."
+  echo "Connecting to $FTP_HOST:$FTP_PORT..."
   local status=$(curlftpfs "$FTP_USER:$FTP_PASSWORD@$FTP_HOST:$FTP_PORT" "$mountpoint" -o nonempty 2>&1)
-  if [ "$status" != "" ]; then dualEcho "ERROR: $status"; exit 1; fi
+  if [ "$status" != "" ]; then echo "ERROR: $status"; exit 1; fi
 
   DIR_SRC="$mountpoint$FTP_SRC"
 }
@@ -175,37 +175,37 @@ function umountFtp() {
 
 function process() {
   local pattern="$1"
-  dualEcho "Finding files..."
-  dualEcho "Regexp: $pattern"
-  dualEcho "--------------"
+  echo "Finding files..."
+  echo "Regexp: $pattern"
+  echo "--------------"
   find "$DIR_SRC" -name "$pattern" -type f | sort | while read srcfile
   do
     local starttime=$(awk 'BEGIN{srand();print srand()}')
     local srcfiletr=`echo -n "$srcfile" | sed -e "s#$DIR_SRC##g"`
 
     # Start process on a file
-    dualEcho "Process file : $srcfiletr"
+    echo "Process file : $srcfiletr"
     local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
-    dualEcho "Hash: $srchash"
+    echo "Hash: $srchash"
 
     # File size
     local srcsize=`ls -lah "$srcfile" | awk '{ print $5}'`
-    dualEcho "Size: $srcsize"
+    echo "Size: $srcsize"
 
     # Check validity
     local dlstatus=`isDownloaded "$srcfile"`
     if [ ${dlstatus:0:1} -eq 0 ]
     then
-      dualEcho "Status : Never downloaded..."
+      echo "Status : Never downloaded..."
     elif [ ${dlstatus:0:1} -eq 1 ]
     then
-      dualEcho "Status : Already downloaded and valid. Skip download..."
+      echo "Status : Already downloaded and valid. Skip download..."
     elif [ ${dlstatus:0:1} -eq 2 ]
     then
-      dualEcho "Status : Exists but sizes are different..."
+      echo "Status : Exists but sizes are different..."
     elif [ ${dlstatus:0:1} -eq 3 ]
     then
-      dualEcho "Status : MD5 sum exists. Skip download..."
+      echo "Status : MD5 sum exists. Skip download..."
     fi
 
     if [ ${dlstatus:0:1} -ne 1 -a ${dlstatus:0:1} -ne 3 ]
@@ -216,8 +216,8 @@ function process() {
 
     # Time spent
     local endtime=$(awk 'BEGIN{srand();print srand()}')
-    dualEcho "Time spent: `formatSeconds $(($endtime - $starttime))`"
-    dualEcho "--------------"
+    echo "Time spent: `formatSeconds $(($endtime - $starttime))`"
+    echo "--------------"
   done
 }
 
@@ -244,10 +244,6 @@ function rebuildPath() {
   if [ "${path:len}" != "/" ]; then path="$path/"; fi
   if [ "${path:0:1}" != "/" ]; then path="/$path"; fi
   echo "$path"
-}
-
-function dualEcho() {
-  echo "$1"
 }
 
 function watchTail() {
@@ -280,7 +276,7 @@ function watchTail() {
 DIR_DEST="$1"
 if [ -z "$DIR_DEST" ]
 then
-  dualEcho "Usage: $0 DIR_DEST"
+  echo "Usage: $0 DIR_DEST"
   exit 1
 fi
 
@@ -305,19 +301,19 @@ fi
 # Starting watch in background and process
 watchTail &
 
-dualEcho "FTP Sync v1.0 (`date +"%Y/%m/%d %H:%M:%S"`)"
+echo "FTP Sync v1.0 (`date +"%Y/%m/%d %H:%M:%S"`)"
 
 # Check required packages
-if [ ! -x `which awk` ]; then dualEcho "ERROR: You need awk for this script (try apt-get install awk)"; exit 1; fi
-if [ ! -x `which md5sum` ]; then dualEcho "ERROR: You need md5sum for this script (try apt-get install md5sum)"; exit 1; fi
-if [ ! -x `which curlftpfs` ]; then dualEcho "ERROR: You need curlftpfs for this script (try apt-get install curlftpfs)"; exit 1; fi
+if [ ! -x `which awk` ]; then echo "ERROR: You need awk for this script (try apt-get install awk)"; exit 1; fi
+if [ ! -x `which md5sum` ]; then echo "ERROR: You need md5sum for this script (try apt-get install md5sum)"; exit 1; fi
+if [ ! -x `which curlftpfs` ]; then echo "ERROR: You need curlftpfs for this script (try apt-get install curlftpfs)"; exit 1; fi
 
 # Mount FTP
 mountFtp
 if [ "$?" == "1" ]; then exit 1; fi
 
 # Check directories
-if [ ! -d "$DIR_SRC" ]; then dualEcho "ERROR: $DIR_SRC is not a directory"; exit 1; else DIR_SRC=`rebuildPath "$DIR_SRC"`; fi
+if [ ! -d "$DIR_SRC" ]; then echo "ERROR: $DIR_SRC is not a directory"; exit 1; else DIR_SRC=`rebuildPath "$DIR_SRC"`; fi
 if [ ! -d "$DIR_DEST" ]; then mkdir -p "$DIR_DEST"; fi; DIR_DEST=`rebuildPath "$DIR_DEST"`
 
 # Check MD5 file
@@ -329,13 +325,13 @@ then
 fi
 if [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" ]; then MD5_ACTIVATED=1; else MD5_ACTIVATED=0; fi
 
-dualEcho "Script PID: $$"
-dualEcho "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
-dualEcho "Destination: $DIR_DEST"
-dualEcho "Log file: $LOG"
+echo "Script PID: $$"
+echo "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
+echo "Destination: $DIR_DEST"
+echo "Log file: $LOG"
 
-if [ "$MD5_ACTIVATED" == "1" ]; then dualEcho "MD5 file: $MD5_FILE"; fi
-dualEcho "--------------"
+if [ "$MD5_ACTIVATED" == "1" ]; then echo "MD5 file: $MD5_FILE"; fi
+echo "--------------"
 
 # Start process
 starttime=$(awk 'BEGIN{srand();print srand()}')
@@ -346,9 +342,9 @@ for p in "${PATTERN[@]}"; do
   process "$p"
 done
 
-dualEcho "Finished..."
+echo "Finished..."
 endtime=$(awk 'BEGIN{srand();print srand()}')
-dualEcho "Total time spent: `formatSeconds $(($endtime - $starttime))`"
+echo "Total time spent: `formatSeconds $(($endtime - $starttime))`"
 
 # Umount FTP
 umountFtp
