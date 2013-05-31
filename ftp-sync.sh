@@ -130,7 +130,7 @@ function downloadFile() {
 
   # Begin download
   dualEcho "Start download to $destfile... Please wait..."
-  if [ -x `which pv` ]; then pv "$srcfile" > "$destfile"; else cp "$srcfile" "$destfile"; fi
+  if [ -x `which pv` ]; then cp "$srcfile" "$destfile"; fi
   local cpstatus="$?"
 
   local dlstatus=`isDownloaded "$srcfile" "1"`
@@ -247,7 +247,31 @@ function rebuildPath() {
 }
 
 function dualEcho() {
-  echo "$1" | tee -a $LOG
+  echo "$1"
+}
+
+function watchTail() {
+  cur_pid=$$
+  tail_args=`echo "tail -f $LOG" | cut -c1-79`
+  pid=`ps -e -o pid,ppid,args | grep ${cur_pid} | grep "${tail_args}"| grep -v grep | nawk '{print $1}'`
+
+  if [ "$pid" = "" ]
+  then
+    if [ -z "$PS1" ]; then exit 0; else return 0; fi
+  fi
+
+  ppid=2
+  while [ "$ppid" != "1" ]
+  do
+     pids=`ps -e -o pid,ppid,args | grep "${tail_args}"| grep ${pid} | grep -v grep | nawk '{print $1"-"$2}'`
+     if [ "$pids" == "" ]; then break; fi
+     ppid=`echo ${pids} | nawk -F- '{print $2}'`
+     if ((ppid==1))
+     then
+       sleep 3
+       kill -9 $pid
+     fi
+  done
 }
 
 ### BEGIN ###
@@ -264,6 +288,22 @@ fi
 if [ ! -d "$DIR_LOGS" ]; then mkdir -p "$DIR_LOGS"; fi
 LOG="$DIR_LOGS/ftp-sync-`date +%Y%m%d%H%M%S`.log"
 touch "$LOG"
+
+# Output to log file and 
+exec 1>"$LOG" 2>&1
+
+# Starting to print log file on screen
+term=`tty`
+if [ -z "`echo $term | grep "/dev/"`" ]
+then
+  term=""
+  tail -f "$LOG"
+else
+  tail -f "$LOG">$term & 
+fi
+
+# Starting watch in background and process
+watchTail &
 
 dualEcho "FTP Sync v1.0 (`date +"%Y/%m/%d %H:%M:%S"`)"
 
@@ -289,6 +329,7 @@ then
 fi
 if [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" ]; then MD5_ACTIVATED=1; else MD5_ACTIVATED=0; fi
 
+dualEcho "Script PID: $$"
 dualEcho "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
 dualEcho "Destination: $DIR_DEST"
 dualEcho "Log file: $LOG"
