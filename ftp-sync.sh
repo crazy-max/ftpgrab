@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v1.0                                                                 #
+#  FTP Sync v1.1                                                                 #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -301,7 +301,7 @@ fi
 # Starting watch in background and process
 watchTail &
 
-echo "FTP Sync v1.0 (`date +"%Y/%m/%d %H:%M:%S"`)"
+echo "FTP Sync v1.1 (`date +"%Y/%m/%d %H:%M:%S"`)"
 
 # Check required packages
 if [ ! -x `which awk` ]; then echo "ERROR: You need awk for this script (try apt-get install awk)"; exit 1; fi
