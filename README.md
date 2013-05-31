@@ -13,7 +13,6 @@ Requirements
 * [curlftpfs](http://curlftpfs.sourceforge.net/) is required.
 * [awk](http://en.wikipedia.org/wiki/Awk) is required.
 * [md5sum](http://en.wikipedia.org/wiki/Md5sum) is required.
-* [pv](http://www.ivarch.com/programs/pv.shtml) is used to see file transfer. Optional.
 
 Installation
 ------------
