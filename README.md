@@ -37,9 +37,11 @@ Before running the script, you must change some vars.
 * **DL_CHMOD** - Permissions of downloaded files. Optional. (e.g. 644)
 * **DL_PATTERN** - Apply a filter to search for files with a regular expression. Separate each regular expression with a semicolon. Optional. (e.g. Game.Of.Thrones*.avi;Burn.Notice.*.avi)
 * **DL_RETRY** - Number of retries in case of failure of download. (default 3)
+* **DL_HIDE_SKIPPED** - Not display the downloads already made ​​or valid in logs. (default 0)
 * **MD5_ENABLED** - Enable audit file already downloaded.
 * **MD5_FILE** - The audit file containing the hash of each downloaded file (default /etc/ftp-sync/ftp-sync.md5).
 * **DIR_LOGS** - Path to save ftp-sync logs. (default /etc/ftp-sync/logs)
+* **EMAIL_LOG** - Mail address where the logs are sent. Leave empty to disable sending mail.
 
 Usage
 -----
