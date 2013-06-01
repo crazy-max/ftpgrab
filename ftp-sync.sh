@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v1.1                                                                 #
+#  FTP Sync v1.2                                                                 #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -54,6 +54,7 @@ DL_GROUP=""
 DL_CHMOD=""
 DL_PATTERN=""
 DL_RETRY=3
+DL_HIDE_SKIPPED=0
 
 # MD5
 MD5_ENABLED=1
@@ -61,6 +62,7 @@ MD5_FILE="/etc/ftp-sync/ftp-sync.md5"
 
 # Misc
 DIR_LOGS="/etc/ftp-sync/logs"
+EMAIL_LOG=""
 
 # No edits necessary beyond this line
 
@@ -116,9 +118,10 @@ function downloadFile() {
   local srcfiletr=`echo -n "$srcfile" | sed -e "s#$DIR_SRC##g"`
   local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
   local destfile="$2"
+  local hidelog="$3"
 
   # Check download retry
-  if [ -z "$3" ]; then local retry=0; else local retry=$3; fi
+  if [ -z "$4" ]; then local retry=0; else local retry=$4; fi
 
   # Create destfile path if does not exist
   local destpath="${destfile%/*}"
@@ -129,14 +132,14 @@ function downloadFile() {
   fi
 
   # Begin download
-  echo "Start download to $destfile... Please wait..."
-  if [ -x `which pv` ]; then cp "$srcfile" "$destfile"; fi
-  local cpstatus="$?"
+  if [ -z "$LOG" ]; then echo "Start download to $destfile... Please wait..."; fi
+  local errorcp=`cp "$srcfile" "$destfile" 2>&1`
+  if [ -z "$LOG" -a ! -z "$errorcp" ]; then echo "ERROR: $errorcp"; fi
 
   local dlstatus=`isDownloaded "$srcfile" "1"`
-  if [ "$cpstatus" == "0" -a ${dlstatus:0:1} -eq 1 ]
+  if [ -z "$errorcp" -a ${dlstatus:0:1} -eq 1 ]
   then
-    echo "File successfully downloaded!"
+    if [ -z "$LOG" ]; then echo "File successfully downloaded!"; fi
     changePerms "$destfile"
     if [ "$MD5_ACTIVATED" == "1" -a -z "`grep "$srchash" "$MD5_FILE"`" ]
     then
@@ -147,10 +150,10 @@ function downloadFile() {
     if [ $retry -lt $DL_RETRY ]
     then
       retry=`expr $retry + 1`
-      echo "ERROR: Download failed... retry $retry/3"
-      downloadFile "$srcfile" "$destfile" "$retry"
+      if [ -z "$LOG" ]; then echo "ERROR: Download failed... retry $retry/3"; fi
+      downloadFile "$srcfile" "$destfile" "$hidelog" "$retry"
     else
-      echo "ERROR: Download failed and too many retries..."
+      if [ -z "$LOG" ]; then echo "ERROR: Download failed and too many retries..."; fi
     fi
   fi
 }
@@ -180,44 +183,52 @@ function process() {
   echo "--------------"
   find "$DIR_SRC" -name "$pattern" -type f | sort | while read srcfile
   do
+    LOG=""
+    local skipdl=0
     local starttime=$(awk 'BEGIN{srand();print srand()}')
     local srcfiletr=`echo -n "$srcfile" | sed -e "s#$DIR_SRC##g"`
 
     # Start process on a file
-    echo "Process file : $srcfiletr"
+    addLog "Process file : $srcfiletr"
     local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
-    echo "Hash: $srchash"
+    addLog "Hash: $srchash"
 
     # File size
     local srcsize=`ls -lah "$srcfile" | awk '{ print $5}'`
-    echo "Size: $srcsize"
+    addLog "Size: $srcsize"
 
     # Check validity
     local dlstatus=`isDownloaded "$srcfile"`
+
     if [ ${dlstatus:0:1} -eq 0 ]
     then
-      echo "Status : Never downloaded..."
+      addLog "Status : Never downloaded..."
     elif [ ${dlstatus:0:1} -eq 1 ]
     then
-      echo "Status : Already downloaded and valid. Skip download..."
+      skipdl=1
+      addLog "Status : Already downloaded and valid. Skip download..."
     elif [ ${dlstatus:0:1} -eq 2 ]
     then
-      echo "Status : Exists but sizes are different..."
+      addLog "Status : Exists but sizes are different..."
     elif [ ${dlstatus:0:1} -eq 3 ]
     then
-      echo "Status : MD5 sum exists. Skip download..."
+      skipdl=1
+      addLog "Status : MD5 sum exists. Skip download..."
     fi
 
-    if [ ${dlstatus:0:1} -ne 1 -a ${dlstatus:0:1} -ne 3 ]
+    # Check if download skipped and want to hide it in log file
+    if [ "$skipdl" == "0" ] || [ "$DL_HIDE_SKIPPED" == "0" ]; then echo -e "$LOG"; LOG=""; fi
+
+    if [ "$skipdl" == "0" ]
     then
       local destfile=`echo "$srcfile" | sed -e "s#$DIR_SRC#$DIR_DEST#g"`
-      downloadFile "$srcfile" "$destfile"
+      downloadFile "$srcfile" "$destfile" "$hidelog"
     fi
 
     # Time spent
     local endtime=$(awk 'BEGIN{srand();print srand()}')
-    echo "Time spent: `formatSeconds $(($endtime - $starttime))`"
-    echo "--------------"
+    if [ -z "$LOG" ]; then echo "Time spent: `formatSeconds $(($endtime - $starttime))`"; fi
+    if [ -z "$LOG" ]; then echo "--------------"; fi
   done
 }
 
@@ -248,7 +259,7 @@ function rebuildPath() {
 
 function watchTail() {
   cur_pid=$$
-  tail_args=`echo "tail -f $LOG" | cut -c1-79`
+  tail_args=`echo "tail -f $LOG_FILE" | cut -c1-79`
   pid=`ps -e -o pid,ppid,args | grep ${cur_pid} | grep "${tail_args}"| grep -v grep | nawk '{print $1}'`
 
   if [ "$pid" = "" ]
@@ -264,10 +275,17 @@ function watchTail() {
      ppid=`echo ${pids} | nawk -F- '{print $2}'`
      if ((ppid==1))
      then
+       if [ ! -z "$EMAIL_LOG" ]; then cat "$LOG_FILE" | mail -s "ftp-sync on $(hostname)" $EMAIL_LOG; fi
        sleep 3
        kill -9 $pid
      fi
   done
+}
+
+function addLog() {
+  local text="$1"
+  if [ ! -z "$LOG" ]; then LOG=$LOG"\n"; fi
+  LOG=$LOG"$text"
 }
 
 ### BEGIN ###
@@ -282,26 +300,26 @@ fi
 
 # Log file
 if [ ! -d "$DIR_LOGS" ]; then mkdir -p "$DIR_LOGS"; fi
-LOG="$DIR_LOGS/ftp-sync-`date +%Y%m%d%H%M%S`.log"
-touch "$LOG"
+LOG_FILE="$DIR_LOGS/ftp-sync-`date +%Y%m%d%H%M%S`.log"
+touch "$LOG_FILE"
 
 # Output to log file and 
-exec 1>"$LOG" 2>&1
+exec 1>"$LOG_FILE" 2>&1
 
 # Starting to print log file on screen
 term=`tty`
 if [ -z "`echo $term | grep "/dev/"`" ]
 then
   term=""
-  tail -f "$LOG"
+  tail -f "$LOG_FILE"
 else
-  tail -f "$LOG">$term & 
+  tail -f "$LOG_FILE">$term & 
 fi
 
 # Starting watch in background and process
 watchTail &
 
-echo "FTP Sync v1.1 (`date +"%Y/%m/%d %H:%M:%S"`)"
+echo "FTP Sync v1.2 (`date +"%Y/%m/%d %H:%M:%S"`)"
 
 # Check required packages
 if [ ! -x `which awk` ]; then echo "ERROR: You need awk for this script (try apt-get install awk)"; exit 1; fi
@@ -328,7 +346,7 @@ if [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" ]; then MD5_ACTIVATED=1; else MD5_A
 echo "Script PID: $$"
 echo "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
 echo "Destination: $DIR_DEST"
-echo "Log file: $LOG"
+echo "Log file: $LOG_FILE"
 
 if [ "$MD5_ACTIVATED" == "1" ]; then echo "MD5 file: $MD5_FILE"; fi
 echo "--------------"
