@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v1.3                                                                 #
+#  FTP Sync v1.4                                                                 #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -65,6 +65,7 @@ MD5_FILE="/etc/ftp-sync/ftp-sync.md5"
 # Misc
 DIR_LOGS="/etc/ftp-sync/logs"
 EMAIL_LOG=""
+PID_FILE="/etc/ftp-sync/ftp-sync.pid"
 
 # No edits necessary beyond this line
 
@@ -170,7 +171,9 @@ function findFiles() {
   while read -r line
   do
     local file=$(echo "$line" | sed "s#&\#32;#%20#g" | sed "s#$address# #g" | cut -c2-)
-    local filedec=$(urlDecode "$file")
+    local basename=$(basename "$file")
+    local cleanfile="$path$basename"
+    local filedec=$(urlDecode "$cleanfile")
     local filetr=`echo -n "$filedec" | sed -e "s#$FTP_SRC# #g" | cut -c2-`
     local vregex=`echo -n "$filetr" | sed -n "/$regex/p"`
     if [ "${file#${file%?}}" == "/" ]
@@ -178,7 +181,7 @@ function findFiles() {
       findFiles "$file" "$regex"
     elif [ ! -z "$vregex" ]
     then
-      echo "$file"
+      echo "$cleanfile"
     fi
   done <<< "$files"
 }
@@ -342,7 +345,7 @@ function addLog() {
 DIR_DEST="$1"
 if [ -z "$DIR_DEST" ]
 then
-  echo "Usage: $0 DIR_DEST"
+  echo "Usage: ./$0 DIR_DEST"
   exit 1
 fi
 
@@ -367,7 +370,7 @@ fi
 # Starting watch in background and process
 watchTail &
 
-echo "FTP Sync v1.3 (`date +"%Y/%m/%d %H:%M:%S"`)"
+echo "FTP Sync v1.4 (`date +"%Y/%m/%d %H:%M:%S"`)"
 
 # Check required packages
 if [ ! -x `which awk` ]; then echo "ERROR: You need awk for this script (try apt-get install awk)"; exit 1; fi
@@ -388,7 +391,22 @@ then
 fi
 if [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" ]; then MD5_ACTIVATED=1; else MD5_ACTIVATED=0; fi
 
-echo "Script PID: $$"
+# Check process already running
+currentPid=$$
+if [ -f "$PID_FILE" ]
+then
+  oldPid=`cat "$PID_FILE"`
+  countProc=$(ps -p $oldPid | grep -c "$oldPid")
+  if [ $countProc -gt 0 ]
+  then
+    echo "ERROR: ftp-sync already running..."
+    echo "If you want to kill the process, enter : kill -9 $oldPid"
+    exit 1
+  fi
+fi
+echo $currentPid > "$PID_FILE"
+
+echo "Script PID: $currentPid"
 echo "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
 echo "Destination: $DIR_DEST"
 echo "Log file: $LOG_FILE"
@@ -408,5 +426,7 @@ done
 echo "Finished..."
 endtime=$(awk 'BEGIN{srand();print srand()}')
 echo "Total time spent: `formatSeconds $(($endtime - $starttime))`"
+
+rm "$PID_FILE"
 
 exit 0

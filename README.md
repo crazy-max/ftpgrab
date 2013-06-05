@@ -46,6 +46,7 @@ Before running the script, you must change some vars.
 * **MD5_FILE** - The audit file containing the hash of each downloaded file (default /etc/ftp-sync/ftp-sync.md5).
 * **DIR_LOGS** - Path to save ftp-sync logs. (default /etc/ftp-sync/logs)
 * **EMAIL_LOG** - Mail address where the logs are sent. Leave empty to disable sending mail.
+* **PID_FILE** - Path to the file containing the current PID of the process.
 
 Usage
 -----
