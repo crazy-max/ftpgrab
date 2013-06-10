@@ -1,13 +1,11 @@
-FTP Sync
-========
+# FTP Sync
 
 A shell script to synchronize files between a remote FTP server and your local server/computer.<br />
 A file containing the MD5 hash of the name of each downloaded file will prevent re-download a file even if it is not present in the destination directory.<br />
 You can also apply a filter to search for files with a regular expression.<br />
 Because this script only need ``wget``, it is ideal for those with a seedbox or a shared seedbox to synchronize with a NAS (Synology Qnap D-Link) or a local computer...
 
-Requirements
-------------
+## Requirements
 
 Commands :
 
@@ -17,8 +15,7 @@ Commands :
 * [nawk](http://linux.die.net/man/1/nawk) is required.
 * [wget](http://en.wikipedia.org/wiki/Wget) is required.
 
-Installation
-------------
+## Installation
 
 Execute the following commands to download the script :
 ```console
@@ -48,16 +45,14 @@ Before running the script, you must change some vars.
 * **EMAIL_LOG** - Mail address where the logs are sent. Leave empty to disable sending mail.
 * **PID_FILE** - Path to the file containing the current PID of the process.
 
-Usage
------
+## Usage
 
 ``$ /etc/init.d/ftp-sync <DIR_DEST>``
 
 DIR_DEST is the directory where the files will be downloaded.
 e.g. ``$ /etc/init.d/ftp-sync /tmp/seedbox/``
 
-Automatic sync with cron
-------------------------
+## Automatic sync with cron
 
 You can automatically synchronize FTP files by calling the script in a [crontab](http://en.wikipedia.org/wiki/Crontab).
 For example :
@@ -66,8 +61,7 @@ For example :
 	
 This will synchronize your FTP files with the directory ``/tmp/seedbox/`` every day at 4 am.
 
-Logs
-----
+## Logs
 
 Each time the script is executed, a log file is created.
 Here is an example :
@@ -104,12 +98,72 @@ baf87b6719e9f5499627fc8691efbd3c Burn.Notice.S06E16.VOSTFR.HDTV.XviD.avi
 92d1d13049bd148f89ffa1d501f153f5 Burn.Notice.S06E17E18.VOSTFR.HDTV.XviD.avi
 ```
 
-License
--------
+## Troubleshooting
+
+### Synology Network Attached Storage
+
+For Synology NAS, additional commands must be performed.
+
+#### bootstrap, ipkg
+
+First you must [install bootstrap, ipkg following the wiki of the official website](http://forum.synology.com/wiki/index.php/Overview_on_modifying_the_Synology_Server,_bootstrap,_ipkg_etc#How_to_install_ipkg).
+Next you can test ipkg and upgrade the repository.
+
+```console
+$ ipkg
+$ ipkg update
+$ ipkg upgrade
+```
+
+#### coreutils
+
+[coreutils](http://en.wikipedia.org/wiki/GNU_Core_Utilities) is a package containing many of the basic tools necessary for the script.
+
+```console
+$ ipkg install coreutils
+```
+
+#### nail
+
+nail is a command line email client. This means it can send emails via an email server, you need to have an email server for nail to use, e.g. could be your own hosted email server, or any email account such as yahoo, gmail, and millions of others.
+
+```console
+$ ipkg install nail
+```
+
+Here is an example to configure it with your gmail account.
+Open the nail config ``/opt/etc/nail.rc`` file with your favorite editor and add/edit the following parameters.
+
+```console
+set smtp-use-starttls
+set ssl-verify=ignore
+set smtp=smtp://smtp.gmail.com:587
+set from=address@gmail.com
+set smtp-auth=login
+set smtp-auth-user=address@gmail.com
+set smtp-auth-password=yourpassword
+```
+
+Now for the script, you have to create a symbolic link.
+
+```console
+$ ln -s /opt/bin/nail /opt/bin/mail
+```
+
+#### crontab
+
+```console
+$ vi /etc/crontab
+```
+
+```console
+0       4       *       *       *       root    /etc/init.d/ftp-sync /tmp/seedbox/ >/dev/null 2>&1
+```
+
+## License
 
 LGPL. See ``LICENSE`` for more details.
 
-More infos
-----------
+## More infos
 
 http://www.crazyws.fr/dev/systeme/synchroniser-votre-seedbox-avec-votre-nas-ou-votre-ordinateur-6NGGE.html
