@@ -160,6 +160,11 @@ $ vi /etc/crontab
 0       4       *       *       *       root    /etc/init.d/ftp-sync /tmp/seedbox/ >/dev/null 2>&1
 ```
 
+```console
+$ crond stop
+$ crond start
+```
+
 ## License
 
 LGPL. See ``LICENSE`` for more details.
