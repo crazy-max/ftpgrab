@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 ### BEGIN INIT INFO
 # Provides:          ftp-sync
 # Required-Start:    $remote_fs $syslog
@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v1.4                                                                 #
+#  FTP Sync v1.5                                                                 #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -137,14 +137,14 @@ function downloadFile() {
   fi
 
   # Begin download
-  if [ -z "$LOG" ]; then echo "Start download to $destfile... Please wait..."; fi
+  if [ -z "$LOG" ]; then dualEcho "Start download to $destfile... Please wait..."; fi
   wget --progress=dot:mega --ftp-user="$FTP_USER" --ftp-password="$FTP_PASSWORD" -O "$destfile" "ftp://$FTP_HOST:$FTP_PORT$srcfile" 2>&1 | progressFilter
   
   local errordl="$?"
   local dlstatus=`isDownloaded "$srcfile" "1"`
   if [ $errordl == 0 -a ${dlstatus:0:1} -eq 1 ]
   then
-    if [ -z "$LOG" ]; then echo "File successfully downloaded!"; fi
+    if [ -z "$LOG" ]; then dualEcho "File successfully downloaded!"; fi
     changePerms "$destfile"
     if [ "$MD5_ACTIVATED" == "1" -a -z "`grep "$srchash" "$MD5_FILE"`" ]
     then
@@ -155,10 +155,10 @@ function downloadFile() {
     if [ $retry -lt $DL_RETRY ]
     then
       retry=`expr $retry + 1`
-      if [ -z "$LOG" ]; then echo "ERROR $errordl${dlstatus:0:1}: Download failed... retry $retry/3"; fi
+      if [ -z "$LOG" ]; then dualEcho "ERROR $errordl${dlstatus:0:1}: Download failed... retry $retry/3"; fi
       downloadFile "$srcfile" "$destfile" "$hidelog" "$retry"
     else
-      if [ -z "$LOG" ]; then echo "ERROR $errordl${dlstatus:0:1}: Download failed and too many retries..."; fi
+      if [ -z "$LOG" ]; then dualEcho "ERROR $errordl${dlstatus:0:1}: Download failed and too many retries..."; fi
     fi
   fi
 }
@@ -188,9 +188,9 @@ function findFiles() {
 
 function process() {
   local regex="$1"
-  echo "Finding files..."
-  echo "Regex: $regex"
-  echo "--------------"
+  dualEcho "Finding files..."
+  dualEcho "Regex: $regex"
+  dualEcho "--------------"
   findFiles "$FTP_SRC" "$regex" | sort | while read srcfile
   do
     LOG=""
@@ -225,7 +225,7 @@ function process() {
     fi
 
     # Check if download skipped and want to hide it in log file
-    if [ "$skipdl" == "0" ] || [ "$DL_HIDE_SKIPPED" == "0" ]; then echo -e "$LOG"; LOG=""; fi
+    if [ "$skipdl" == "0" ] || [ "$DL_HIDE_SKIPPED" == "0" ]; then dualEcho "$LOG"; LOG=""; fi
 
     if [ "$skipdl" == "0" ]
     then
@@ -235,8 +235,8 @@ function process() {
 
     # Time spent
     local endtime=$(awk 'BEGIN{srand();print srand()}')
-    if [ -z "$LOG" ]; then echo "Time spent: `formatSeconds $(($endtime - $starttime))`"; fi
-    if [ -z "$LOG" ]; then echo "--------------"; fi
+    if [ -z "$LOG" ]; then dualEcho "Time spent: `formatSeconds $(($endtime - $starttime))`"; fi
+    if [ -z "$LOG" ]; then dualEcho "--------------"; fi
   done
 }
 
@@ -269,31 +269,6 @@ function progressFilter() {
       fi
     done
   fi
-}
-
-function watchTail() {
-  local cur_pid=$$
-  local tail_args=`echo "tail -f $LOG_FILE" | cut -c1-79`
-  local pid=`ps -e -o pid,ppid,args | grep ${cur_pid} | grep "${tail_args}"| grep -v grep | nawk '{print $1}'`
-
-  if [ "$pid" = "" ]
-  then
-    if [ -z "$PS1" ]; then exit 0; else return 0; fi
-  fi
-
-  local ppid=2
-  while [ "$ppid" != "1" ]
-  do
-     local pids=`ps -e -o pid,ppid,args | grep "${tail_args}"| grep ${pid} | grep -v grep | nawk '{print $1"-"$2}'`
-     if [ "$pids" == "" ]; then break; fi
-     local ppid=`echo ${pids} | nawk -F- '{print $2}'`
-     if ((ppid==1))
-     then
-       if [ ! -z "$EMAIL_LOG" ]; then cat "$LOG_FILE" | mail -s "ftp-sync on $(hostname)" $EMAIL_LOG; fi
-       sleep 3
-       kill -9 $pid
-     fi
-  done
 }
 
 function urlDecode() {
@@ -339,6 +314,10 @@ function addLog() {
   LOG=$LOG"$text"
 }
 
+function dualEcho() {
+  echo -e "$1" | tee -a "$LOG_FILE"
+}
+
 ### BEGIN ###
 
 # Destination folder
@@ -354,29 +333,14 @@ if [ ! -d "$DIR_LOGS" ]; then mkdir -p "$DIR_LOGS"; fi
 LOG_FILE="$DIR_LOGS/ftp-sync-`date +%Y%m%d%H%M%S`.log"
 touch "$LOG_FILE"
 
-# Output to log file and 
-exec 1>"$LOG_FILE" 2>&1
-
-# Starting to print log file on screen
-term=`tty`
-if [ -z "`echo $term | grep "/dev/"`" ]
-then
-  term=""
-  tail -f "$LOG_FILE"
-else
-  tail -f "$LOG_FILE">$term & 
-fi
-
-# Starting watch in background and process
-watchTail &
-
-echo "FTP Sync v1.4 (`date +"%Y/%m/%d %H:%M:%S"`)"
+dualEcho "FTP Sync v1.5 (`date +"%Y/%m/%d %H:%M:%S"`)"
+dualEcho "--------------"
 
 # Check required packages
-if [ ! -x `which awk` ]; then echo "ERROR: You need awk for this script (try apt-get install awk)"; exit 1; fi
-if [ ! -x `which md5sum` ]; then echo "ERROR: You need md5sum for this script (try apt-get install md5sum)"; exit 1; fi
-if [ ! -x `which nawk` ]; then echo "ERROR: You need nawk for this script (try apt-get install nawk)"; exit 1; fi
-if [ ! -x `which wget` ]; then echo "ERROR: You need wget for this script (try apt-get install wget)"; exit 1; fi
+if [ ! -x `which awk` ]; then dualEcho "ERROR: You need awk for this script (try apt-get install awk)"; exit 1; fi
+if [ ! -x `which md5sum` ]; then dualEcho "ERROR: You need md5sum for this script (try apt-get install md5sum)"; exit 1; fi
+if [ ! -x `which nawk` ]; then dualEcho "ERROR: You need nawk for this script (try apt-get install nawk)"; exit 1; fi
+if [ ! -x `which wget` ]; then dualEcho "ERROR: You need wget for this script (try apt-get install wget)"; exit 1; fi
 
 # Check directories
 FTP_SRC=`rebuildPath "$FTP_SRC"`
@@ -399,20 +363,52 @@ then
   countProc=$(ps -p $oldPid | grep -c "$oldPid")
   if [ $countProc -gt 0 ]
   then
-    echo "ERROR: ftp-sync already running..."
-    echo "If you want to kill the process, enter : kill -9 $oldPid"
+    dualEcho "ERROR: ftp-sync already running..."
+    dualEcho "If you want to kill the process, enter : kill -9 $oldPid"
     exit 1
   fi
 fi
 echo $currentPid > "$PID_FILE"
 
-echo "Script PID: $currentPid"
-echo "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
-echo "Destination: $DIR_DEST"
-echo "Log file: $LOG_FILE"
+# Check connection
+dualEcho "Checking connection to ftp://$FTP_HOST:$FTP_PORT$FTP_SRC..."
+wget --spider -q --tries=1 --timeout=5 --ftp-user="$FTP_USER" --ftp-password="$FTP_PASSWORD" -O - "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
+connectionExitCode="$?"
 
-if [ "$MD5_ACTIVATED" == "1" ]; then echo "MD5 file: $MD5_FILE"; fi
-echo "--------------"
+if [ $connectionExitCode != "0" ]
+then
+  # More infos: http://www.gnu.org/software/wget/manual/html_node/Exit-Status.html
+  case "$connectionExitCode" in
+    1)
+      dualEcho "ERROR: Generic error code...";;
+    2)
+      dualEcho "ERROR: Parse error (for instance, when parsing command-line options, the '.wgetrc' or '.netrc')...";;
+    3)
+      dualEcho "ERROR: File I/O error...";;
+    4)
+      dualEcho "ERROR: Network failure...";;
+    5)
+      dualEcho "ERROR: SSL verification failure...";;
+    6)
+      dualEcho "ERROR: Username/password authentication failure...";;
+    7)
+      dualEcho "ERROR: Protocol errors...";;
+    8)
+      dualEcho "ERROR: Server issued an error response...";;
+  esac
+  exit 1
+else
+  dualEcho "Successfully connected!"
+  dualEcho "--------------"
+fi
+
+dualEcho "Script PID: $currentPid"
+dualEcho "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
+dualEcho "Destination: $DIR_DEST"
+dualEcho "Log file: $LOG_FILE"
+
+if [ "$MD5_ACTIVATED" == "1" ]; then dualEcho "MD5 file: $MD5_FILE"; fi
+dualEcho "--------------"
 
 # Start process
 starttime=$(awk 'BEGIN{srand();print srand()}')
@@ -423,10 +419,13 @@ for p in "${REGEX[@]}"; do
   process "$p"
 done
 
-echo "Finished..."
+dualEcho "Finished..."
 endtime=$(awk 'BEGIN{srand();print srand()}')
-echo "Total time spent: `formatSeconds $(($endtime - $starttime))`"
+dualEcho "Total time spent: `formatSeconds $(($endtime - $starttime))`"
 
 rm "$PID_FILE"
+
+# Send logs
+if [ ! -z "$EMAIL_LOG" ]; then cat "$LOG_FILE" | mail -s "ftp-sync on $(hostname)" $EMAIL_LOG; fi
 
 exit 0
