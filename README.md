@@ -22,7 +22,6 @@ Execute the following commands to download the script :
 $ cd /etc/init.d/
 $ wget https://raw.github.com/crazy-max/ftp-sync/master/ftp-sync.sh -O ftp-sync
 $ chmod +x ftp-sync
-$ update-rc.d ftp-sync defaults
 ```
 
 Before running the script, you must change some vars.

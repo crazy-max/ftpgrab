@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v1.5                                                                 #
+#  FTP Sync v1.6                                                                 #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -71,12 +71,12 @@ PID_FILE="/etc/ftp-sync/ftp-sync.pid"
 
 ### FUNCTIONS ###
 
-function isDownloaded() {
+function ftpsyncIsDownloaded() {
   local srcfile="$1"
-  local srcfiledec=$(urlDecode "$srcfile")
+  local srcfiledec=$(ftpsyncUrlDecode "$srcfile")
   local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC##g" | cut -c1-`
   local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
-  local srcsize=$(getSize "$srcfile")
+  local srcsize=$(ftpsyncGetSize "$srcfile")
 
   # Check skip MD5
   if [ -z "$2" ]; then local skipmd5=0; else local skipmd5=$2; fi
@@ -107,7 +107,7 @@ function isDownloaded() {
   echo "0"
 }
 
-function isMd5Enabled() {
+function ftpsyncIsMd5Enabled() {
   if [ -z "$1" ]; then local skipmd5=0; else local skipmd5=1; fi
   if [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" -a "$skipmd5" == "0" ]
   then
@@ -117,9 +117,9 @@ function isMd5Enabled() {
   echo "0"
 }
 
-function downloadFile() {
+function ftpsyncDownloadFile() {
   local srcfile="$1"
-  local srcfiledec=$(urlDecode "$srcfile")
+  local srcfiledec=$(ftpsyncUrlDecode "$srcfile")
   local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC# #g" | cut -c1-`
   local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
   local destfile="$2"
@@ -133,19 +133,19 @@ function downloadFile() {
   if [ ! -d "$destpath" ]
   then
     mkdir -p "$destpath"
-    changePerms "$destpath"
+    ftpsyncChangePerms "$destpath"
   fi
 
   # Begin download
-  if [ -z "$LOG" ]; then dualEcho "Start download to $destfile... Please wait..."; fi
-  wget --progress=dot:mega --ftp-user="$FTP_USER" --ftp-password="$FTP_PASSWORD" -O "$destfile" "ftp://$FTP_HOST:$FTP_PORT$srcfile" 2>&1 | progressFilter
+  if [ -z "$LOG" ]; then ftpsyncEcho "Start download to $destfile... Please wait..."; fi
+  wget --progress=dot:mega --ftp-user="$FTP_USER" --ftp-password="$FTP_PASSWORD" -O "$destfile" "ftp://$FTP_HOST:$FTP_PORT$srcfile" 2>&1 | ftpsyncProgressFilter
   
   local errordl="$?"
-  local dlstatus=`isDownloaded "$srcfile" "1"`
+  local dlstatus=`ftpsyncIsDownloaded "$srcfile" "1"`
   if [ $errordl == 0 -a ${dlstatus:0:1} -eq 1 ]
   then
-    if [ -z "$LOG" ]; then dualEcho "File successfully downloaded!"; fi
-    changePerms "$destfile"
+    if [ -z "$LOG" ]; then ftpsyncEcho "File successfully downloaded!"; fi
+    ftpsyncChangePerms "$destfile"
     if [ "$MD5_ACTIVATED" == "1" -a -z "`grep "$srchash" "$MD5_FILE"`" ]
     then
       echo "$srchash $srcfiletr" >> "$MD5_FILE"
@@ -155,15 +155,15 @@ function downloadFile() {
     if [ $retry -lt $DL_RETRY ]
     then
       retry=`expr $retry + 1`
-      if [ -z "$LOG" ]; then dualEcho "ERROR $errordl${dlstatus:0:1}: Download failed... retry $retry/3"; fi
-      downloadFile "$srcfile" "$destfile" "$hidelog" "$retry"
+      if [ -z "$LOG" ]; then ftpsyncEcho "ERROR $errordl${dlstatus:0:1}: Download failed... retry $retry/3"; fi
+      ftpsyncDownloadFile "$srcfile" "$destfile" "$hidelog" "$retry"
     else
-      if [ -z "$LOG" ]; then dualEcho "ERROR $errordl${dlstatus:0:1}: Download failed and too many retries..."; fi
+      if [ -z "$LOG" ]; then ftpsyncEcho "ERROR $errordl${dlstatus:0:1}: Download failed and too many retries..."; fi
     fi
   fi
 }
 
-function findFiles() {
+function ftpsyncFindFiles() {
   local path="$1"
   local regex="$2"
   local address="ftp://$FTP_HOST:$FTP_PORT"
@@ -173,12 +173,12 @@ function findFiles() {
     local file=$(echo "$line" | sed "s#&\#32;#%20#g" | sed "s#$address# #g" | cut -c2-)
     local basename=$(basename "$file")
     local cleanfile="$path$basename"
-    local filedec=$(urlDecode "$cleanfile")
+    local filedec=$(ftpsyncUrlDecode "$cleanfile")
     local filetr=`echo -n "$filedec" | sed -e "s#$FTP_SRC# #g" | cut -c2-`
     local vregex=`echo -n "$filetr" | sed -n "/$regex/p"`
     if [ "${file#${file%?}}" == "/" ]
     then
-      findFiles "$file" "$regex"
+      ftpsyncFindFiles "$file" "$regex"
     elif [ ! -z "$vregex" ]
     then
       echo "$cleanfile"
@@ -186,61 +186,61 @@ function findFiles() {
   done <<< "$files"
 }
 
-function process() {
+function ftpsyncProcess() {
   local regex="$1"
-  dualEcho "Finding files..."
-  dualEcho "Regex: $regex"
-  dualEcho "--------------"
-  findFiles "$FTP_SRC" "$regex" | sort | while read srcfile
+  ftpsyncEcho "Finding files..."
+  ftpsyncEcho "Regex: $regex"
+  ftpsyncEcho "--------------"
+  ftpsyncFindFiles "$FTP_SRC" "$regex" | sort | while read srcfile
   do
     LOG=""
     local skipdl=0
-    local srcfiledec=$(urlDecode "$srcfile")
+    local srcfiledec=$(ftpsyncUrlDecode "$srcfile")
     local starttime=$(awk 'BEGIN{srand();print srand()}')
     local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC##g" | cut -c1-`
 
-    # Start process on a file
-    addLog "Process file : $srcfiletr"
+    # Start ftpsyncProcess on a file
+    ftpsyncAddLog "ftpsyncProcess file : $srcfiletr"
     local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
-    addLog "Hash: $srchash"
-    addLog "Size: $(getHumanSize "$srcfile")"
+    ftpsyncAddLog "Hash: $srchash"
+    ftpsyncAddLog "Size: $(ftpsyncGetHumanSize "$srcfile")"
 
     # Check validity
-    local dlstatus=`isDownloaded "$srcfile"`
+    local dlstatus=`ftpsyncIsDownloaded "$srcfile"`
 
     if [ ${dlstatus:0:1} -eq 0 ]
     then
-      addLog "Status : Never downloaded..."
+      ftpsyncAddLog "Status : Never downloaded..."
     elif [ ${dlstatus:0:1} -eq 1 ]
     then
       skipdl=1
-      addLog "Status : Already downloaded and valid. Skip download..."
+      ftpsyncAddLog "Status : Already downloaded and valid. Skip download..."
     elif [ ${dlstatus:0:1} -eq 2 ]
     then
-      addLog "Status : Exists but sizes are different..."
+      ftpsyncAddLog "Status : Exists but sizes are different..."
     elif [ ${dlstatus:0:1} -eq 3 ]
     then
       skipdl=1
-      addLog "Status : MD5 sum exists. Skip download..."
+      ftpsyncAddLog "Status : MD5 sum exists. Skip download..."
     fi
 
     # Check if download skipped and want to hide it in log file
-    if [ "$skipdl" == "0" ] || [ "$DL_HIDE_SKIPPED" == "0" ]; then dualEcho "$LOG"; LOG=""; fi
+    if [ "$skipdl" == "0" ] || [ "$DL_HIDE_SKIPPED" == "0" ]; then ftpsyncEcho "$LOG"; LOG=""; fi
 
     if [ "$skipdl" == "0" ]
     then
       local destfile=`echo "$srcfiledec" | sed -e "s#$FTP_SRC#$DIR_DEST#g"`
-      downloadFile "$srcfile" "$destfile" "$hidelog"
+      ftpsyncDownloadFile "$srcfile" "$destfile" "$hidelog"
     fi
 
     # Time spent
     local endtime=$(awk 'BEGIN{srand();print srand()}')
-    if [ -z "$LOG" ]; then dualEcho "Time spent: `formatSeconds $(($endtime - $starttime))`"; fi
-    if [ -z "$LOG" ]; then dualEcho "--------------"; fi
+    if [ -z "$LOG" ]; then ftpsyncEcho "Time spent: `ftpsyncFormatSeconds $(($endtime - $starttime))`"; fi
+    if [ -z "$LOG" ]; then ftpsyncEcho "--------------"; fi
   done
 }
 
-function progressFilter() {
+function ftpsyncProgressFilter() {
   if [ "$DL_HIDE_PROGRESS" == "0" ]
   then
     local flag=2 c count cr=$'\r' nl=$'\n'
@@ -271,25 +271,49 @@ function progressFilter() {
   fi
 }
 
-function urlDecode() {
+function ftpsyncKill() {
+  local cpid="$1"
+  pids="$cpid"
+  if [ -d "/proc/$cpid" -a -f "/proc/$cpid/cmdline" ]
+  then
+    local cmdline=`cat "/proc/$cpid/cmdline"`
+    kill -9 $cpid
+    sleep 2
+    local oPidsFile=`find /proc -type f -name "cmdline" | grep '/proc/[1-9][0-9]*/cmdline'`
+    echo "$oPidsFile" | sort | while read oPidFile
+    do
+      if [ -f "$oPidFile" ]
+      then
+        local oCmdLine=`cat "$oPidFile" 2>/dev/null`
+        if [ "$cmdline" == "$oCmdLine" ]
+        then
+          local oPid=$(echo "$oPidFile" | cut -d '/' -f 3)
+          if [ $oPid != $$ ]; then kill -9 $oPid 2>/dev/null; fi
+        fi
+      fi
+    done
+  fi
+}
+
+function ftpsyncUrlDecode() {
   echo "$1" | sed -e "s/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g" | xargs -0 echo -e
 }
 
-function getSize() {
+function ftpsyncGetSize() {
   echo $(wget -S --spider --ftp-user="$FTP_USER" --ftp-password="$FTP_PASSWORD" -O - "ftp://$FTP_HOST:$FTP_PORT$1" >&1 2>&1 | grep '^213' | awk '{print $2}')
 }
 
-function getHumanSize() {
-  echo $(getSize "$1") | awk '{ sum=$1 ; hum[1024**3]="Gb";hum[1024**2]="Mb";hum[1024]="Kb"; for (x=1024**3; x>=1024; x/=1024){ if (sum>=x) { printf "%.2f %s\n",sum/x,hum[x];break } }}'
+function ftpsyncGetHumanSize() {
+  echo $(ftpsyncGetSize "$1") | awk '{ sum=$1 ; hum[1024**3]="Gb";hum[1024**2]="Mb";hum[1024]="Kb"; for (x=1024**3; x>=1024; x/=1024){ if (sum>=x) { printf "%.2f %s\n",sum/x,hum[x];break } }}'
 }
 
-function changePerms() {
+function ftpsyncChangePerms() {
   local path="$1"
   if [ "$DL_USER" != "" ]; then chown $DL_USER:$DL_GROUP "$path"; fi
   if [ "$DL_CHMOD" != "" ]; then chmod $DL_CHMOD "$path"; fi
 }
 
-function formatSeconds() {
+function ftpsyncFormatSeconds() {
   local s=${1}
   ((h=s/3600))
   ((m=s%3600/60))
@@ -300,7 +324,7 @@ function formatSeconds() {
   echo "$h:$m:$s"
 }
 
-function rebuildPath() {
+function ftpsyncRebuildPath() {
   local path="$1"
   local len=${#path}-1
   if [ "${path:len}" != "/" ]; then path="$path/"; fi
@@ -308,17 +332,19 @@ function rebuildPath() {
   echo "$path"
 }
 
-function addLog() {
+function ftpsyncAddLog() {
   local text="$1"
   if [ ! -z "$LOG" ]; then LOG=$LOG"\n"; fi
   LOG=$LOG"$text"
 }
 
-function dualEcho() {
+function ftpsyncEcho() {
   echo -e "$1" | tee -a "$LOG_FILE"
 }
 
 ### BEGIN ###
+
+SCRIPT_NAME=$(basename "$0")
 
 # Destination folder
 DIR_DEST="$1"
@@ -333,18 +359,18 @@ if [ ! -d "$DIR_LOGS" ]; then mkdir -p "$DIR_LOGS"; fi
 LOG_FILE="$DIR_LOGS/ftp-sync-`date +%Y%m%d%H%M%S`.log"
 touch "$LOG_FILE"
 
-dualEcho "FTP Sync v1.5 (`date +"%Y/%m/%d %H:%M:%S"`)"
-dualEcho "--------------"
+ftpsyncEcho "FTP Sync v1.6 (`date +"%Y/%m/%d %H:%M:%S"`)"
+ftpsyncEcho "--------------"
 
 # Check required packages
-if [ ! -x `which awk` ]; then dualEcho "ERROR: You need awk for this script (try apt-get install awk)"; exit 1; fi
-if [ ! -x `which md5sum` ]; then dualEcho "ERROR: You need md5sum for this script (try apt-get install md5sum)"; exit 1; fi
-if [ ! -x `which nawk` ]; then dualEcho "ERROR: You need nawk for this script (try apt-get install nawk)"; exit 1; fi
-if [ ! -x `which wget` ]; then dualEcho "ERROR: You need wget for this script (try apt-get install wget)"; exit 1; fi
+if [ ! -x `which awk` ]; then ftpsyncEcho "ERROR: You need awk for this script (try apt-get install awk)"; exit 1; fi
+if [ ! -x `which md5sum` ]; then ftpsyncEcho "ERROR: You need md5sum for this script (try apt-get install md5sum)"; exit 1; fi
+if [ ! -x `which nawk` ]; then ftpsyncEcho "ERROR: You need nawk for this script (try apt-get install nawk)"; exit 1; fi
+if [ ! -x `which wget` ]; then ftpsyncEcho "ERROR: You need wget for this script (try apt-get install wget)"; exit 1; fi
 
 # Check directories
-FTP_SRC=`rebuildPath "$FTP_SRC"`
-if [ ! -d "$DIR_DEST" ]; then mkdir -p "$DIR_DEST"; fi; DIR_DEST=`rebuildPath "$DIR_DEST"`
+FTP_SRC=`ftpsyncRebuildPath "$FTP_SRC"`
+if [ ! -d "$DIR_DEST" ]; then mkdir -p "$DIR_DEST"; fi; DIR_DEST=`ftpsyncRebuildPath "$DIR_DEST"`
 
 # Check MD5 file
 if [ "$MD5_ENABLED" == "1" -a ! -z "$MD5_FILE" ]
@@ -355,23 +381,33 @@ then
 fi
 if [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" ]; then MD5_ACTIVATED=1; else MD5_ACTIVATED=0; fi
 
-# Check process already running
+# Check ftpsyncProcess already running
 currentPid=$$
 if [ -f "$PID_FILE" ]
 then
   oldPid=`cat "$PID_FILE"`
-  countProc=$(ps -p $oldPid | grep -c "$oldPid")
-  if [ $countProc -gt 0 ]
+  if [ -d "/proc/$oldPid" ]
   then
-    dualEcho "ERROR: ftp-sync already running..."
-    dualEcho "If you want to kill the process, enter : kill -9 $oldPid"
-    exit 1
+    ftpsyncEcho "ERROR: ftp-sync already running..."
+    read -t 10 -p "Do you want to kill the current process? [Y/n] : " choice
+    choice=${choice:-timeout}
+    echo -n "Do you want to kill the current process? [Y/n] : $choice" >> "$LOG_FILE"
+    case "$choice" in
+      y|Y)
+        ftpsyncKill "$oldPid";;
+      n|N)
+        exit 1;;
+      timeout)
+        echo "n"
+        exit 1;;
+    esac
+    ftpsyncEcho "--------------"
   fi
 fi
 echo $currentPid > "$PID_FILE"
 
 # Check connection
-dualEcho "Checking connection to ftp://$FTP_HOST:$FTP_PORT$FTP_SRC..."
+ftpsyncEcho "Checking connection to ftp://$FTP_HOST:$FTP_PORT$FTP_SRC..."
 wget --spider -q --tries=1 --timeout=5 --ftp-user="$FTP_USER" --ftp-password="$FTP_PASSWORD" -O - "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
 connectionExitCode="$?"
 
@@ -380,48 +416,48 @@ then
   # More infos: http://www.gnu.org/software/wget/manual/html_node/Exit-Status.html
   case "$connectionExitCode" in
     1)
-      dualEcho "ERROR: Generic error code...";;
+      ftpsyncEcho "ERROR: Generic error code...";;
     2)
-      dualEcho "ERROR: Parse error (for instance, when parsing command-line options, the '.wgetrc' or '.netrc')...";;
+      ftpsyncEcho "ERROR: Parse error (for instance, when parsing command-line options, the '.wgetrc' or '.netrc')...";;
     3)
-      dualEcho "ERROR: File I/O error...";;
+      ftpsyncEcho "ERROR: File I/O error...";;
     4)
-      dualEcho "ERROR: Network failure...";;
+      ftpsyncEcho "ERROR: Network failure...";;
     5)
-      dualEcho "ERROR: SSL verification failure...";;
+      ftpsyncEcho "ERROR: SSL verification failure...";;
     6)
-      dualEcho "ERROR: Username/password authentication failure...";;
+      ftpsyncEcho "ERROR: Username/password authentication failure...";;
     7)
-      dualEcho "ERROR: Protocol errors...";;
+      ftpsyncEcho "ERROR: Protocol errors...";;
     8)
-      dualEcho "ERROR: Server issued an error response...";;
+      ftpsyncEcho "ERROR: Server issued an error response...";;
   esac
   exit 1
 else
-  dualEcho "Successfully connected!"
-  dualEcho "--------------"
+  ftpsyncEcho "Successfully connected!"
+  ftpsyncEcho "--------------"
 fi
 
-dualEcho "Script PID: $currentPid"
-dualEcho "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
-dualEcho "Destination: $DIR_DEST"
-dualEcho "Log file: $LOG_FILE"
+ftpsyncEcho "Script PID: $currentPid"
+ftpsyncEcho "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
+ftpsyncEcho "Destination: $DIR_DEST"
+ftpsyncEcho "Log file: $LOG_FILE"
 
-if [ "$MD5_ACTIVATED" == "1" ]; then dualEcho "MD5 file: $MD5_FILE"; fi
-dualEcho "--------------"
+if [ "$MD5_ACTIVATED" == "1" ]; then ftpsyncEcho "MD5 file: $MD5_FILE"; fi
+ftpsyncEcho "--------------"
 
-# Start process
+# Start ftpsyncProcess
 starttime=$(awk 'BEGIN{srand();print srand()}')
 
 if [ -z "$DL_REGEX" ]; then DL_REGEX="^.*$;"; fi
 IFS=';' read -ra REGEX <<< "$DL_REGEX"
 for p in "${REGEX[@]}"; do
-  process "$p"
+  ftpsyncProcess "$p"
 done
 
-dualEcho "Finished..."
+ftpsyncEcho "Finished..."
 endtime=$(awk 'BEGIN{srand();print srand()}')
-dualEcho "Total time spent: `formatSeconds $(($endtime - $starttime))`"
+ftpsyncEcho "Total time spent: `ftpsyncFormatSeconds $(($endtime - $starttime))`"
 
 rm "$PID_FILE"
 
