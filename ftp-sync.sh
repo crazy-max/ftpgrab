@@ -170,18 +170,18 @@ function ftpsyncFindFiles() {
   local files=$(wget -q --ftp-user="$FTP_USER" --ftp-password="$FTP_PASSWORD" -O - "$address$path" | grep -o 'ftp:[^"]*')
   while read -r line
   do
-    local file=$(echo "$line" | sed "s#&\#32;#%20#g" | sed "s#$address# #g" | cut -c2-)
-    local basename=$(basename "$file")
-    local cleanfile="$path$basename"
-    local filedec=$(ftpsyncUrlDecode "$cleanfile")
+    local lineClean=$(echo "$line" | sed "s#&\#32;#%20#g" | sed "s#$address# #g" | cut -c2-)
+    local basename=$(basename "$lineClean")
+    local file="$path$basename"
+    local filedec=$(ftpsyncUrlDecode "$file")
     local filetr=`echo -n "$filedec" | sed -e "s#$FTP_SRC# #g" | cut -c2-`
     local vregex=`echo -n "$filetr" | sed -n "/$regex/p"`
-    if [ "${file#${file%?}}" == "/" ]
+    if [ "${lineClean#${lineClean%?}}" == "/" ]
     then
-      ftpsyncFindFiles "$file" "$regex"
+      ftpsyncFindFiles "$file/" "$regex"
     elif [ ! -z "$vregex" ]
     then
-      echo "$cleanfile"
+      echo "$file"
     fi
   done <<< "$files"
 }
