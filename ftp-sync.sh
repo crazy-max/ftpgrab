@@ -199,8 +199,8 @@ function ftpsyncProcess() {
     local starttime=$(awk 'BEGIN{srand();print srand()}')
     local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC##g" | cut -c1-`
 
-    # Start ftpsyncProcess on a file
-    ftpsyncAddLog "ftpsyncProcess file : $srcfiletr"
+    # Start process on a file
+    ftpsyncAddLog "Process file : $srcfiletr"
     local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
     ftpsyncAddLog "Hash: $srchash"
     ftpsyncAddLog "Size: $(ftpsyncGetHumanSize "$srcfile")"
