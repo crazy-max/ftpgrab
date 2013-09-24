@@ -99,6 +99,31 @@ baf87b6719e9f5499627fc8691efbd3c Burn.Notice.S06E16.VOSTFR.HDTV.XviD.avi
 
 ## Troubleshooting
 
+### awk: line 1: syntax error at or near
+
+If you have this kind of error with awk, enter this command to check your version of awk :
+```console
+$ awk -W version
+GNU Awk 3.1.7
+...
+```
+
+If you don't have GNU Awk (gawk), install it :
+```console
+$ apt-get install gawk
+```
+
+If you already have gawk installed on your system, check the location of awk and make a symbolic link to gawk :
+```console
+$ which awk
+/usr/bin/awk
+$ mv /usr/bin/awk /usr/bin/awk_
+$ chmod -x /usr/bin/awk
+$ which gawk
+/usr/bin/gawk
+$ ln -s /usr/bin/gawk /usr/bin/awk
+```
+
 ### Synology Network Attached Storage
 
 For Synology NAS, additional commands must be performed.
