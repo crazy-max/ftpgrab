@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v1.6                                                                 #
+#  FTP Sync v1.7                                                                 #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -359,7 +359,7 @@ if [ ! -d "$DIR_LOGS" ]; then mkdir -p "$DIR_LOGS"; fi
 LOG_FILE="$DIR_LOGS/ftp-sync-`date +%Y%m%d%H%M%S`.log"
 touch "$LOG_FILE"
 
-ftpsyncEcho "FTP Sync v1.6 (`date +"%Y/%m/%d %H:%M:%S"`)"
+ftpsyncEcho "FTP Sync v1.7 (`date +"%Y/%m/%d %H:%M:%S"`)"
 ftpsyncEcho "--------------"
 
 # Check required packages
@@ -454,6 +454,22 @@ IFS=';' read -ra REGEX <<< "$DL_REGEX"
 for p in "${REGEX[@]}"; do
   ftpsyncProcess "$p"
 done
+
+# Change perms
+if [ "$DL_USER" != "" ]
+then
+  ftpsyncEcho "Change the ownership recursively of 'Destination' path to $DL_USER:$DL_GROUP"
+  chown -R $DL_USER:$DL_GROUP "$DIR_DEST"
+fi
+if [ "$DL_CHMOD" != "" ]
+then
+  ftpsyncEcho "Change the access permissions recursively of 'Destination' path to $DL_CHMOD"
+  chmod -R $DL_CHMOD "$DIR_DEST"
+fi
+if [ "$DL_USER" != "" ] || [ "$DL_CHMOD" != "" ]
+then
+  ftpsyncEcho "--------------"
+fi
 
 ftpsyncEcho "Finished..."
 endtime=$(awk 'BEGIN{srand();print srand()}')
