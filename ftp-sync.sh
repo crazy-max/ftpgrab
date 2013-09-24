@@ -84,7 +84,7 @@ function ftpsyncIsDownloaded() {
   local destfile=`echo "$srcfiledec" | sed -e "s#$FTP_SRC#$DIR_DEST#g"`
   if [ -f "$destfile" ]
   then
-    local destsize=`ls -la "$destfile" | awk '{ print $5}'`
+    local destsize=`ls -la "$destfile" | awk '{print $5}'`
     if [ "$srcsize" == "$destsize" ]
     then
       echo "1"
