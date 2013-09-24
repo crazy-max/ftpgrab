@@ -10,9 +10,10 @@ Because this script only need ``wget``, it is ideal for those with a seedbox or 
 Commands :
 
 * [awk](http://en.wikipedia.org/wiki/Awk) is required.
+* [nawk](http://linux.die.net/man/1/nawk) is required.
+* [gawk](http://www.gnu.org/software/gawk/) is required.
 * [mail](http://linux.die.net/man/1/mail) is optional if you do not fill EMAIL_LOG.
 * [md5sum](http://en.wikipedia.org/wiki/Md5sum) is required.
-* [nawk](http://linux.die.net/man/1/nawk) is required.
 * [wget](http://en.wikipedia.org/wiki/Wget) is required.
 
 ## Installation

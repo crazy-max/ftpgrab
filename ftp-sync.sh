@@ -364,8 +364,9 @@ ftpsyncEcho "--------------"
 
 # Check required packages
 if [ ! -x `which awk` ]; then ftpsyncEcho "ERROR: You need awk for this script (try apt-get install awk)"; exit 1; fi
-if [ ! -x `which md5sum` ]; then ftpsyncEcho "ERROR: You need md5sum for this script (try apt-get install md5sum)"; exit 1; fi
 if [ ! -x `which nawk` ]; then ftpsyncEcho "ERROR: You need nawk for this script (try apt-get install nawk)"; exit 1; fi
+if [ ! -x `which gawk` ]; then ftpsyncEcho "ERROR: You need nawk for this script (try apt-get install gawk)"; exit 1; fi
+if [ ! -x `which md5sum` ]; then ftpsyncEcho "ERROR: You need md5sum for this script (try apt-get install md5sum)"; exit 1; fi
 if [ ! -x `which wget` ]; then ftpsyncEcho "ERROR: You need wget for this script (try apt-get install wget)"; exit 1; fi
 
 # Check directories
