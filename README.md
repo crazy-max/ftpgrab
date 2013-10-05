@@ -22,10 +22,11 @@ Execute the following commands to download the script :
 ```console
 $ cd /etc/init.d/
 $ wget https://raw.github.com/crazy-max/ftp-sync/master/ftp-sync.sh -O ftp-sync
+$ wget https://raw.github.com/crazy-max/ftp-sync/master/ftp-sync.conf -O ftp-sync.conf
 $ chmod +x ftp-sync
 ```
 
-Before running the script, you must change some vars.
+Before running the script, you must change some vars in the config file ``ftp-sync.conf``.
 
 * **FTP_HOST** - FTP host IP or domain. (e.g. 10.0.0.1 or ftp.example.com)
 * **FTP_PORT** - FTP port. (e.g. 21)
@@ -38,7 +39,7 @@ Before running the script, you must change some vars.
 * **DL_REGEX** - Apply a filter to search for files with a regular expression. Separate each regular expression with a semicolon. Leave empty to grab all files. Optional. (e.g. Game.Of.Thrones*.avi;Burn.Notice.*.avi)
 * **DL_RETRY** - Number of retries in case of failure of download. (default 3)
 * **DL_HIDE_SKIPPED** - Not display the downloads already made ​​or valid in logs. (default 0)
-* **DL_HIDE_PROGRESS** - Not display the progress dots during downloads. (default 1)
+* **DL_HIDE_PROGRESS** - Not display the progress dots during downloads. Can sometimes prevent downloading, see [Issue #3](https://github.com/crazy-max/ftp-sync/issues/3). (default 1)
 * **MD5_ENABLED** - Enable audit file already downloaded.
 * **MD5_FILE** - The audit file containing the hash of each downloaded file (default /etc/ftp-sync/ftp-sync.md5).
 * **DIR_LOGS** - Path to save ftp-sync logs. (default /etc/ftp-sync/logs)
