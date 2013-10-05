@@ -42,30 +42,7 @@
 #                                                                                #
 ##################################################################################
 
-# FTP
-FTP_HOST="10.0.0.1"
-FTP_PORT="21"
-FTP_USER=""
-FTP_PASSWORD=""
-FTP_SRC="/"
-
-# Download
-DL_USER=""
-DL_GROUP=""
-DL_CHMOD=""
-DL_REGEX=""
-DL_RETRY=3
-DL_HIDE_SKIPPED=0
-DL_HIDE_PROGRESS=1
-
-# MD5
-MD5_ENABLED=1
-MD5_FILE="/etc/ftp-sync/ftp-sync.md5"
-
-# Misc
-DIR_LOGS="/etc/ftp-sync/logs"
-EMAIL_LOG=""
-PID_FILE="/etc/ftp-sync/ftp-sync.pid"
+CONFIG_FILE="ftp-sync.conf"
 
 # No edits necessary beyond this line
 
@@ -345,6 +322,15 @@ function ftpsyncEcho() {
 ### BEGIN ###
 
 SCRIPT_NAME=$(basename "$0")
+
+# Read config file
+if [ ! -f "$CONFIG_FILE" ]
+then
+  ftpsyncEcho "ERROR: Config file $CONFIG_FILE not found..."
+  exit 1
+else
+  source "$CONFIG_FILE"
+fi
 
 # Destination folder
 DIR_DEST="$1"
