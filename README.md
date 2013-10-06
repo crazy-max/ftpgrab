@@ -14,15 +14,15 @@ Commands :
 * [gawk](http://www.gnu.org/software/gawk/) is required.
 * [mail](http://linux.die.net/man/1/mail) is optional if you do not fill EMAIL_LOG.
 * [md5sum](http://en.wikipedia.org/wiki/Md5sum) is required.
-* [wget](http://en.wikipedia.org/wiki/Wget) is required.
+* [wget](http://en.wikipedia.org/wiki/Wget) >= 1.12 is required.
 
 ## Installation
 
 Execute the following commands to download the script :
 ```console
 $ cd /etc/init.d/
-$ wget https://raw.github.com/crazy-max/ftp-sync/master/ftp-sync.sh -O ftp-sync
-$ wget https://raw.github.com/crazy-max/ftp-sync/master/ftp-sync.conf -O ftp-sync.conf
+$ wget https://raw.github.com/crazy-max/ftp-sync/master/ftp-sync.sh -O ftp-sync --no-check-certificate
+$ wget https://raw.github.com/crazy-max/ftp-sync/master/ftp-sync.conf -O ftp-sync.conf --no-check-certificate
 $ chmod +x ftp-sync
 ```
 
@@ -146,6 +146,7 @@ $ ipkg upgrade
 [coreutils](http://en.wikipedia.org/wiki/GNU_Core_Utilities) is a package containing many of the basic tools necessary for the script.
 
 ```console
+$ ipkg update
 $ ipkg install coreutils
 ```
 
@@ -154,6 +155,7 @@ $ ipkg install coreutils
 nail is a command line email client. This means it can send emails via an email server, you need to have an email server for nail to use, e.g. could be your own hosted email server, or any email account such as yahoo, gmail, and millions of others.
 
 ```console
+$ ipkg update
 $ ipkg install nail
 ```
 
@@ -176,6 +178,24 @@ Now for the script, you have to create a symbolic link.
 $ ln -s /opt/bin/nail /opt/bin/mail
 ```
 
+#### wget
+
+The current version of wget on Synology is **GNU Wget 1.10.1** (/usr/syno/bin/wget).
+You have to install at least wget 1.12 via ipkg.
+
+```console
+$ ipkg update
+$ ipkg remove wget-ssl
+$ ipkg install wget
+```
+
+Now you have to create a symbolic link.
+
+```console
+$ mv /usr/syno/bin/wget /usr/syno/bin/wget.old
+$ ln -s /opt/bin/wget /usr/syno/bin/wget
+```
+
 #### crontab
 
 ```console
@@ -183,7 +203,7 @@ $ vi /etc/crontab
 ```
 
 ```console
-0       4       *       *       *       root    /etc/init.d/ftp-sync /tmp/seedbox/ >/dev/null 2>&1
+0       4       *       *       *       root    cd /etc/init.d/ && bash ftp-sync /tmp/seedbox/ >/dev/null 2>&1
 ```
 
 ```console
