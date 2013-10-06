@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v1.7                                                                 #
+#  FTP Sync v1.8                                                                 #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -175,45 +175,50 @@ function ftpsyncProcess() {
     local srcfiledec=$(ftpsyncUrlDecode "$srcfile")
     local starttime=$(awk 'BEGIN{srand();print srand()}')
     local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC##g" | cut -c1-`
+    local destfile=`echo "$srcfiledec" | sed -e "s#$FTP_SRC#$DIR_DEST#g"`
 
-    # Start process on a file
-    ftpsyncAddLog "Process file : $srcfiletr"
-    local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
-    ftpsyncAddLog "Hash: $srchash"
-    ftpsyncAddLog "Size: $(ftpsyncGetHumanSize "$srcfile")"
+    if [ ${destfile:${#destfile} - 1} == "/" ]
+    then
+      mkdir -p "$destfile"
+    else
+      # Start process on a file
+      ftpsyncAddLog "Process file : $srcfiletr"
+      local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
+      ftpsyncAddLog "Hash: $srchash"
+      ftpsyncAddLog "Size: $(ftpsyncGetHumanSize "$srcfile")"
 
-    # Check validity
-    local dlstatus=`ftpsyncIsDownloaded "$srcfile"`
+      # Check validity
+      local dlstatus=`ftpsyncIsDownloaded "$srcfile"`
 
-    if [ ${dlstatus:0:1} -eq 0 ]
-    then
-      ftpsyncAddLog "Status : Never downloaded..."
-    elif [ ${dlstatus:0:1} -eq 1 ]
-    then
-      skipdl=1
-      ftpsyncAddLog "Status : Already downloaded and valid. Skip download..."
-    elif [ ${dlstatus:0:1} -eq 2 ]
-    then
-      ftpsyncAddLog "Status : Exists but sizes are different..."
-    elif [ ${dlstatus:0:1} -eq 3 ]
-    then
-      skipdl=1
-      ftpsyncAddLog "Status : MD5 sum exists. Skip download..."
+      if [ ${dlstatus:0:1} -eq 0 ]
+      then
+        ftpsyncAddLog "Status : Never downloaded..."
+      elif [ ${dlstatus:0:1} -eq 1 ]
+      then
+        skipdl=1
+        ftpsyncAddLog "Status : Already downloaded and valid. Skip download..."
+      elif [ ${dlstatus:0:1} -eq 2 ]
+      then
+        ftpsyncAddLog "Status : Exists but sizes are different..."
+      elif [ ${dlstatus:0:1} -eq 3 ]
+      then
+        skipdl=1
+        ftpsyncAddLog "Status : MD5 sum exists. Skip download..."
+      fi
+
+      # Check if download skipped and want to hide it in log file
+      if [ "$skipdl" == "0" ] || [ "$DL_HIDE_SKIPPED" == "0" ]; then ftpsyncEcho "$LOG"; LOG=""; fi
+
+      if [ "$skipdl" == "0" ]
+      then
+        ftpsyncDownloadFile "$srcfile" "$destfile" "$hidelog"
+      fi
+
+      # Time spent
+      local endtime=$(awk 'BEGIN{srand();print srand()}')
+      if [ -z "$LOG" ]; then ftpsyncEcho "Time spent: `ftpsyncFormatSeconds $(($endtime - $starttime))`"; fi
+      if [ -z "$LOG" ]; then ftpsyncEcho "--------------"; fi
     fi
-
-    # Check if download skipped and want to hide it in log file
-    if [ "$skipdl" == "0" ] || [ "$DL_HIDE_SKIPPED" == "0" ]; then ftpsyncEcho "$LOG"; LOG=""; fi
-
-    if [ "$skipdl" == "0" ]
-    then
-      local destfile=`echo "$srcfiledec" | sed -e "s#$FTP_SRC#$DIR_DEST#g"`
-      ftpsyncDownloadFile "$srcfile" "$destfile" "$hidelog"
-    fi
-
-    # Time spent
-    local endtime=$(awk 'BEGIN{srand();print srand()}')
-    if [ -z "$LOG" ]; then ftpsyncEcho "Time spent: `ftpsyncFormatSeconds $(($endtime - $starttime))`"; fi
-    if [ -z "$LOG" ]; then ftpsyncEcho "--------------"; fi
   done
 }
 
@@ -345,7 +350,7 @@ if [ ! -d "$DIR_LOGS" ]; then mkdir -p "$DIR_LOGS"; fi
 LOG_FILE="$DIR_LOGS/ftp-sync-`date +%Y%m%d%H%M%S`.log"
 touch "$LOG_FILE"
 
-ftpsyncEcho "FTP Sync v1.7 (`date +"%Y/%m/%d %H:%M:%S"`)"
+ftpsyncEcho "FTP Sync v1.8 (`date +"%Y/%m/%d %H:%M:%S"`)"
 ftpsyncEcho "--------------"
 
 # Check required packages
