@@ -206,9 +206,17 @@ $ vi /etc/crontab
 0       4       *       *       *       root    cd /etc/init.d/ && bash ftp-sync /tmp/seedbox/ >/dev/null 2>&1
 ```
 
+Then update crontab :
+
 ```console
 $ /usr/syno/etc.defaults/rc.d/S04crond.sh stop
 $ /usr/syno/etc.defaults/rc.d/S04crond.sh start
+```
+
+OR
+
+```console
+synoservice -restart crond
 ```
 
 ## License
