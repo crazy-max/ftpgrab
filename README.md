@@ -207,8 +207,8 @@ $ vi /etc/crontab
 ```
 
 ```console
-$ crond stop
-$ crond start
+$ /usr/syno/etc.defaults/rc.d/S04crond.sh stop
+$ /usr/syno/etc.defaults/rc.d/S04crond.sh start
 ```
 
 ## License
