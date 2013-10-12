@@ -216,7 +216,7 @@ $ /usr/syno/etc.defaults/rc.d/S04crond.sh start
 OR
 
 ```console
-synoservice -restart crond
+$ synoservice -restart crond
 ```
 
 ## License
