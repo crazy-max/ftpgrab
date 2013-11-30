@@ -39,7 +39,6 @@ Before running the script, you must change some vars in the config file ``ftp-sy
 * **DL_REGEX** - Apply a filter to search for files with a regular expression. Separate each regular expression with a semicolon. Leave empty to grab all files. Optional. For example: `Game.Of.Thrones.*.avi;Burn.Notice.*.avi;The.Big.Bang.Theory.*VOSTFR.*720p.*WEB-DL.*.mkv`
 * **DL_RETRY** - Number of retries in case of failure of download. (default 3)
 * **DL_HIDE_SKIPPED** - Not display the downloads already made ​​or valid in logs. (default 0)
-* **DL_HIDE_PROGRESS** - Not display the progress dots during downloads. Can sometimes prevent downloading, see [Issue #3](https://github.com/crazy-max/ftp-sync/issues/3). (default 1)
 * **MD5_ENABLED** - Enable audit file already downloaded.
 * **MD5_FILE** - The audit file containing the hash of each downloaded file (default /etc/ftp-sync/ftp-sync.md5).
 * **DIR_LOGS** - Path to save ftp-sync logs. (default /etc/ftp-sync/logs)

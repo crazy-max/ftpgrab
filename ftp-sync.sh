@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v1.8                                                                 #
+#  FTP Sync v1.9                                                                 #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -84,16 +84,6 @@ function ftpsyncIsDownloaded() {
   echo "0"
 }
 
-function ftpsyncIsMd5Enabled() {
-  if [ -z "$1" ]; then local skipmd5=0; else local skipmd5=1; fi
-  if [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" -a "$skipmd5" == "0" ]
-  then
-    echo "1"
-    exit 1;
-  fi
-  echo "0"
-}
-
 function ftpsyncDownloadFile() {
   local srcfile="$1"
   local srcfiledec=$(ftpsyncUrlDecode "$srcfile")
@@ -115,7 +105,7 @@ function ftpsyncDownloadFile() {
 
   # Begin download
   if [ -z "$LOG" ]; then ftpsyncEcho "Start download to $destfile... Please wait..."; fi
-  wget --progress=dot:mega --ftp-user="$FTP_USER" --ftp-password="$FTP_PASSWORD" -O "$destfile" "ftp://$FTP_HOST:$FTP_PORT$srcfile" 2>&1 | ftpsyncProgressFilter
+  wget --progress=dot:mega --ftp-user="$FTP_USER" --ftp-password="$FTP_PASSWORD" -O "$destfile" "ftp://$FTP_HOST:$FTP_PORT$srcfile" >/dev/null 2>&1
   
   local errordl="$?"
   local dlstatus=`ftpsyncIsDownloaded "$srcfile" "1"`
@@ -222,37 +212,6 @@ function ftpsyncProcess() {
   done
 }
 
-function ftpsyncProgressFilter() {
-  if [ "$DL_HIDE_PROGRESS" == "0" ]
-  then
-    local flag=2 c count cr=$'\r' nl=$'\n'
-    while IFS='' read -d '' -rn 1 c
-    do
-      if [ $flag == 1 ]
-      then
-        printf '%c' "$c"
-        if [[ "$c" =~ (s$) ]]
-        then
-          flag=0
-          echo ""
-        fi
-      elif [ $flag != 0 ]
-      then
-        if [[ $c != $cr && $c != $nl ]]
-        then
-          count=0
-        else
-          ((count++))
-          if ((count > 1))
-          then
-            flag=1
-          fi
-        fi
-      fi
-    done
-  fi
-}
-
 function ftpsyncKill() {
   local cpid="$1"
   pids="$cpid"
@@ -350,7 +309,7 @@ if [ ! -d "$DIR_LOGS" ]; then mkdir -p "$DIR_LOGS"; fi
 LOG_FILE="$DIR_LOGS/ftp-sync-`date +%Y%m%d%H%M%S`.log"
 touch "$LOG_FILE"
 
-ftpsyncEcho "FTP Sync v1.8 (`date +"%Y/%m/%d %H:%M:%S"`)"
+ftpsyncEcho "FTP Sync v1.9 (`date +"%Y/%m/%d %H:%M:%S"`)"
 ftpsyncEcho "--------------"
 
 # Check required packages
