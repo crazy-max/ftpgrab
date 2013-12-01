@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v1.9                                                                 #
+#  FTP Sync v1.91                                                                 #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -91,6 +91,7 @@ function ftpsyncDownloadFile() {
   local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
   local destfile="$2"
   local hidelog="$3"
+  local dlstatusfile="/tmp/ftpsync-$srchash.log"
 
   # Check download retry
   if [ -z "$4" ]; then local retry=0; else local retry=$4; fi
@@ -105,9 +106,31 @@ function ftpsyncDownloadFile() {
 
   # Begin download
   if [ -z "$LOG" ]; then ftpsyncEcho "Start download to $destfile... Please wait..."; fi
-  wget --progress=dot:mega --ftp-user="$FTP_USER" --ftp-password="$FTP_PASSWORD" -O "$destfile" "ftp://$FTP_HOST:$FTP_PORT$srcfile" >/dev/null 2>&1
+  if [ -f "$dlstatusfile" ]; then rm "$dlstatusfile"; fi
+  if [ "$DL_METHOD" == "curl" ]
+  then
+  	curl --stderr "$dlstatusfile" --globoff -u "$FTP_USER:$FTP_PASSWORD" "ftp://$FTP_HOST:$FTP_PORT$srcfile" -o "$destfile"
+  	local errordl="$?"
+  	if [ -z "$LOG" ]
+  	then
+  	  ftpsyncEcho ""
+  	  cat "$dlstatusfile" | sed s/\\r/\\n/g | head -n -2
+  	  cat "$dlstatusfile" | sed s/\\r/\\n/g | head -n -2 >> "$LOG_FILE"
+  	  ftpsyncEcho ""
+  	fi
+  else
+  	wget --progress=dot:mega --ftp-user="$FTP_USER" --ftp-password="$FTP_PASSWORD" -O "$destfile" -a "$dlstatusfile" "ftp://$FTP_HOST:$FTP_PORT$srcfile"
+  	local errordl="$?"
+  	if [ -z "$LOG" ]
+  	then
+  	  ftpsyncEcho ""
+  	  cat "$dlstatusfile" | sed s/\\r/\\n/g | sed -n '/\.\.\.\.\.\.\.\. /,$p' | head -n -3
+  	  cat "$dlstatusfile" | sed s/\\r/\\n/g | sed -n '/\.\.\.\.\.\.\.\. /,$p' | head -n -3 >> "$LOG_FILE"
+  	  ftpsyncEcho ""
+  	fi
+  fi
+  if [ -f "$dlstatusfile" ]; then rm "$dlstatusfile"; fi
   
-  local errordl="$?"
   local dlstatus=`ftpsyncIsDownloaded "$srcfile" "1"`
   if [ $errordl == 0 -a ${dlstatus:0:1} -eq 1 ]
   then
@@ -304,12 +327,19 @@ then
   exit 1
 fi
 
+# Check download method
+FTP_SRC=`ftpsyncRebuildPath "$FTP_SRC"`
+if [ -z "$DL_METHOD" ] || [ "$DL_METHOD" != "wget" -a "$DL_METHOD" != "curl" ]
+then
+  DL_METHOD="wget"
+fi;
+
 # Log file
 if [ ! -d "$DIR_LOGS" ]; then mkdir -p "$DIR_LOGS"; fi
 LOG_FILE="$DIR_LOGS/ftp-sync-`date +%Y%m%d%H%M%S`.log"
 touch "$LOG_FILE"
 
-ftpsyncEcho "FTP Sync v1.9 (`date +"%Y/%m/%d %H:%M:%S"`)"
+ftpsyncEcho "FTP Sync v1.91 (`date +"%Y/%m/%d %H:%M:%S"`)"
 ftpsyncEcho "--------------"
 
 # Check required packages
@@ -393,6 +423,7 @@ ftpsyncEcho "Script PID: $currentPid"
 ftpsyncEcho "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
 ftpsyncEcho "Destination: $DIR_DEST"
 ftpsyncEcho "Log file: $LOG_FILE"
+ftpsyncEcho "Download method: $DL_METHOD"
 
 if [ "$MD5_ACTIVATED" == "1" ]; then ftpsyncEcho "MD5 file: $MD5_FILE"; fi
 ftpsyncEcho "--------------"
