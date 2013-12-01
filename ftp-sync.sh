@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v1.91                                                                 #
+#  FTP Sync v1.92                                                                #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -42,7 +42,7 @@
 #                                                                                #
 ##################################################################################
 
-CONFIG_FILE="ftp-sync.conf"
+CONFIG_FILE="/etc/init.d/ftp-sync.conf"
 
 # No edits necessary beyond this line
 
@@ -313,7 +313,7 @@ SCRIPT_NAME=$(basename "$0")
 # Read config file
 if [ ! -f "$CONFIG_FILE" ]
 then
-  ftpsyncEcho "ERROR: Config file $CONFIG_FILE not found..."
+  echo "ERROR: Config file $CONFIG_FILE not found..."
   exit 1
 else
   source "$CONFIG_FILE"
@@ -339,7 +339,7 @@ if [ ! -d "$DIR_LOGS" ]; then mkdir -p "$DIR_LOGS"; fi
 LOG_FILE="$DIR_LOGS/ftp-sync-`date +%Y%m%d%H%M%S`.log"
 touch "$LOG_FILE"
 
-ftpsyncEcho "FTP Sync v1.91 (`date +"%Y/%m/%d %H:%M:%S"`)"
+ftpsyncEcho "FTP Sync v1.92 (`date +"%Y/%m/%d %H:%M:%S"`)"
 ftpsyncEcho "--------------"
 
 # Check required packages
