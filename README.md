@@ -46,6 +46,8 @@ Before running the script, you must change some vars in the config file ``ftp-sy
 * **EMAIL_LOG** - Mail address where the logs are sent. Leave empty to disable sending mail.
 * **PID_FILE** - Path to the file containing the current PID of the process.
 
+If you change the location of the config file, do not forget to change the path in the ftp-sync script file for the CONFIG_FILE var (default /etc/init.d/ftp-sync.conf).
+
 ## Usage
 
 ``$ /etc/init.d/ftp-sync <DIR_DEST>``
