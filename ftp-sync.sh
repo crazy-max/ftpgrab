@@ -22,7 +22,7 @@
 #  or a shared seedbox to synchronize with a NAS (Synology Qnap D-Link) or a     #
 #  local computer...                                                             #
 #                                                                                #
-#  Copyright (C) 2013 Cr@zy <webmaster@crazyws.fr>                               #
+#  Copyright (C) 2013-2014 Cr@zy <webmaster@crazyws.fr>                          #
 #                                                                                #
 #  FTP Sync is free software; you can redistribute it and/or modify              #
 #  it under the terms of the GNU Lesser General Public License as published by   #
