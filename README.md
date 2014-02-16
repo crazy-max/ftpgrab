@@ -150,6 +150,21 @@ $ ipkg update
 $ ipkg upgrade
 ```
 
+#### bash
+
+The default shell installed on the Synology NAS is "ASH" and here we need [bash](http://en.wikipedia.org/wiki/Bash_%28Unix_shell%29).
+
+```console
+$ ipkg update
+$ ipkg install bash
+```
+
+Now you have to create a symbolic link.
+
+```console
+$ ln -s /opt/bin/bash /usr/syno/bin/bash
+```
+
 #### coreutils
 
 [coreutils](http://en.wikipedia.org/wiki/GNU_Core_Utilities) is a package containing many of the basic tools necessary for the script.
@@ -157,6 +172,12 @@ $ ipkg upgrade
 ```console
 $ ipkg update
 $ ipkg install coreutils
+```
+
+Now you have to create a symbolic link to md5sum.
+
+```console
+$ ln -s /opt/bin/coreutils-md5sum /usr/syno/bin/md5sum
 ```
 
 #### nail
@@ -184,7 +205,7 @@ set smtp-auth-password=yourpassword
 Now for the script, you have to create a symbolic link.
 
 ```console
-$ ln -s /opt/bin/nail /opt/bin/mail
+$ ln -s /opt/bin/nail /usr/syno/bin/mail
 ```
 
 #### wget
