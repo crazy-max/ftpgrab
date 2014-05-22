@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v1.93                                                                #
+#  FTP Sync v1.94                                                                #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -51,14 +51,14 @@ CONFIG_FILE="/etc/ftp-sync/ftp-sync.conf"
 function ftpsyncIsDownloaded() {
   local srcfile="$1"
   local srcfiledec=$(ftpsyncUrlDecode "$srcfile")
-  local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC##g" | cut -c1-`
+  local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC##" | cut -c1-`
   local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
   local srcsize=$(ftpsyncGetSize "$srcfile")
 
   # Check skip MD5
   if [ -z "$2" ]; then local skipmd5=0; else local skipmd5=$2; fi
   
-  local destfile=`echo "$srcfiledec" | sed -e "s#$FTP_SRC#$DIR_DEST#g"`
+  local destfile=`echo "$srcfiledec" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
   if [ -f "$destfile" ]
   then
     local destsize=`ls -la "$destfile" | awk '{print $5}'`
@@ -87,7 +87,7 @@ function ftpsyncIsDownloaded() {
 function ftpsyncDownloadFile() {
   local srcfile="$1"
   local srcfiledec=$(ftpsyncUrlDecode "$srcfile")
-  local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC# #g" | cut -c1-`
+  local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC# #" | cut -c1-`
   local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
   local destfile="$2"
   local hidelog="$3"
@@ -164,7 +164,7 @@ function ftpsyncFindFiles() {
     local basename=$(basename "$lineClean")
     local file="$path$basename"
     local filedec=$(ftpsyncUrlDecode "$file")
-    local filetr=`echo -n "$filedec" | sed -e "s#$FTP_SRC# #g" | cut -c2-`
+    local filetr=`echo -n "$filedec" | sed -e "s#$FTP_SRC# #" | cut -c2-`
     local vregex=`echo -n "$filetr" | sed -n "/$regex/p"`
     if [ "${lineClean#${lineClean%?}}" == "/" ]
     then
@@ -187,8 +187,8 @@ function ftpsyncProcess() {
     local skipdl=0
     local srcfiledec=$(ftpsyncUrlDecode "$srcfile")
     local starttime=$(awk 'BEGIN{srand();print srand()}')
-    local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC##g" | cut -c1-`
-    local destfile=`echo "$srcfiledec" | sed -e "s#$FTP_SRC#$DIR_DEST#g"`
+    local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC##" | cut -c1-`
+    local destfile=`echo "$srcfiledec" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
 
     if [ ${destfile:${#destfile} - 1} == "/" ]
     then
