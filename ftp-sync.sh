@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v1.94                                                                #
+#  FTP Sync v1.95                                                                #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -114,8 +114,8 @@ function ftpsyncDownloadFile() {
     if [ -z "$LOG" -a "$DL_HIDE_PROGRESS" == "0" -a -f "$dlstatusfile" -a -s "$dlstatusfile" ]
     then
       ftpsyncEcho ""
-      cat "$dlstatusfile" | sed s/\\r/\\n/g | head -n -2
-      cat "$dlstatusfile" | sed s/\\r/\\n/g | head -n -2 >> "$LOG_FILE"
+      cat "$dlstatusfile" | sed '/^$/d' | head -n -2
+      cat "$dlstatusfile" | sed '/^$/d' | head -n -2 >> "$LOG_FILE"
       ftpsyncEcho ""
     fi
   else
@@ -166,7 +166,7 @@ function ftpsyncFindFiles() {
     local filedec=$(ftpsyncUrlDecode "$file")
     local filetr=`echo -n "$filedec" | sed -e "s#$FTP_SRC# #" | cut -c2-`
     local vregex=`echo -n "$filetr" | sed -n "/$regex/p"`
-    if [ "${lineClean#${lineClean%?}}" == "/" ]
+    if [[ "$lineClean" == */ ]]
     then
       ftpsyncFindFiles "$file/" "$regex"
     elif [ ! -z "$vregex" ]
@@ -339,7 +339,7 @@ if [ ! -d "$DIR_LOGS" ]; then mkdir -p "$DIR_LOGS"; fi
 LOG_FILE="$DIR_LOGS/ftp-sync-`date +%Y%m%d%H%M%S`.log"
 touch "$LOG_FILE"
 
-ftpsyncEcho "FTP Sync v1.93 (`date +"%Y/%m/%d %H:%M:%S"`)"
+ftpsyncEcho "FTP Sync v1.95 (`date +"%Y/%m/%d %H:%M:%S"`)"
 ftpsyncEcho "--------------"
 
 # Check required packages
