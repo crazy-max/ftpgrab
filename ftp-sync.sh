@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v1.95                                                                #
+#  FTP Sync v2.00                                                                #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -22,7 +22,7 @@
 #  or a shared seedbox to synchronize with a NAS (Synology Qnap D-Link) or a     #
 #  local computer...                                                             #
 #                                                                                #
-#  Copyright (C) 2013-2014 Cr@zy <webmaster@crazyws.fr>                          #
+#  Copyright (C) 2013-2015 Cr@zy <webmaster@crazyws.fr>                          #
 #                                                                                #
 #  FTP Sync is free software; you can redistribute it and/or modify              #
 #  it under the terms of the GNU Lesser General Public License as published by   #
@@ -65,20 +65,30 @@ function ftpsyncIsDownloaded() {
     if [ "$srcsize" == "$destsize" ]
     then
       echo "1"
-      if [ "$MD5_ACTIVATED" == "1" -a "$skipmd5" == "0" -a -z "`grep "^$srchash" "$MD5_FILE"`" ]
+      if [ "$MD5_ACTIVATED" == "1" -a "$skipmd5" == "0" ]
       then
-        echo "$srchash $srcfiletr" >> "$MD5_FILE"
+        if [ "$MD5_METHOD" == "text" -a -z "`grep "^$srchash" "$MD5_FILE"`" ]
+        then
+          echo "$srchash $srcfiletr" >> "$MD5_FILE"
+        elif [ "$MD5_METHOD" == "sqlite3" -a $(sqlite3 "$MD5_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$srchash' LIMIT 1)") == 0 ]
+        then
+          sqlite3 "$MD5_FILE" "INSERT INTO data (hash,filename) VALUES (\"$srchash\",\"$srcfiletr\")";
+        fi
       fi
       exit 1
     fi
     echo "2"
   elif [ "$MD5_ACTIVATED" == "1" -a "$skipmd5" == "0" ]
   then
-    cat "$MD5_FILE" | while read line
-    do
-      md5sum=`echo -n "$line" | cut -d ' ' -f 1`
-      if [ "$srchash" == "$md5sum" ]; then echo "3"; exit 1; fi
-    done
+    if [ "$MD5_METHOD" == "text" -a -z "`grep "^$srchash" "$MD5_FILE"`" ]
+    then
+      echo 3
+      exit 1
+    elif [ "$MD5_METHOD" == "sqlite3" -a $(sqlite3 "$MD5_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$srchash' LIMIT 1)") ]
+    then
+      echo 3
+      exit 1
+    fi
   fi
 
   echo "0"
@@ -136,9 +146,15 @@ function ftpsyncDownloadFile() {
   then
     if [ -z "$LOG" ]; then ftpsyncEcho "File successfully downloaded!"; fi
     ftpsyncChangePerms "$destfile"
-    if [ "$MD5_ACTIVATED" == "1" -a -z "`grep "$srchash" "$MD5_FILE"`" ]
+    if [ "$MD5_ACTIVATED" == "1" ]
     then
-      echo "$srchash $srcfiletr" >> "$MD5_FILE"
+      if [ "$MD5_METHOD" == "text" -a -z "`grep "^$srchash" "$MD5_FILE"`" ]
+      then
+        echo "$srchash $srcfiletr" >> "$MD5_FILE"
+      elif [ "$MD5_METHOD" == "sqlite3" -a $(sqlite3 "$MD5_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$srchash' LIMIT 1)") == 0 ]
+      then
+        sqlite3 "$MD5_FILE" "INSERT INTO data (hash,filename) VALUES (\"$srchash\",\"$srcfiletr\")";
+      fi
     fi
   else
     rm -rf "$destfile"
@@ -153,7 +169,7 @@ function ftpsyncDownloadFile() {
   fi
 }
 
-function ftpsyncFindFiles() {
+function ftpsyncProcess() {
   local path="$1"
   local regex="$2"
   local address="ftp://$FTP_HOST:$FTP_PORT"
@@ -162,77 +178,64 @@ function ftpsyncFindFiles() {
   do
     local lineClean=$(echo "$line" | sed "s#&\#32;#%20#g" | sed "s#$address# #g" | cut -c2-)
     local basename=$(basename "$lineClean")
-    local file="$path$basename"
-    local filedec=$(ftpsyncUrlDecode "$file")
-    local filetr=`echo -n "$filedec" | sed -e "s#$FTP_SRC# #" | cut -c2-`
-    local vregex=`echo -n "$filetr" | sed -n "/$regex/p"`
+    local srcfile="$path$basename"
+    local srcfiledec=$(ftpsyncUrlDecode "$srcfile")
+    local srcfiletrOr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC# #" | cut -c2-`
+    local vregex=`echo -n "$srcfiletrOr" | sed -n "/$regex/p"`
     if [[ "$lineClean" == */ ]]
     then
-      ftpsyncFindFiles "$file/" "$regex"
+      ftpsyncProcess "$srcfile/" "$regex"
     elif [ ! -z "$vregex" ]
     then
-      echo "$file"
+      LOG=""
+      local skipdl=0
+      local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC##" | cut -c1-`
+      local starttime=$(awk 'BEGIN{srand();print srand()}')
+      local destfile=`echo "$srcfiledec" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
+      if [ ${destfile:${#destfile} - 1} == "/" ]
+      then
+        mkdir -p "$destfile"
+      else
+        # Start process on a file
+        ftpsyncAddLog "Process file : $srcfiletr"
+        local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
+        ftpsyncAddLog "Hash: $srchash"
+        ftpsyncAddLog "Size: $(ftpsyncGetHumanSize "$srcfile")"
+        
+        # Check validity
+        local dlstatus=`ftpsyncIsDownloaded "$srcfile"`
+        
+        if [ ${dlstatus:0:1} -eq 0 ]
+        then
+          ftpsyncAddLog "Status : Never downloaded..."
+        elif [ ${dlstatus:0:1} -eq 1 ]
+        then
+          skipdl=1
+          ftpsyncAddLog "Status : Already downloaded and valid. Skip download..."
+        elif [ ${dlstatus:0:1} -eq 2 ]
+        then
+          ftpsyncAddLog "Status : Exists but sizes are different..."
+        elif [ ${dlstatus:0:1} -eq 3 ]
+        then
+          skipdl=1
+          ftpsyncAddLog "Status : MD5 sum exists. Skip download..."
+        fi
+        
+        # Check if download skipped and want to hide it in log file
+        if [ "$skipdl" == "0" ] || [ "$DL_HIDE_SKIPPED" == "0" ]; then ftpsyncEcho "$LOG"; LOG=""; fi
+        
+        if [ "$skipdl" == "0" ]
+        then
+          ftpsyncDownloadFile "$srcfile" "$destfile" "$hidelog"
+        fi
+        
+        # Time spent
+        local endtime=$(awk 'BEGIN{srand();print srand()}')
+        if [ -z "$LOG" ]; then ftpsyncEcho "Time spent: `ftpsyncFormatSeconds $(($endtime - $starttime))`"; fi
+        if [ -z "$LOG" ]; then ftpsyncEcho "--------------"; fi
+      fi
     fi
   done <<< "$files"
-}
-
-function ftpsyncProcess() {
-  local regex="$1"
-  ftpsyncEcho "Finding files..."
-  ftpsyncEcho "Regex: $regex"
-  ftpsyncEcho "--------------"
-  ftpsyncFindFiles "$FTP_SRC" "$regex" | sort | while read srcfile
-  do
-    LOG=""
-    local skipdl=0
-    local srcfiledec=$(ftpsyncUrlDecode "$srcfile")
-    local starttime=$(awk 'BEGIN{srand();print srand()}')
-    local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC##" | cut -c1-`
-    local destfile=`echo "$srcfiledec" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
-
-    if [ ${destfile:${#destfile} - 1} == "/" ]
-    then
-      mkdir -p "$destfile"
-    else
-      # Start process on a file
-      ftpsyncAddLog "Process file : $srcfiletr"
-      local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
-      ftpsyncAddLog "Hash: $srchash"
-      ftpsyncAddLog "Size: $(ftpsyncGetHumanSize "$srcfile")"
-
-      # Check validity
-      local dlstatus=`ftpsyncIsDownloaded "$srcfile"`
-
-      if [ ${dlstatus:0:1} -eq 0 ]
-      then
-        ftpsyncAddLog "Status : Never downloaded..."
-      elif [ ${dlstatus:0:1} -eq 1 ]
-      then
-        skipdl=1
-        ftpsyncAddLog "Status : Already downloaded and valid. Skip download..."
-      elif [ ${dlstatus:0:1} -eq 2 ]
-      then
-        ftpsyncAddLog "Status : Exists but sizes are different..."
-      elif [ ${dlstatus:0:1} -eq 3 ]
-      then
-        skipdl=1
-        ftpsyncAddLog "Status : MD5 sum exists. Skip download..."
-      fi
-
-      # Check if download skipped and want to hide it in log file
-      if [ "$skipdl" == "0" ] || [ "$DL_HIDE_SKIPPED" == "0" ]; then ftpsyncEcho "$LOG"; LOG=""; fi
-
-      if [ "$skipdl" == "0" ]
-      then
-        ftpsyncDownloadFile "$srcfile" "$destfile" "$hidelog"
-      fi
-
-      # Time spent
-      local endtime=$(awk 'BEGIN{srand();print srand()}')
-      if [ -z "$LOG" ]; then ftpsyncEcho "Time spent: `ftpsyncFormatSeconds $(($endtime - $starttime))`"; fi
-      if [ -z "$LOG" ]; then ftpsyncEcho "--------------"; fi
-    fi
-  done
 }
 
 function ftpsyncKill() {
@@ -332,14 +335,17 @@ FTP_SRC=`ftpsyncRebuildPath "$FTP_SRC"`
 if [ -z "$DL_METHOD" ] || [ "$DL_METHOD" != "wget" -a "$DL_METHOD" != "curl" ]
 then
   DL_METHOD="wget"
-fi;
+fi
+
+# Run dir
+if [ ! -d "$DIR_RUN" ]; then mkdir -p "$DIR_RUN"; fi
 
 # Log file
 if [ ! -d "$DIR_LOGS" ]; then mkdir -p "$DIR_LOGS"; fi
-LOG_FILE="$DIR_LOGS/ftp-sync-`date +%Y%m%d%H%M%S`.log"
+LOG_FILE="$DIR_LOGS/`date +%Y%m%d%H%M%S`.log"
 touch "$LOG_FILE"
 
-ftpsyncEcho "FTP Sync v1.95 (`date +"%Y/%m/%d %H:%M:%S"`)"
+ftpsyncEcho "FTP Sync v2.00 (`date +"%Y/%m/%d %H:%M:%S"`)"
 ftpsyncEcho "--------------"
 
 # Check required packages
@@ -348,6 +354,17 @@ if [ ! -x `which nawk` ]; then ftpsyncEcho "ERROR: You need nawk for this script
 if [ ! -x `which gawk` ]; then ftpsyncEcho "ERROR: You need nawk for this script (try apt-get install gawk)"; exit 1; fi
 if [ ! -x `which md5sum` ]; then ftpsyncEcho "ERROR: You need md5sum for this script (try apt-get install md5sum)"; exit 1; fi
 if [ ! -x `which wget` ]; then ftpsyncEcho "ERROR: You need wget for this script (try apt-get install wget)"; exit 1; fi
+
+# Check MD5 method
+if [ -z "$MD5_METHOD" ] || [ "$MD5_METHOD" != "text" -a "$MD5_METHOD" != "sqlite3" ]
+then
+  MD5_METHOD="text"
+  MD5_FILE="$DIR_RUN/ftp-sync.txt"
+elif [ "$MD5_METHOD" == "sqlite3" ]
+then
+  if [ ! -x `which sqlite3` ]; then ftpsyncEcho "ERROR: You need sqlite3 for this script (try apt-get install sqlite3)"; exit 1; fi
+  MD5_FILE="$DIR_RUN/ftp-sync.db"
+fi
 
 # Check directories
 FTP_SRC=`ftpsyncRebuildPath "$FTP_SRC"`
@@ -361,6 +378,13 @@ then
   if [ ! -f "$MD5_FILE" ]; then touch "$MD5_FILE"; fi
 fi
 if [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" ]; then MD5_ACTIVATED=1; else MD5_ACTIVATED=0; fi
+
+# Init sqlite database
+if [ "$MD5_METHOD" == "sqlite3" -a ! -s "$MD5_FILE" ]; then
+  echo "CREATE TABLE data (id INTEGER PRIMARY KEY,hash TEXT,filename TEXT);" > "$DIR_RUN/ftp-sync.struct"
+  sqlite3 "$MD5_FILE" < "$DIR_RUN/ftp-sync.struct";
+  rm -f "$DIR_RUN/ftp-sync.struct"
+fi
 
 # Check ftpsyncProcess already running
 currentPid=$$
@@ -424,6 +448,7 @@ ftpsyncEcho "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
 ftpsyncEcho "Destination: $DIR_DEST"
 ftpsyncEcho "Log file: $LOG_FILE"
 ftpsyncEcho "Download method: $DL_METHOD"
+ftpsyncEcho "MD5 method: $MD5_METHOD"
 
 if [ "$MD5_ACTIVATED" == "1" ]; then ftpsyncEcho "MD5 file: $MD5_FILE"; fi
 ftpsyncEcho "--------------"
@@ -434,7 +459,7 @@ starttime=$(awk 'BEGIN{srand();print srand()}')
 if [ -z "$DL_REGEX" ]; then DL_REGEX="^.*$;"; fi
 IFS=';' read -ra REGEX <<< "$DL_REGEX"
 for p in "${REGEX[@]}"; do
-  ftpsyncProcess "$p"
+  ftpsyncProcess "$FTP_SRC" "$p"
 done
 
 # Change perms
@@ -457,7 +482,7 @@ ftpsyncEcho "Finished..."
 endtime=$(awk 'BEGIN{srand();print srand()}')
 ftpsyncEcho "Total time spent: `ftpsyncFormatSeconds $(($endtime - $starttime))`"
 
-rm "$PID_FILE"
+rm -f "$PID_FILE"
 
 # Send logs
 if [ ! -z "$EMAIL_LOG" ]; then cat "$LOG_FILE" | mail -s "ftp-sync on $(hostname)" $EMAIL_LOG; fi
