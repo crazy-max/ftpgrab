@@ -4,6 +4,7 @@ A shell script to synchronize files between a remote FTP server and your local s
 A file containing the MD5 hash of the name of each downloaded file will prevent re-download a file even if it is not present in the destination directory.<br />
 You can also apply a filter to search for files with a regular expression.<br />
 Because this script only need ``wget``, it is ideal for those with a seedbox or a shared seedbox to synchronize with a NAS (Synology Qnap D-Link) or a local computer...
+If you use the MD5_METHOD called sqlite3, the process performance will be improved! (see Installation chapter)
 
 ## Requirements
 
@@ -15,6 +16,7 @@ Commands :
 * [mail](http://linux.die.net/man/1/mail) is optional if you do not fill EMAIL_LOG.
 * [md5sum](http://en.wikipedia.org/wiki/Md5sum) is required.
 * [wget](http://en.wikipedia.org/wiki/Wget) >= 1.12 is required.
+* [sqlite3](http://linux.die.net/man/1/sqlite3) is optional if you do not fill MD5_METHOD with sqlite3.
 
 ## Installation
 
@@ -29,11 +31,17 @@ $ wget https://raw.github.com/crazy-max/ftp-sync/master/ftp-sync.conf -O /etc/ft
 
 Before running the script, you must change some vars in the config file ``/etc/ftp-sync/ftp-sync.conf``.
 
+* **DIR_RUN** - Run path. (default /var/run/ftp-sync)
+* **DIR_LOGS** - Path to save ftp-sync logs. (default /var/log/ftp-sync)
+* **PID_FILE** - Path to the file containing the current PID of the process. (default /var/run/ftp-sync.pid)
+* **EMAIL_LOG** - Mail address where the logs are sent. Leave empty to disable sending mail.
+<br /><br />
 * **FTP_HOST** - FTP host IP or domain. (e.g. 10.0.0.1 or ftp.example.com)
 * **FTP_PORT** - FTP port. (e.g. 21)
 * **FTP_USER** - FTP username.
 * **FTP_PASSWORD** - FTP password.
 * **FTP_SRC** - FTP path to synchronize.
+<br /><br />
 * **DL_USER** - Linux owner user of downloaded files. Optional.
 * **DL_GROUP** - Linux owner group of downloaded files. Optional.
 * **DL_CHMOD** - Permissions of downloaded files. Optional. (e.g. 644)
@@ -42,12 +50,11 @@ Before running the script, you must change some vars in the config file ``/etc/f
 * **DL_METHOD** - The download method. Can be wget or curl. (default wget)
 * **DL_HIDE_SKIPPED** - Not display the downloads already made or valid in logs. (default 0)
 * **DL_HIDE_PROGRESS** - Not display the progress dots during downloads. (default 1)
+<br /><br />
 * **MD5_ENABLED** - Enable audit file already downloaded.
-* **MD5_FILE** - The audit file containing the hash of each downloaded file (default /etc/ftp-sync/ftp-sync.md5).
-* **DIR_LOGS** - Path to save ftp-sync logs. (default /etc/ftp-sync/logs)
-* **EMAIL_LOG** - Mail address where the logs are sent. Leave empty to disable sending mail.
-* **PID_FILE** - Path to the file containing the current PID of the process.
+* **MD5_METHOD** - The MD5 process method. Can be text or sqlite3. (default text)
 
+Fot the sqlite3 MD5_METHOD, your need to install the required package: ``apt-get install sqlite3``.
 If you change the location of the config file, do not forget to change the path in the ftp-sync script file for the CONFIG_FILE var (default /etc/ftp-sync/ftp-sync.conf).
 
 ## Usage
