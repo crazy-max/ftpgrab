@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v2.01                                                                #
+#  FTP Sync v2.02                                                                #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -80,11 +80,11 @@ function ftpsyncIsDownloaded() {
     echo "2"
   elif [ "$MD5_ACTIVATED" == "1" -a "$skipmd5" == "0" ]
   then
-    if [ "$MD5_METHOD" == "text" -a -z "`grep "^$srchash" "$MD5_FILE"`" ]
+    if [ "$MD5_METHOD" == "text" -a ! -z "`grep "^$srchash" "$MD5_FILE"`" ]
     then
       echo 3
       exit 1
-    elif [ "$MD5_METHOD" == "sqlite3" -a $(sqlite3 "$MD5_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$srchash' LIMIT 1)") == 0 ]
+    elif [ "$MD5_METHOD" == "sqlite3" -a $(sqlite3 "$MD5_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$srchash' LIMIT 1)") == 1 ]
     then
       echo 3
       exit 1
@@ -345,7 +345,7 @@ if [ ! -d "$DIR_LOGS" ]; then mkdir -p "$DIR_LOGS"; fi
 LOG_FILE="$DIR_LOGS/`date +%Y%m%d%H%M%S`.log"
 touch "$LOG_FILE"
 
-ftpsyncEcho "FTP Sync v2.01 (`date +"%Y/%m/%d %H:%M:%S"`)"
+ftpsyncEcho "FTP Sync v2.02 (`date +"%Y/%m/%d %H:%M:%S"`)"
 ftpsyncEcho "--------------"
 
 # Check required packages
