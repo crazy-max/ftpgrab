@@ -3,7 +3,7 @@
 A shell script to synchronize files between a remote FTP server and your local server/computer.<br />
 A file containing the MD5 hash of the name of each downloaded file will prevent re-download a file even if it is not present in the destination directory.<br />
 You can also apply a filter to search for files with a regular expression.<br />
-Because this script only need ``wget``, it is ideal for those with a seedbox or a shared seedbox to synchronize with a NAS (Synology Qnap D-Link) or a local computer...
+Because this script only need ``wget``, it is ideal for those with a seedbox or a shared seedbox to synchronize with a NAS (Synology Qnap D-Link) or a local computer...<br />
 If you use the MD5_METHOD called sqlite3, the process performance will be improved! (see Installation chapter)
 
 ## Requirements
@@ -31,8 +31,7 @@ $ wget https://raw.github.com/crazy-max/ftp-sync/master/ftp-sync.conf -O /etc/ft
 
 Before running the script, you must change some vars in the config file ``/etc/ftp-sync/ftp-sync.conf``.
 
-* **DIR_RUN** - Run path. (default /var/run/ftp-sync)
-* **DIR_LOGS** - Path to save ftp-sync logs. (default /var/log/ftp-sync)
+* **LOGS_DIR** - Path to save ftp-sync logs. (default /var/log/ftp-sync)
 * **PID_FILE** - Path to the file containing the current PID of the process. (default /var/run/ftp-sync.pid)
 * **EMAIL_LOG** - Mail address where the logs are sent. Leave empty to disable sending mail.
 <br /><br />
@@ -53,8 +52,9 @@ Before running the script, you must change some vars in the config file ``/etc/f
 <br /><br />
 * **MD5_ENABLED** - Enable audit file already downloaded.
 * **MD5_METHOD** - The MD5 process method. Can be text or sqlite3. (default text)
+* **MD5_DIR** - Path where MD5 checksums are stored. (default /etc/ftp-sync)
 
-Fot the sqlite3 MD5_METHOD, your need to install the required package: ``apt-get install sqlite3``.
+Fot the sqlite3 MD5_METHOD, your need to install the required package: ``apt-get install sqlite3``.<br />
 If you change the location of the config file, do not forget to change the path in the ftp-sync script file for the CONFIG_FILE var (default /etc/ftp-sync/ftp-sync.conf).
 
 ## Usage
@@ -66,7 +66,7 @@ e.g. ``$ /etc/init.d/ftp-sync /tmp/seedbox/``
 
 ## Automatic sync with cron
 
-You can automatically synchronize FTP files by calling the script in a [crontab](http://en.wikipedia.org/wiki/Crontab).
+You can automatically synchronize FTP files by calling the script in a [crontab](http://en.wikipedia.org/wiki/Crontab).<br />
 For example :
 
     0 4 * * * cd /etc/init.d/ && ./ftp-sync /tmp/seedbox/ >/dev/null 2>&1
@@ -75,7 +75,7 @@ This will synchronize your FTP files with the directory ``/tmp/seedbox/`` every 
 
 ## Logs
 
-Each time the script is executed, a log file is created.
+Each time the script is executed, a log file is created.<br />
 Here is an example :
 
 ```console
@@ -148,7 +148,7 @@ For Synology NAS, additional commands must be performed.
 
 #### bootstrap, ipkg
 
-First you must [install bootstrap, ipkg following the wiki of the official website](http://forum.synology.com/wiki/index.php/Overview_on_modifying_the_Synology_Server,_bootstrap,_ipkg_etc#How_to_install_ipkg).
+First you must [install bootstrap, ipkg following the wiki of the official website](http://forum.synology.com/wiki/index.php/Overview_on_modifying_the_Synology_Server,_bootstrap,_ipkg_etc#How_to_install_ipkg).<br />
 Next you can test ipkg and upgrade the repository.
 
 ```console
@@ -196,7 +196,7 @@ $ ipkg update
 $ ipkg install nail
 ```
 
-Here is an example to configure it with your gmail account.
+Here is an example to configure it with your gmail account.<br />
 Open the nail config ``/opt/etc/nail.rc`` file with your favorite editor and add/edit the following parameters.
 
 ```console
@@ -217,7 +217,7 @@ $ ln -s /opt/bin/nail /usr/syno/bin/mail
 
 #### wget
 
-The current version of wget on Synology is **GNU Wget 1.10.1** (/usr/syno/bin/wget).
+The current version of wget on Synology is **GNU Wget 1.10.1** (/usr/syno/bin/wget).<br />
 You have to install at least wget 1.12 via ipkg.
 
 ```console
