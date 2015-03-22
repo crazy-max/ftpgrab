@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v2.02                                                                #
+#  FTP Sync v2.03                                                                #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -337,15 +337,15 @@ then
   DL_METHOD="wget"
 fi
 
-# Run dir
-if [ ! -d "$DIR_RUN" ]; then mkdir -p "$DIR_RUN"; fi
+# MD5 dir
+if [ ! -d "$MD5_DIR" ]; then mkdir -p "$MD5_DIR"; fi
 
 # Log file
-if [ ! -d "$DIR_LOGS" ]; then mkdir -p "$DIR_LOGS"; fi
-LOG_FILE="$DIR_LOGS/`date +%Y%m%d%H%M%S`.log"
+if [ ! -d "$LOGS_DIR" ]; then mkdir -p "$LOGS_DIR"; fi
+LOG_FILE="$LOGS_DIR/`date +%Y%m%d%H%M%S`.log"
 touch "$LOG_FILE"
 
-ftpsyncEcho "FTP Sync v2.02 (`date +"%Y/%m/%d %H:%M:%S"`)"
+ftpsyncEcho "FTP Sync v2.03 (`date +"%Y/%m/%d %H:%M:%S"`)"
 ftpsyncEcho "--------------"
 
 # Check required packages
@@ -359,11 +359,11 @@ if [ ! -x `which wget` ]; then ftpsyncEcho "ERROR: You need wget for this script
 if [ -z "$MD5_METHOD" ] || [ "$MD5_METHOD" != "text" -a "$MD5_METHOD" != "sqlite3" ]
 then
   MD5_METHOD="text"
-  MD5_FILE="$DIR_RUN/ftp-sync.txt"
+  MD5_FILE="$MD5_DIR/ftp-sync.txt"
 elif [ "$MD5_METHOD" == "sqlite3" ]
 then
   if [ ! -x `which sqlite3` ]; then ftpsyncEcho "ERROR: You need sqlite3 for this script (try apt-get install sqlite3)"; exit 1; fi
-  MD5_FILE="$DIR_RUN/ftp-sync.db"
+  MD5_FILE="$MD5_DIR/ftp-sync.db"
 fi
 
 # Check directories
@@ -381,9 +381,9 @@ if [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" ]; then MD5_ACTIVATED=1; else MD5_A
 
 # Init sqlite database
 if [ "$MD5_METHOD" == "sqlite3" -a ! -s "$MD5_FILE" ]; then
-  echo "CREATE TABLE data (id INTEGER PRIMARY KEY,hash TEXT,filename TEXT);" > "$DIR_RUN/ftp-sync.struct"
-  sqlite3 "$MD5_FILE" < "$DIR_RUN/ftp-sync.struct";
-  rm -f "$DIR_RUN/ftp-sync.struct"
+  echo "CREATE TABLE data (id INTEGER PRIMARY KEY,hash TEXT,filename TEXT);" > "$MD5_DIR/ftp-sync.struct"
+  sqlite3 "$MD5_FILE" < "$MD5_DIR/ftp-sync.struct";
+  rm -f "$MD5_DIR/ftp-sync.struct"
 fi
 
 # Check ftpsyncProcess already running
