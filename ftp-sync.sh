@@ -10,11 +10,11 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v2.03                                                                #
+#  FTP Sync v3.0                                                                 #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
-#  A file containing the MD5 hash of the name of each downloaded file will       #
+#  A file containing the hash of the name of each downloaded file will           #
 #  prevent re-download a file even if it is not present in the destination       #
 #  directory.                                                                    #
 #  You can also apply a filter to search for files with a regular expression.    #
@@ -22,7 +22,7 @@
 #  or a shared seedbox to synchronize with a NAS (Synology Qnap D-Link) or a     #
 #  local computer...                                                             #
 #                                                                                #
-#  Copyright (C) 2013-2015 Cr@zy <webmaster@crazyws.fr>                          #
+#  Copyright (C) 2013-2016 Cr@zy <webmaster@crazyws.fr>                          #
 #                                                                                #
 #  FTP Sync is free software; you can redistribute it and/or modify              #
 #  it under the terms of the GNU Lesser General Public License as published by   #
@@ -49,62 +49,94 @@ CONFIG_FILE="/etc/ftp-sync/ftp-sync.conf"
 ### FUNCTIONS ###
 
 function ftpsyncIsDownloaded() {
-  local srcfile="$1"
-  local srcfiledec=$(ftpsyncUrlDecode "$srcfile")
-  local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC##" | cut -c1-`
-  local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
-  local srcsize=$(ftpsyncGetSize "$srcfile")
+  local srcfileproc="$1"
+  local srcfile="$2"
+  if [ "$DL_METHOD" == "curl" ]
+  then
+    local srcfileshort=`echo -n "$srcfile" | sed -e "s#$FTP_SRC##" | cut -c1-`
+    local srcfileshort2=`echo -n "$srcfile" | sed -e "s#$FTP_SRC# #" | cut -c2-`
+    local destfile=`echo "$srcfile" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
+  else
+    local srcfileshort=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC##" | cut -c1-`
+    local srcfileshort2=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC# #" | cut -c2-`
+    local destfile=`echo "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
+  fi
+  local srchash=`echo -n "$srcfileshort" | $HASH_CMD - | cut -d ' ' -f 1`
+  local srcsize=$(ftpsyncGetSize "$srcfileproc")
 
-  # Check skip MD5
-  if [ -z "$2" ]; then local skipmd5=0; else local skipmd5=$2; fi
+  # Check skip hash
+  if [ -z "$3" ]; then local skiphash=0; else local skiphash=$3; fi
   
-  local destfile=`echo "$srcfiledec" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
   if [ -f "$destfile" ]
   then
     local destsize=`ls -la "$destfile" | awk '{print $5}'`
     if [ "$srcsize" == "$destsize" ]
     then
-      echo "1"
-      if [ "$MD5_ACTIVATED" == "1" -a "$skipmd5" == "0" ]
+      if [ "$HASH_ACTIVATED" == "1" ] && [ "$skiphash" == "0" ]
       then
-        if [ "$MD5_METHOD" == "text" -a -z "`grep "^$srchash" "$MD5_FILE"`" ]
+        if [ "$HASH_STORAGE" == "text" ] && [ -z "`grep "^$srchash" "$HASH_FILE"`" ]
         then
-          echo "$srchash $srcfiletr" >> "$MD5_FILE"
-        elif [ "$MD5_METHOD" == "sqlite3" -a $(sqlite3 "$MD5_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$srchash' LIMIT 1)") == 0 ]
+          echo "$srchash $srcfileshort" >> "$HASH_FILE"
+        elif [ "$HASH_STORAGE" == "sqlite3" ] && [ $(sqlite3 "$HASH_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$srchash' LIMIT 1)") == 0 ]
         then
-          sqlite3 "$MD5_FILE" "INSERT INTO data (hash,filename) VALUES (\"$srchash\",\"$srcfiletr\")";
+          sqlite3 "$HASH_FILE" "INSERT INTO data (hash,filename) VALUES (\"$srchash\",\"$srcfileshort\")";
         fi
       fi
+      echo $FILE_STATUS_SIZE_EQUAL
       exit 1
     fi
-    echo "2"
-  elif [ "$MD5_ACTIVATED" == "1" -a "$skipmd5" == "0" ]
+    echo $FILE_STATUS_SIZE_DIFF
+    exit 1
+  elif [ "$HASH_ACTIVATED" == "1" ] && [ "$skiphash" == "0" ]
   then
-    if [ "$MD5_METHOD" == "text" -a ! -z "`grep "^$srchash" "$MD5_FILE"`" ]
+    if [ "$HASH_STORAGE" == "text" ] && [ ! -z "`grep "^$srchash" "$HASH_FILE"`" ]
     then
-      echo 3
+      echo $FILE_STATUS_HASH_EXISTS
       exit 1
-    elif [ "$MD5_METHOD" == "sqlite3" -a $(sqlite3 "$MD5_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$srchash' LIMIT 1)") == 1 ]
+    elif [ "$HASH_STORAGE" == "sqlite3" ] && [ $(sqlite3 "$HASH_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$srchash' LIMIT 1)") == 1 ]
     then
-      echo 3
+      echo $FILE_STATUS_HASH_EXISTS
       exit 1
     fi
   fi
 
-  echo "0"
+  echo $FILE_STATUS_NEVER_DL
+  exit 1
 }
 
 function ftpsyncDownloadFile() {
-  local srcfile="$1"
-  local srcfiledec=$(ftpsyncUrlDecode "$srcfile")
-  local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC# #" | cut -c1-`
-  local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
-  local destfile="$2"
-  local hidelog="$3"
+  local srcfileproc="$1"
+  local srcfile="$2"
+  if [ "$DL_METHOD" == "curl" ]
+  then
+    local srcfileshort=`echo -n "$srcfile" | sed -e "s#$FTP_SRC##" | cut -c1-`
+    local srcfileshort2=`echo -n "$srcfile" | sed -e "s#$FTP_SRC# #" | cut -c2-`
+    local destfile=`echo "$srcfile" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
+  else
+    local srcfileshort=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC##" | cut -c1-`
+    local srcfileshort2=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC# #" | cut -c2-`
+    local destfile=`echo "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
+  fi
+  local srchash=`echo -n "$srcfileshort" | $HASH_CMD - | cut -d ' ' -f 1`
+  local destfile="$3"
+  local hidelog="$4"
+  local resume="$5"
   local dlstatusfile="/tmp/ftpsync-$srchash.log"
-
+  
+  # Check download resume
+  local resumeCmd=""
+  if [ "$resume" == "1" ]
+  then
+    if [ "$DL_METHOD" == "curl" ]
+    then
+      resumeCmd=" --continue-at -"
+    else
+      resumeCmd=" --continue"
+    fi
+  fi
+  
   # Check download retry
-  if [ -z "$4" ]; then local retry=0; else local retry=$4; fi
+  if [ -z "$6" ]; then local retry=0; else local retry=$6; fi
 
   # Create destfile path if does not exist
   local destpath="${destfile%/*}"
@@ -119,9 +151,10 @@ function ftpsyncDownloadFile() {
   if [ -f "$dlstatusfile" ]; then rm "$dlstatusfile"; fi
   if [ "$DL_METHOD" == "curl" ]
   then
-    curl --stderr "$dlstatusfile" --globoff -u "$FTP_USER:$FTP_PASSWORD" "ftp://$FTP_HOST:$FTP_PORT$srcfile" -o "$destfile"
+    ftpsyncDebug "Download command: curl $FTP_CURL_HIDECREDS$resumeCmd \"ftp://$FTP_HOST:$FTP_PORT$srcfileproc\" -o \"$destfile\""
+    curl --stderr "$dlstatusfile" $FTP_CURL$resumeCmd "ftp://$FTP_HOST:$FTP_PORT$srcfileproc" -o "$destfile"
     local errordl="$?"
-    if [ -z "$LOG" -a "$DL_HIDE_PROGRESS" == "0" -a -f "$dlstatusfile" -a -s "$dlstatusfile" ]
+    if [ -z "$LOG" ] && [ "$DL_HIDE_PROGRESS" == "0" -a -f "$dlstatusfile" -a -s "$dlstatusfile" ]
     then
       ftpsyncEcho ""
       cat "$dlstatusfile" | sed '/^$/d' | head -n -2
@@ -129,9 +162,10 @@ function ftpsyncDownloadFile() {
       ftpsyncEcho ""
     fi
   else
-    wget --progress=dot:mega --ftp-user="$FTP_USER" --ftp-password="$FTP_PASSWORD" -O "$destfile" -a "$dlstatusfile" "ftp://$FTP_HOST:$FTP_PORT$srcfile"
+    ftpsyncDebug "Download command: wget --progress=dot:mega $FTP_WGET_HIDECREDS$resumeCmd -O \"$destfile\" \"ftp://$FTP_HOST:$FTP_PORT$srcfileproc\""
+    wget --progress=dot:mega $FTP_WGET$resumeCmd -O "$destfile" -a "$dlstatusfile" "ftp://$FTP_HOST:$FTP_PORT$srcfileproc"
     local errordl="$?"
-    if [ -z "$LOG" -a "$DL_HIDE_PROGRESS" == "0" -a -f "$dlstatusfile" -a -s "$dlstatusfile" ]
+    if [ -z "$LOG" ] && [ "$DL_HIDE_PROGRESS" == "0" -a -f "$dlstatusfile" -a -s "$dlstatusfile" ]
     then
       ftpsyncEcho ""
       cat "$dlstatusfile" | sed s/\\r/\\n/g | sed '/\.\.\.\.\.\.\.\. /!d'
@@ -141,19 +175,19 @@ function ftpsyncDownloadFile() {
   fi
   if [ -f "$dlstatusfile" ]; then rm "$dlstatusfile"; fi
   
-  local dlstatus=`ftpsyncIsDownloaded "$srcfile" "1"`
-  if [ $errordl == 0 -a ${dlstatus:0:1} -eq 1 ]
+  local dlstatus=`ftpsyncIsDownloaded "$srcfileproc" "$srcfile" "1"`
+  if [ $errordl == 0 -a ${dlstatus:0:1} -eq $FILE_STATUS_SIZE_EQUAL ]
   then
     if [ -z "$LOG" ]; then ftpsyncEcho "File successfully downloaded!"; fi
     ftpsyncChangePerms "$destfile"
-    if [ "$MD5_ACTIVATED" == "1" ]
+    if [ "$HASH_ACTIVATED" == "1" ]
     then
-      if [ "$MD5_METHOD" == "text" -a -z "`grep "^$srchash" "$MD5_FILE"`" ]
+      if [ "$HASH_STORAGE" == "text" ] && [ -z "`grep "^$srchash" "$HASH_FILE"`" ]
       then
-        echo "$srchash $srcfiletr" >> "$MD5_FILE"
-      elif [ "$MD5_METHOD" == "sqlite3" -a $(sqlite3 "$MD5_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$srchash' LIMIT 1)") == 0 ]
+        echo "$srchash $srcfileshort" >> "$HASH_FILE"
+      elif [ "$HASH_STORAGE" == "sqlite3" ] && [ $(sqlite3 "$HASH_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$srchash' LIMIT 1)") == 0 ]
       then
-        sqlite3 "$MD5_FILE" "INSERT INTO data (hash,filename) VALUES (\"$srchash\",\"$srcfiletr\")";
+        sqlite3 "$HASH_FILE" "INSERT INTO data (hash,filename) VALUES (\"$srchash\",\"$srcfileshort\")";
       fi
     fi
   else
@@ -162,7 +196,7 @@ function ftpsyncDownloadFile() {
     then
       retry=`expr $retry + 1`
       if [ -z "$LOG" ]; then ftpsyncEcho "ERROR $errordl${dlstatus:0:1}: Download failed... retry $retry/3"; fi
-      ftpsyncDownloadFile "$srcfile" "$destfile" "$hidelog" "$retry"
+      ftpsyncDownloadFile "$srcfileproc" "$srcfile" "$destfile" "$hidelog" "$resume" "$retry"
     else
       if [ -z "$LOG" ]; then ftpsyncEcho "ERROR $errordl${dlstatus:0:1}: Download failed and too many retries..."; fi
     fi
@@ -173,15 +207,59 @@ function ftpsyncProcess() {
   local path="$1"
   local regex="$2"
   local address="ftp://$FTP_HOST:$FTP_PORT"
-  local files=$(wget -q --ftp-user="$FTP_USER" --ftp-password="$FTP_PASSWORD" -O - "$address$path" | grep -o 'ftp:[^"]*')
+  if [ "$DL_METHOD" == "curl" ]
+  then
+    local files=$(curl --silent --list-only $FTP_CURL "$address$path")
+  else
+    local files=$(wget -q $FTP_WGET -O - "$address$path" | grep -o 'ftp:[^"]*')
+  fi
   while read -r line
   do
-    local lineClean=$(echo "$line" | sed "s#&\#32;#%20#g" | sed "s#$address# #g" | cut -c2-)
-    local basename=$(basename "$lineClean")
-    local srcfile="$path$basename"
-    local srcfiledec=$(ftpsyncUrlDecode "$srcfile")
-    local srcfiletrOr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC# #" | cut -c2-`
-    local vregex=`echo -n "$srcfiletrOr" | sed -n "/$regex/p"`
+    if [ "$DL_METHOD" == "curl" ]
+    then
+      if [ "$line" == "." -o "$line" == ".." ]
+      then
+        continue
+      fi
+      local lineClean="$line"
+      ftpsyncDebug "checkfolder: curl --silent --list-only $FTP_CURL_HIDECREDS \"$address$(ftpsyncUrlEncode "$path$line")/\""
+      curl --silent --list-only $FTP_CURL "$address$(ftpsyncUrlEncode "$path$line")/" >/dev/null
+      if [ "$?" == "0" ]
+      then
+        lineClean="$line/"
+      fi
+      local basename=$(basename "$lineClean")
+      local srcfile="$path$basename"
+      local srcfileproc="$(ftpsyncUrlEncode "$path$basename")"
+      local srcfileshort=`echo -n "$srcfile" | sed -e "s#$FTP_SRC##" | cut -c1-`
+      local srcfileshort2=`echo -n "$srcfile" | sed -e "s#$FTP_SRC# #" | cut -c2-`
+      local destfile=`echo "$srcfile" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
+      local vregex=`echo -n "$srcfileshort2" | sed -n "/$regex/p"`
+    else
+      local lineClean=$(echo "$line" | sed "s#&\#32;#%20#g" | sed "s#$address# #g" | cut -c2-)
+      local basename=$(basename "$lineClean")
+      local srcfile="$path$basename"
+      local srcfileproc="$srcfile"
+      local srcfileshort=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC##" | cut -c1-`
+      local srcfileshort2=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC# #" | cut -c2-`
+      local destfile=`echo "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
+      local vregex=`echo -n "$srcfileshort2" | sed -n "/$regex/p"`
+    fi
+    ftpsyncDebug "lineClean: $lineClean"
+    ftpsyncDebug "basename: $basename"
+    ftpsyncDebug "srcfile: $srcfile"
+    ftpsyncDebug "srcfileproc: $srcfileproc"
+    ftpsyncDebug "srcfileshort: $srcfileshort"
+    ftpsyncDebug "srcfileshort2: $srcfileshort2"
+    ftpsyncDebug "srchash: \"`echo -n "$srcfileshort" | $HASH_CMD - | cut -d ' ' -f 1`\""
+    ftpsyncDebug "srcsize: $(ftpsyncGetSize "$srcfileproc")"
+    ftpsyncDebug "destfile: $destfile"
+    if [ -f "$destfile" ]; then
+      ftpsyncDebug "destsize: `ls -la "$destfile" | awk '{print $5}'`"
+    else
+      ftpsyncDebug "destsize: N/A"
+    fi
+    ftpsyncDebug "vregex: $vregex"
     if [[ "$lineClean" == */ ]]
     then
       ftpsyncProcess "$srcfile/" "$regex"
@@ -189,36 +267,36 @@ function ftpsyncProcess() {
     then
       LOG=""
       local skipdl=0
-      local srcfiletr=`echo -n "$srcfiledec" | sed -e "s#$FTP_SRC##" | cut -c1-`
+      local resume=0
       local starttime=$(awk 'BEGIN{srand();print srand()}')
-      local destfile=`echo "$srcfiledec" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
       if [ ${destfile:${#destfile} - 1} == "/" ]
       then
         mkdir -p "$destfile"
       else
         # Start process on a file
-        ftpsyncAddLog "Process file : $srcfiletr"
-        local srchash=`echo -n "$srcfiletr" | md5sum - | cut -d ' ' -f 1`
+        ftpsyncAddLog "Process file: $srcfileshort"
+        local srchash=`echo -n "$srcfileshort" | $HASH_CMD - | cut -d ' ' -f 1`
         ftpsyncAddLog "Hash: $srchash"
-        ftpsyncAddLog "Size: $(ftpsyncGetHumanSize "$srcfile")"
+        ftpsyncAddLog "Size: $(ftpsyncGetHumanSize "$srcfileproc")"
         
         # Check validity
-        local dlstatus=`ftpsyncIsDownloaded "$srcfile"`
+        local dlstatus=`ftpsyncIsDownloaded "$srcfileproc" "$srcfile"`
         
-        if [ ${dlstatus:0:1} -eq 0 ]
+        if [ ${dlstatus:0:1} -eq $FILE_STATUS_NEVER_DL ]
         then
-          ftpsyncAddLog "Status : Never downloaded..."
-        elif [ ${dlstatus:0:1} -eq 1 ]
-        then
-          skipdl=1
-          ftpsyncAddLog "Status : Already downloaded and valid. Skip download..."
-        elif [ ${dlstatus:0:1} -eq 2 ]
-        then
-          ftpsyncAddLog "Status : Exists but sizes are different..."
-        elif [ ${dlstatus:0:1} -eq 3 ]
+          ftpsyncAddLog "Status: Never downloaded..."
+        elif [ ${dlstatus:0:1} -eq $FILE_STATUS_SIZE_EQUAL ]
         then
           skipdl=1
-          ftpsyncAddLog "Status : MD5 sum exists. Skip download..."
+          ftpsyncAddLog "Status: Already downloaded and valid. Skip download..."
+        elif [ ${dlstatus:0:1} -eq $FILE_STATUS_SIZE_DIFF ]
+        then
+          if [ "$DL_RESUME" == "1" ]; then resume=1; fi
+          ftpsyncAddLog "Status: Exists but sizes are different..."
+        elif [ ${dlstatus:0:1} -eq $FILE_STATUS_HASH_EXISTS ]
+        then
+          skipdl=1
+          ftpsyncAddLog "Status: Hash sum exists. Skip download..."
         fi
         
         # Check if download skipped and want to hide it in log file
@@ -226,7 +304,7 @@ function ftpsyncProcess() {
         
         if [ "$skipdl" == "0" ]
         then
-          ftpsyncDownloadFile "$srcfile" "$destfile" "$hidelog"
+          ftpsyncDownloadFile "$srcfileproc" "$srcfile" "$destfile" "$hidelog" "$resume"
         fi
         
         # Time spent
@@ -241,7 +319,7 @@ function ftpsyncProcess() {
 function ftpsyncKill() {
   local cpid="$1"
   pids="$cpid"
-  if [ -d "/proc/$cpid" -a -f "/proc/$cpid/cmdline" ]
+  if [ -d "/proc/$cpid" ] && [ -f "/proc/$cpid/cmdline" ]
   then
     local cmdline=`cat "/proc/$cpid/cmdline"`
     kill -9 $cpid
@@ -262,16 +340,25 @@ function ftpsyncKill() {
   fi
 }
 
+function ftpsyncUrlEncode() {
+  echo "$1" | sed 's/%/%25/g; s/ /%20/g; s/ /%09/g; s/!/%21/g; s/"/%22/g; s/#/%23/g; s/\$/%24/g; s/\&/%26/g; s/'\''/%27/g; s/(/%28/g; s/)/%29/g; s/\*/%2a/g; s/+/%2b/g; s/,/%2c/g; s/-/%2d/g; s/:/%3a/g; s/;/%3b/g; s//%3e/g; s/?/%3f/g; s/@/%40/g; s/\[/%5b/g; s/\\/%5c/g; s/\]/%5d/g; s/\^/%5e/g; s/_/%5f/g; s/`/%60/g; s/{/%7b/g; s/|/%7c/g; s/}/%7d/g; s/~/%7e/g; s/      /%09/g;'
+}
+
 function ftpsyncUrlDecode() {
   echo "$1" | sed -e "s/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g" | xargs -0 echo -e
 }
 
 function ftpsyncGetSize() {
-  echo $(wget -S --spider --ftp-user="$FTP_USER" --ftp-password="$FTP_PASSWORD" -O - "ftp://$FTP_HOST:$FTP_PORT$1" >&1 2>&1 | grep '^213' | awk '{print $2}')
+  if [ "$DL_METHOD" == "curl" ]
+  then
+    echo $(curl --silent --head $FTP_CURL "ftp://$FTP_HOST:$FTP_PORT$1" | grep Content-Length | awk '{print $2}' | tr -d '\r')
+  else
+    echo $(wget -S --spider $FTP_WGET -O - "ftp://$FTP_HOST:$FTP_PORT$1" >&1 2>&1 | grep '^213' | awk '{print $2}')
+  fi
 }
 
 function ftpsyncGetHumanSize() {
-  echo $(ftpsyncGetSize "$1") | awk '{ sum=$1 ; hum[1024**3]="Gb";hum[1024**2]="Mb";hum[1024]="Kb"; for (x=1024**3; x>=1024; x/=1024){ if (sum>=x) { printf "%.2f %s\n",sum/x,hum[x];break } }}'
+  echo $(ftpsyncGetSize "$1") | awk '{ sum=$1; if (sum < 1024) { printf "%s %s\n",sum,"b"; } else { hum[1024**3]="Gb";hum[1024**2]="Mb";hum[1024]="Kb"; for (x=1024**3; x>=1024; x/=1024){ if (sum>=x) { printf "%.2f %s\n",sum/x,hum[x];break } } }}'
 }
 
 function ftpsyncChangePerms() {
@@ -309,9 +396,16 @@ function ftpsyncEcho() {
   echo -e "$1" | tee -a "$LOG_FILE"
 }
 
+function ftpsyncDebug() {
+  if [ "$DEBUG" == "1" ]; then
+    ftpsyncEcho "#DEBUG $1"
+  fi
+}
+
 ### BEGIN ###
 
 SCRIPT_NAME=$(basename "$0")
+FTP_SRC=`ftpsyncRebuildPath "$FTP_SRC"`
 
 # Read config file
 if [ ! -f "$CONFIG_FILE" ]
@@ -322,6 +416,12 @@ else
   source "$CONFIG_FILE"
 fi
 
+# File status
+FILE_STATUS_NEVER_DL=1
+FILE_STATUS_SIZE_EQUAL=2
+FILE_STATUS_SIZE_DIFF=3
+FILE_STATUS_HASH_EXISTS=4
+
 # Destination folder
 DIR_DEST="$1"
 if [ -z "$DIR_DEST" ]
@@ -330,22 +430,15 @@ then
   exit 1
 fi
 
-# Check download method
-FTP_SRC=`ftpsyncRebuildPath "$FTP_SRC"`
-if [ -z "$DL_METHOD" ] || [ "$DL_METHOD" != "wget" -a "$DL_METHOD" != "curl" ]
-then
-  DL_METHOD="wget"
-fi
-
-# MD5 dir
-if [ ! -d "$MD5_DIR" ]; then mkdir -p "$MD5_DIR"; fi
+# Hash dir
+if [ ! -d "$HASH_DIR" ]; then mkdir -p "$HASH_DIR"; fi
 
 # Log file
 if [ ! -d "$LOGS_DIR" ]; then mkdir -p "$LOGS_DIR"; fi
 LOG_FILE="$LOGS_DIR/`date +%Y%m%d%H%M%S`.log"
 touch "$LOG_FILE"
 
-ftpsyncEcho "FTP Sync v2.03 (`date +"%Y/%m/%d %H:%M:%S"`)"
+ftpsyncEcho "FTP Sync v3.0 (`date +"%Y/%m/%d %H:%M:%S"`)"
 ftpsyncEcho "--------------"
 
 # Check required packages
@@ -355,35 +448,73 @@ if [ ! -x `which gawk` ]; then ftpsyncEcho "ERROR: You need nawk for this script
 if [ ! -x `which md5sum` ]; then ftpsyncEcho "ERROR: You need md5sum for this script (try apt-get install md5sum)"; exit 1; fi
 if [ ! -x `which wget` ]; then ftpsyncEcho "ERROR: You need wget for this script (try apt-get install wget)"; exit 1; fi
 
-# Check MD5 method
-if [ -z "$MD5_METHOD" ] || [ "$MD5_METHOD" != "text" -a "$MD5_METHOD" != "sqlite3" ]
+# Check download method
+if [ "$DL_METHOD" == "wget" ] || [ "$DL_METHOD" != "curl" ]
 then
-  MD5_METHOD="text"
-  MD5_FILE="$MD5_DIR/ftp-sync.txt"
-elif [ "$MD5_METHOD" == "sqlite3" ]
+  DL_METHOD="wget"
+elif [ "$HASH_TYPE" == "curl" ]
+then
+  if [ ! -x `which curl` ]; then ftpsyncEcho "ERROR: You need curl for this script (try apt-get install curl)"; exit 1; fi
+  DL_METHOD="curl"
+fi
+
+# Check hash type
+HASH_CMD=""
+if [ "$HASH_TYPE" == "md5" ] || [ "$HASH_TYPE" != "sha1" ]
+then
+  HASH_CMD="md5sum"
+elif [ "$HASH_TYPE" == "sha1" ]
+then
+  if [ ! -x `which sha1sum` ]; then ftpsyncEcho "ERROR: You need sha1sum for this script (try apt-get install sha1sum)"; exit 1; fi
+  HASH_CMD="sha1sum"
+fi
+
+# Check hash method
+if [ "$HASH_STORAGE" == "text" ] || [ "$HASH_STORAGE" != "sqlite3" ]
+then
+  HASH_STORAGE="text"
+  HASH_FILE="$HASH_DIR/ftp-sync.txt"
+elif [ "$HASH_STORAGE" == "sqlite3" ]
 then
   if [ ! -x `which sqlite3` ]; then ftpsyncEcho "ERROR: You need sqlite3 for this script (try apt-get install sqlite3)"; exit 1; fi
-  MD5_FILE="$MD5_DIR/ftp-sync.db"
+  HASH_FILE="$HASH_DIR/ftp-sync.db"
 fi
 
 # Check directories
 FTP_SRC=`ftpsyncRebuildPath "$FTP_SRC"`
 if [ ! -d "$DIR_DEST" ]; then mkdir -p "$DIR_DEST"; fi; DIR_DEST=`ftpsyncRebuildPath "$DIR_DEST"`
 
-# Check MD5 file
-if [ "$MD5_ENABLED" == "1" -a ! -z "$MD5_FILE" ]
+# Basic command
+FTP_CURL="--globoff -u $FTP_USER:$FTP_PASSWORD"
+FTP_CURL_HIDECREDS="--globoff -u *****:*****"
+FTP_WGET="--ftp-user=$FTP_USER --ftp-password=$FTP_PASSWORD"
+FTP_WGET_HIDECREDS="--ftp-user=***** --ftp-password=*****"
+
+# FTP security
+if [ "$FTP_SECURE" == "1" ]
 then
-  md5filepath="${MD5_FILE%/*}"
-  if [ ! -d "$md5filepath" ]; then mkdir -p "$md5filepath"; fi
-  if [ ! -f "$MD5_FILE" ]; then touch "$MD5_FILE"; fi
+  FTP_CURL="$FTP_CURL --ftp-ssl"
+  FTP_CURL_HIDECREDS="$FTP_CURL_HIDECREDS --ftp-ssl"
+  if [ "$FTP_CHECK_CERT" == "0" ]; then
+    FTP_CURL="$FTP_CURL --insecure"
+    FTP_CURL_HIDECREDS="$FTP_CURL_HIDECREDS --insecure"
+  fi
 fi
-if [ "$MD5_ENABLED" == "1" -a -f "$MD5_FILE" ]; then MD5_ACTIVATED=1; else MD5_ACTIVATED=0; fi
+
+# Check hash file
+if [ "$HASH_ENABLED" == "1" -a ! -z "$HASH_FILE" ]
+then
+  hashfilepath="${HASH_FILE%/*}"
+  if [ ! -d "$hashfilepath" ]; then mkdir -p "$hashfilepath"; fi
+  if [ ! -f "$HASH_FILE" ]; then touch "$HASH_FILE"; fi
+fi
+if [ "$HASH_ENABLED" == "1" -a -f "$HASH_FILE" ]; then HASH_ACTIVATED=1; else HASH_ACTIVATED=0; fi
 
 # Init sqlite database
-if [ "$MD5_METHOD" == "sqlite3" -a ! -s "$MD5_FILE" ]; then
-  echo "CREATE TABLE data (id INTEGER PRIMARY KEY,hash TEXT,filename TEXT);" > "$MD5_DIR/ftp-sync.struct"
-  sqlite3 "$MD5_FILE" < "$MD5_DIR/ftp-sync.struct";
-  rm -f "$MD5_DIR/ftp-sync.struct"
+if [ "$HASH_STORAGE" == "sqlite3" -a ! -s "$HASH_FILE" ]; then
+  echo "CREATE TABLE data (id INTEGER PRIMARY KEY,hash TEXT,filename TEXT);" > "$HASH_DIR/ftp-sync.struct"
+  sqlite3 "$HASH_FILE" < "$HASH_DIR/ftp-sync.struct";
+  rm -f "$HASH_DIR/ftp-sync.struct"
 fi
 
 # Check ftpsyncProcess already running
@@ -413,44 +544,40 @@ echo $currentPid > "$PID_FILE"
 
 # Check connection
 ftpsyncEcho "Checking connection to ftp://$FTP_HOST:$FTP_PORT$FTP_SRC..."
-wget --spider -q --tries=1 --timeout=5 --ftp-user="$FTP_USER" --ftp-password="$FTP_PASSWORD" -O - "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
-connectionExitCode="$?"
-
-if [ $connectionExitCode != "0" ]
+if [ "$DL_METHOD" == "curl" ]
 then
-  # More infos: http://www.gnu.org/software/wget/manual/html_node/Exit-Status.html
-  case "$connectionExitCode" in
-    1)
-      ftpsyncEcho "ERROR: Generic error code...";;
-    2)
-      ftpsyncEcho "ERROR: Parse error (for instance, when parsing command-line options, the '.wgetrc' or '.netrc')...";;
-    3)
-      ftpsyncEcho "ERROR: File I/O error...";;
-    4)
-      ftpsyncEcho "ERROR: Network failure...";;
-    5)
-      ftpsyncEcho "ERROR: SSL verification failure...";;
-    6)
-      ftpsyncEcho "ERROR: Username/password authentication failure...";;
-    7)
-      ftpsyncEcho "ERROR: Protocol errors...";;
-    8)
-      ftpsyncEcho "ERROR: Server issued an error response...";;
-  esac
-  exit 1
+  curl --silent --retry 1 --retry-delay 5 $FTP_CURL "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC" >/dev/null
+  connectionExitCode="$?"
+  if [ $connectionExitCode != "0" ]
+  then
+    ftpsyncEcho "ERROR: Curl error $connectionExitCode"
+    ftpsyncEcho "More infos: https://curl.haxx.se/libcurl/c/libcurl-errors.html"
+    exit 1
+  fi
 else
-  ftpsyncEcho "Successfully connected!"
-  ftpsyncEcho "--------------"
+  wget --spider -q --tries=1 --timeout=5 $FTP_WGET -O - "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
+  connectionExitCode="$?"
+  if [ $connectionExitCode != "0" ]
+  then
+    ftpsyncEcho "ERROR: Wget error $connectionExitCode"
+    ftpsyncEcho "More infos: http://www.gnu.org/software/wget/manual/html_node/Exit-Status.html"
+    exit 1
+  fi
 fi
 
+ftpsyncEcho "Successfully connected!"
+ftpsyncEcho "--------------"
 ftpsyncEcho "Script PID: $currentPid"
 ftpsyncEcho "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
 ftpsyncEcho "Destination: $DIR_DEST"
 ftpsyncEcho "Log file: $LOG_FILE"
+ftpsyncEcho "FTP secure: $FTP_SECURE"
 ftpsyncEcho "Download method: $DL_METHOD"
-ftpsyncEcho "MD5 method: $MD5_METHOD"
-
-if [ "$MD5_ACTIVATED" == "1" ]; then ftpsyncEcho "MD5 file: $MD5_FILE"; fi
+if [ ! -z "$DL_REGEX" ]; then ftpsyncEcho "Regex: $DL_REGEX"; fi
+ftpsyncEcho "Resume downloads: $DL_RESUME"
+ftpsyncEcho "Hash type: $HASH_TYPE"
+ftpsyncEcho "Hash storage: $HASH_STORAGE"
+if [ "$HASH_ACTIVATED" == "1" ]; then ftpsyncEcho "Hash file: $HASH_FILE"; fi
 ftpsyncEcho "--------------"
 
 # Start ftpsyncProcess

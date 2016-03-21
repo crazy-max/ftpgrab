@@ -1,5 +1,22 @@
 # Changelog
 
+## 3.0 (2016/03/20)
+
+*You have to edit the config file `ftp-sync.conf` if you upgrade from a previous release!*
+
+* MD5 file not created with text mode ([Issue #16](https://github.com/crazy-max/ftp-sync/issues/16))
+* Implement FTPS support for Curl ([Issue #15](https://github.com/crazy-max/ftp-sync/issues/15))
+* Implement resume downloads support ([Issue #14](https://github.com/crazy-max/ftp-sync/issues/14))
+* Add DEBUG option
+* Full Curl implementation when selected for file size and list files
+* Bug with ftpsyncGetHumanSize function
+* Display download regex
+* Add sha1 hash type
+* Bug with special chars for curl method
+* Bug with bash condition
+* Add `Found a bug?` section in README.md
+* Add `ISSUE_TEMPLATE.md`
+
 ## 2.03 (2015/03/22)
 
 * Change location of MD5 file
