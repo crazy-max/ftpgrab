@@ -2,7 +2,7 @@
 
 ## 3.0 (2016/03/20)
 
-*You have to edit the config file `ftp-sync.conf` if you upgrade from a previous release!*
+**You have to edit the config file `ftp-sync.conf` if you upgrade from a previous release!**
 
 * MD5 file not created with text mode ([Issue #16](https://github.com/crazy-max/ftp-sync/issues/16))
 * Implement FTPS support for Curl ([Issue #15](https://github.com/crazy-max/ftp-sync/issues/15))
