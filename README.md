@@ -381,8 +381,7 @@ You can check the current version by typing `wget --version`.
 
 ```console
 $ ipkg update
-$ ipkg remove wget-ssl
-$ ipkg install wget
+$ ipkg install wget-ssl
 ```
 
 Now you have to create a symbolic link.
