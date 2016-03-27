@@ -195,7 +195,7 @@ Does not work if `FTP_SOURCES="/"`.<br />
 
 Example if `DL_CREATE_BASEDIR=1` and :
 * The destination folder is `/tmp/seedbox/`
-* `FTP_SOURCES="/downloads/;/other_path/"
+* `FTP_SOURCES="/downloads/;/other_path/"`
 * `/downloads/` src path contains a file called `dl_file1`
 * `/other_path/` src path contains a file called `other_file2`
 The destination structure will be :
@@ -210,7 +210,7 @@ The destination structure will be :
  
 Example if `DL_CREATE_BASEDIR=0` and :
 * The destination folder is `/tmp/seedbox/`
-* `FTP_SOURCES="/downloads/;/other_path/"
+* `FTP_SOURCES="/downloads/;/other_path/"`
 * `/downloads/` src path contains a file called `dl_file1`
 * `/other_path/` src path contains a file called `other_file2`
 The destination structure will be :
