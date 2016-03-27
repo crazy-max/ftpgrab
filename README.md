@@ -98,10 +98,23 @@ FTP username.
 
 FTP password.
 
-#### FTP\_SRC (required)
+#### FTP\_SOURCES (required)
 
-FTP path to synchronize.<br />
-Example: `FTP_SRC="/downloads/"`
+FTP sources paths to synchronize.<br />
+
+Example for one path:
+```
+FTP_SOURCES="/downloads/"
+```
+
+Example for multi paths:
+```
+FTP_SOURCES="\
+  /downloads/;\
+  /other_path/;\
+  /yet_another_path/;\
+"
+```
 
 #### FTP\_SECURE (default 0)
 
@@ -139,7 +152,20 @@ Example: `DL_CHMOD="644"`
 Apply a filter to search for files with a regular expression.<br />
 Separate each regular expression with a semicolon.<br />
 Leave empty to grab all files.<br />
-Example: `DL_REGEX="Game.Of.Thrones.*.avi;Burn.Notice.*.avi;The.Big.Bang.Theory.*VOSTFR.*720p.*WEB-DL.*.mkv"`
+
+Example for one regex:
+```
+DL_REGEX="Game.Of.Thrones.*.avi"
+```
+
+Example for multi regex:
+```
+DL_REGEX="\
+  Game.Of.Thrones.*.avi;\
+  Burn.Notice.*.avi;\
+  The.Big.Bang.Theory.*VOSTFR.*720p.*WEB-DL.*.mkv;\
+"
+```
 
 #### DL\_RETRY (default 3)
 
@@ -160,6 +186,40 @@ Example: `DL_HIDE_SKIPPED=0`
 
 Not display the progress dots during downloads.<br />
 Example: `DL_HIDE_PROGRESS=1`
+
+#### DL\_CREATE\_BASEDIR (default 0)
+
+Create basename of a ftp source path in the destination folder.<br />
+WARNING: Highly recommended if you have multiple ftp source paths to prevent overwriting!<br />
+Does not work if `FTP_SOURCES="/"`.<br />
+
+Example if `DL_CREATE_BASEDIR=1` and :
+* The destination folder is `/tmp/seedbox/`
+* `FTP_SOURCES="/downloads/;/other_path/"
+* `/downloads/` src path contains a file called `dl_file1`
+* `/other_path/` src path contains a file called `other_file2`
+The destination structure will be :
+```
+[-] tmp
+ | [-] seedbox
+ |  | [-] downloads
+ |  |     | dl_file1
+ |  | [-] other_path
+ |  |     | other_file2
+ ```
+ 
+Example if `DL_CREATE_BASEDIR=0` and :
+* The destination folder is `/tmp/seedbox/`
+* `FTP_SOURCES="/downloads/;/other_path/"
+* `/downloads/` src path contains a file called `dl_file1`
+* `/other_path/` src path contains a file called `other_file2`
+The destination structure will be :
+```
+[-] tmp
+ | [-] seedbox
+ |  |  | dl_file1
+ |  |  | other_file2
+ ```
 
 #### HASH\_ENABLED (default 1)
 

@@ -10,7 +10,7 @@
 
 ##################################################################################
 #                                                                                #
-#  FTP Sync v3.0                                                                 #
+#  FTP Sync v3.1                                                                 #
 #                                                                                #
 #  A shell script to synchronize files between a remote FTP server and           #
 #  your local server/computer.                                                   #
@@ -53,13 +53,13 @@ function ftpsyncIsDownloaded() {
   local srcfile="$2"
   if [ "$DL_METHOD" == "curl" ]
   then
-    local srcfileshort=`echo -n "$srcfile" | sed -e "s#$FTP_SRC##" | cut -c1-`
-    local srcfileshort2=`echo -n "$srcfile" | sed -e "s#$FTP_SRC# #" | cut -c2-`
-    local destfile=`echo "$srcfile" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
+    local srcfileshort=`echo -n "$srcfile" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")##" | cut -c1-`
+    local srcfileshort2=`echo -n "$srcfile" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")# #" | cut -c2-`
+    local destfile=`echo "$srcfile" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")#$(ftpsyncEscapeSed "$DIR_DEST_REF")#"`
   else
-    local srcfileshort=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC##" | cut -c1-`
-    local srcfileshort2=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC# #" | cut -c2-`
-    local destfile=`echo "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
+    local srcfileshort=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")##" | cut -c1-`
+    local srcfileshort2=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")# #" | cut -c2-`
+    local destfile=`echo "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")#$(ftpsyncEscapeSed "$DIR_DEST_REF")#"`
   fi
   local srchash=`echo -n "$srcfileshort" | $HASH_CMD - | cut -d ' ' -f 1`
   local srcsize=$(ftpsyncGetSize "$srcfileproc")
@@ -109,13 +109,13 @@ function ftpsyncDownloadFile() {
   local srcfile="$2"
   if [ "$DL_METHOD" == "curl" ]
   then
-    local srcfileshort=`echo -n "$srcfile" | sed -e "s#$FTP_SRC##" | cut -c1-`
-    local srcfileshort2=`echo -n "$srcfile" | sed -e "s#$FTP_SRC# #" | cut -c2-`
-    local destfile=`echo "$srcfile" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
+    local srcfileshort=`echo -n "$srcfile" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")##" | cut -c1-`
+    local srcfileshort2=`echo -n "$srcfile" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")# #" | cut -c2-`
+    local destfile=`echo "$srcfile" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")#$(ftpsyncEscapeSed "$DIR_DEST_REF")#"`
   else
-    local srcfileshort=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC##" | cut -c1-`
-    local srcfileshort2=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC# #" | cut -c2-`
-    local destfile=`echo "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
+    local srcfileshort=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")##" | cut -c1-`
+    local srcfileshort2=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")# #" | cut -c2-`
+    local destfile=`echo "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")#$(ftpsyncEscapeSed "$DIR_DEST_REF")#"`
   fi
   local srchash=`echo -n "$srcfileshort" | $HASH_CMD - | cut -d ' ' -f 1`
   local destfile="$3"
@@ -231,18 +231,18 @@ function ftpsyncProcess() {
       local basename=$(basename "$lineClean")
       local srcfile="$path$basename"
       local srcfileproc="$(ftpsyncUrlEncode "$path$basename")"
-      local srcfileshort=`echo -n "$srcfile" | sed -e "s#$FTP_SRC##" | cut -c1-`
-      local srcfileshort2=`echo -n "$srcfile" | sed -e "s#$FTP_SRC# #" | cut -c2-`
-      local destfile=`echo "$srcfile" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
+      local srcfileshort=`echo -n "$srcfile" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")##" | cut -c1-`
+      local srcfileshort2=`echo -n "$srcfile" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")# #" | cut -c2-`
+      local destfile=`echo "$srcfile" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")#$(ftpsyncEscapeSed "$DIR_DEST_REF")#"`
       local vregex=`echo -n "$srcfileshort2" | sed -n "/$regex/p"`
     else
       local lineClean=$(echo "$line" | sed "s#&\#32;#%20#g" | sed "s#$address# #g" | cut -c2-)
       local basename=$(basename "$lineClean")
       local srcfile="$path$basename"
       local srcfileproc="$srcfile"
-      local srcfileshort=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC##" | cut -c1-`
-      local srcfileshort2=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC# #" | cut -c2-`
-      local destfile=`echo "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$FTP_SRC#$DIR_DEST#"`
+      local srcfileshort=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")##" | cut -c1-`
+      local srcfileshort2=`echo -n "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")# #" | cut -c2-`
+      local destfile=`echo "$(ftpsyncUrlDecode "$srcfile")" | sed -e "s#$(ftpsyncEscapeSed "$FTP_SRC")#$(ftpsyncEscapeSed "$DIR_DEST_REF")#"`
       local vregex=`echo -n "$srcfileshort2" | sed -n "/$regex/p"`
     fi
     ftpsyncDebug "lineClean: $lineClean"
@@ -316,6 +316,62 @@ function ftpsyncProcess() {
   done <<< "$files"
 }
 
+function ftpsyncStart() {
+  # Check FTP_SRC
+  FTP_SRC=`ftpsyncRebuildPath "$(echo $1 | xargs)"`
+  ftpsyncDebug "FTP_SRC: $FTP_SRC"
+  
+  # Check DIR_DEST
+  DIR_DEST_REF=`ftpsyncRebuildPath "$DIR_DEST"`
+  #if [ "$FTP_SOURCES_CNT" -gt "1" ] && [ "$DL_CREATE_MULTI_BASEDIR" == "1"]; then
+  if [ "$FTP_SRC" != "/" ] && [ "$DL_CREATE_BASEDIR" == "1" ]; then
+    DIR_DEST_REF="$DIR_DEST_REF$(basename "$FTP_SRC")/"
+  fi
+  if [ ! -d "$DIR_DEST_REF" ]; then
+    mkdir -p "$DIR_DEST_REF"
+  fi
+  ftpsyncDebug "DIR_DEST: $DIR_DEST"
+  ftpsyncDebug "DIR_DEST_REF: $DIR_DEST_REF"
+  
+  ftpsyncEcho "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
+  ftpsyncEcho "Destination: $DIR_DEST_REF"
+  
+  # Check connection
+  ftpsyncEcho "Checking connection to ftp://$FTP_HOST:$FTP_PORT$FTP_SRC..."
+  if [ "$DL_METHOD" == "curl" ]
+  then
+    ftpsyncDebug "checkConnection: curl --silent --retry 1 --retry-delay 5 $FTP_CURL "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC""
+    curl --silent --retry 1 --retry-delay 5 $FTP_CURL "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC" >/dev/null
+    connectionExitCode="$?"
+    if [ $connectionExitCode != "0" ]
+    then
+      ftpsyncEcho "ERROR: Curl error $connectionExitCode"
+      ftpsyncEcho "More infos: https://curl.haxx.se/libcurl/c/libcurl-errors.html"
+      exit 1
+    fi
+  else
+    ftpsyncDebug "checkConnection: wget --spider -q --tries=1 --timeout=5 $FTP_WGET -O - "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC""
+    wget --spider -q --tries=1 --timeout=5 $FTP_WGET -O - "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
+    connectionExitCode="$?"
+    if [ $connectionExitCode != "0" ]
+    then
+      ftpsyncEcho "ERROR: Wget error $connectionExitCode"
+      ftpsyncEcho "More infos: http://www.gnu.org/software/wget/manual/html_node/Exit-Status.html"
+      exit 1
+    fi
+  fi
+  
+  ftpsyncEcho "Successfully connected!"
+  ftpsyncEcho "--------------"
+  
+  # Process
+  if [ -z "$DL_REGEX" ]; then DL_REGEX="^.*$;"; fi
+  IFS=';' read -ra REGEX <<< "$DL_REGEX"
+  for p in "${REGEX[@]}"; do
+    ftpsyncProcess "$FTP_SRC" "$(echo $p | xargs)"
+  done
+}
+
 function ftpsyncKill() {
   local cpid="$1"
   pids="$cpid"
@@ -359,6 +415,10 @@ function ftpsyncGetSize() {
 
 function ftpsyncGetHumanSize() {
   echo $(ftpsyncGetSize "$1") | awk '{ sum=$1; if (sum < 1024) { printf "%s %s\n",sum,"b"; } else { hum[1024**3]="Gb";hum[1024**2]="Mb";hum[1024]="Kb"; for (x=1024**3; x>=1024; x/=1024){ if (sum>=x) { printf "%.2f %s\n",sum/x,hum[x];break } } }}'
+}
+
+function ftpsyncEscapeSed() {
+  echo "$1" | sed -e 's/\\/\\\\/g' -e 's/\//\\\//g' -e 's/&/\\\&/g'
 }
 
 function ftpsyncChangePerms() {
@@ -405,7 +465,6 @@ function ftpsyncDebug() {
 ### BEGIN ###
 
 SCRIPT_NAME=$(basename "$0")
-FTP_SRC=`ftpsyncRebuildPath "$FTP_SRC"`
 
 # Read config file
 if [ ! -f "$CONFIG_FILE" ]
@@ -438,7 +497,7 @@ if [ ! -d "$LOGS_DIR" ]; then mkdir -p "$LOGS_DIR"; fi
 LOG_FILE="$LOGS_DIR/`date +%Y%m%d%H%M%S`.log"
 touch "$LOG_FILE"
 
-ftpsyncEcho "FTP Sync v3.0 (`date +"%Y/%m/%d %H:%M:%S"`)"
+ftpsyncEcho "FTP Sync v3.1 (`date +"%Y/%m/%d %H:%M:%S"`)"
 ftpsyncEcho "--------------"
 
 # Check required packages
@@ -479,10 +538,6 @@ then
   if [ ! -x `which sqlite3` ]; then ftpsyncEcho "ERROR: You need sqlite3 for this script (try apt-get install sqlite3)"; exit 1; fi
   HASH_FILE="$HASH_DIR/ftp-sync.db"
 fi
-
-# Check directories
-FTP_SRC=`ftpsyncRebuildPath "$FTP_SRC"`
-if [ ! -d "$DIR_DEST" ]; then mkdir -p "$DIR_DEST"; fi; DIR_DEST=`ftpsyncRebuildPath "$DIR_DEST"`
 
 # Basic command
 FTP_CURL="--globoff -u $FTP_USER:$FTP_PASSWORD"
@@ -537,40 +592,20 @@ then
         echo "n"
         exit 1;;
     esac
-    ftpsyncEcho "--------------"
   fi
 fi
 echo $currentPid > "$PID_FILE"
 
-# Check connection
-ftpsyncEcho "Checking connection to ftp://$FTP_HOST:$FTP_PORT$FTP_SRC..."
-if [ "$DL_METHOD" == "curl" ]
-then
-  curl --silent --retry 1 --retry-delay 5 $FTP_CURL "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC" >/dev/null
-  connectionExitCode="$?"
-  if [ $connectionExitCode != "0" ]
-  then
-    ftpsyncEcho "ERROR: Curl error $connectionExitCode"
-    ftpsyncEcho "More infos: https://curl.haxx.se/libcurl/c/libcurl-errors.html"
-    exit 1
-  fi
-else
-  wget --spider -q --tries=1 --timeout=5 $FTP_WGET -O - "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
-  connectionExitCode="$?"
-  if [ $connectionExitCode != "0" ]
-  then
-    ftpsyncEcho "ERROR: Wget error $connectionExitCode"
-    ftpsyncEcho "More infos: http://www.gnu.org/software/wget/manual/html_node/Exit-Status.html"
-    exit 1
-  fi
-fi
+# Start
+starttime=$(awk 'BEGIN{srand();print srand()}')
 
-ftpsyncEcho "Successfully connected!"
-ftpsyncEcho "--------------"
+if [ -z "$FTP_SOURCES" ]; then FTP_SOURCES="^.*$;"; fi
+IFS=';' read -ra FTP_SRC <<< "$FTP_SOURCES"
+FTP_SOURCES_CNT=${#FTP_SRC[@]}
+
 ftpsyncEcho "Script PID: $currentPid"
-ftpsyncEcho "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
-ftpsyncEcho "Destination: $DIR_DEST"
 ftpsyncEcho "Log file: $LOG_FILE"
+ftpsyncEcho "FTP sources count: $FTP_SOURCES_CNT"
 ftpsyncEcho "FTP secure: $FTP_SECURE"
 ftpsyncEcho "Download method: $DL_METHOD"
 if [ ! -z "$DL_REGEX" ]; then ftpsyncEcho "Regex: $DL_REGEX"; fi
@@ -580,13 +615,8 @@ ftpsyncEcho "Hash storage: $HASH_STORAGE"
 if [ "$HASH_ACTIVATED" == "1" ]; then ftpsyncEcho "Hash file: $HASH_FILE"; fi
 ftpsyncEcho "--------------"
 
-# Start ftpsyncProcess
-starttime=$(awk 'BEGIN{srand();print srand()}')
-
-if [ -z "$DL_REGEX" ]; then DL_REGEX="^.*$;"; fi
-IFS=';' read -ra REGEX <<< "$DL_REGEX"
-for p in "${REGEX[@]}"; do
-  ftpsyncProcess "$FTP_SRC" "$p"
+for s in "${FTP_SRC[@]}"; do
+  ftpsyncStart "$s"
 done
 
 # Change perms

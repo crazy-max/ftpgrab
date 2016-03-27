@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.1 (2016/03/27)
+
+**You have to edit the config file `ftp-sync.conf` if you upgrade from a previous release!**
+
+* Add multiple ftp sources paths ([Issue #18](https://github.com/crazy-max/ftp-sync/issues/18))
+* Sed not escaping & char ([Issue #17](https://github.com/crazy-max/ftp-sync/issues/17))
+* Add `DL_CREATE_BASEDIR` option to create basename of a ftp source path in the destination folder.
+
 ## 3.0 (2016/03/20)
 
 **You have to edit the config file `ftp-sync.conf` if you upgrade from a previous release!**
