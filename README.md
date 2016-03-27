@@ -198,7 +198,7 @@ Example if `DL_CREATE_BASEDIR=1` and :
 * `FTP_SOURCES="/downloads/;/other_path/"`
 * `/downloads/` src path contains a file called `dl_file1`
 * `/other_path/` src path contains a file called `other_file2`
-The destination structure will be :
+<br />The destination structure will be :
 ```
 [-] tmp
  | [-] seedbox
@@ -213,7 +213,7 @@ Example if `DL_CREATE_BASEDIR=0` and :
 * `FTP_SOURCES="/downloads/;/other_path/"`
 * `/downloads/` src path contains a file called `dl_file1`
 * `/other_path/` src path contains a file called `other_file2`
-The destination structure will be :
+<br />The destination structure will be :
 ```
 [-] tmp
  | [-] seedbox
