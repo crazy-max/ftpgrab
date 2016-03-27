@@ -267,15 +267,11 @@ Each time the script is executed, a log file is created.<br />
 Here is an example :
 
 ```console
-FTP Sync v3.0 (2016/03/20 12:09:30)
---------------
-Checking connection to ftp://198.51.100.0:21/complete/...
-Successfully connected!
+FTP Sync v3.1 (2016/03/27 19:59:13)
 --------------
 Script PID: 19383
-Source: ftp://198.51.100.0:21/complete/
-Destination: /tmp/seedbox/
 Log file: /var/log/ftp-sync/20160320120930.log
+FTP sources count: 1
 FTP secure: 1
 Download method: curl
 Resume downloads: 1
@@ -283,8 +279,10 @@ Hash type: md5
 Hash storage: sqlite3
 Hash file: /etc/ftp-sync/ftp-sync.db
 --------------
-Finding files...
-Regex: ^.*$
+Source: ftp://198.51.100.0:21/complete/
+Destination: /tmp/seedbox/
+Checking connection to ftp://198.51.100.0:21/complete/...
+Successfully connected!
 --------------
 Process file: Burn.Notice.S06E16.VOSTFR.HDTV.XviD.avi
 Hash: baf87b6719e9f5499627fc8691efbd3c
