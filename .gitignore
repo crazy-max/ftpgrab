@@ -1,9 +1,2 @@
-# Eclipse
-.settings
-.settings/*
-.buildpath
-.project
-.jsdtscope
-
-# ftp-sync
-todo.txt
+.idea
+.dev

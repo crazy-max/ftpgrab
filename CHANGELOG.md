@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.2 (2016/06/20)
+
+* Add messages for permission issue ([Issue #19](https://github.com/crazy-max/ftp-sync/issues/19))
+* Move some instructions to Wiki ([Issue #18](https://github.com/crazy-max/ftp-sync/issues/18))
+* Update `ISSUE_TEMPLATE.md`
+* Add [.editorconfig](http://editorconfig.org/)
+* MIT License
+
 ## 3.1 (2016/03/27)
 
 **You have to edit the config file `ftp-sync.conf` if you upgrade from a previous release!**
