@@ -5,42 +5,49 @@
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: FTP files synchronization
+# Short-Description: FTP Sync
 ### END INIT INFO
 
-##################################################################################
-#                                                                                #
-#  FTP Sync v3.1                                                                 #
-#                                                                                #
-#  A shell script to synchronize files between a remote FTP server and           #
-#  your local server/computer.                                                   #
-#  A file containing the hash of the name of each downloaded file will           #
-#  prevent re-download a file even if it is not present in the destination       #
-#  directory.                                                                    #
-#  You can also apply a filter to search for files with a regular expression.    #
-#  Because this script only need wget, it is ideal for those with a seedbox      #
-#  or a shared seedbox to synchronize with a NAS (Synology Qnap D-Link) or a     #
-#  local computer...                                                             #
-#                                                                                #
-#  Copyright (C) 2013-2016 Cr@zy <webmaster@crazyws.fr>                          #
-#                                                                                #
-#  FTP Sync is free software; you can redistribute it and/or modify              #
-#  it under the terms of the GNU Lesser General Public License as published by   #
-#  the Free Software Foundation, either version 3 of the License, or             #
-#  (at your option) any later version.                                           #
-#                                                                                #
-#  FTP Sync is distributed in the hope that it will be useful,                   #
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of                #
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the                  #
-#  GNU Lesser General Public License for more details.                           #
-#                                                                                #
-#  You should have received a copy of the GNU Lesser General Public License      #
-#  along with this program. If not, see http://www.gnu.org/licenses/.            #
-#                                                                                #
-#  Related post: http://goo.gl/OcJFA                                             #
-#  Usage: ./ftp-sync.sh DIR_DEST                                                 #
-#                                                                                #
-##################################################################################
+###################################################################################
+#                                                                                 #
+#  FTP Sync v3.2                                                                  #
+#                                                                                 #
+#  A shell script to synchronize files between a remote FTP server and            #
+#  your local server/computer.                                                    #
+#  A file containing the hash of the name of each downloaded file will            #
+#  prevent re-download a file even if it is not present in the destination        #
+#  directory.                                                                     #
+#  You can also apply a filter to search for files with a regular expression.     #
+#  Because this script only need wget, it is ideal for those with a seedbox       #
+#  or a shared seedbox to synchronize with a NAS (Synology Qnap D-Link) or a      #
+#  local computer...                                                              #
+#                                                                                 #
+#  MIT License                                                                    #
+#                                                                                 #
+#  Copyright (c) 2013-2016 Cr@zy                                                  #
+#                                                                                 #
+#  Permission is hereby granted, free of charge, to any person obtaining a copy   #
+#  of this software and associated documentation files (the "Software"), to deal  #
+#  in the Software without restriction, including without limitation the rights   #
+#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell      #
+#  copies of the Software, and to permit persons to whom the Software is          #
+#  furnished to do so, subject to the following conditions:                       #
+#                                                                                 #
+#  The above copyright notice and this permission notice shall be included in all #
+#  copies or substantial portions of the Software.                                #
+#                                                                                 #
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR     #
+#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,       #
+#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE    #
+#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER         #
+#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,  #
+#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE  #
+#  SOFTWARE.                                                                      #
+#                                                                                 #
+#  Related post: http://goo.gl/OcJFA                                              #
+#  Usage: ./ftp-sync.sh DIR_DEST                                                  #
+#                                                                                 #
+###################################################################################
 
 CONFIG_FILE="/etc/ftp-sync/ftp-sync.conf"
 
@@ -66,7 +73,7 @@ function ftpsyncIsDownloaded() {
 
   # Check skip hash
   if [ -z "$3" ]; then local skiphash=0; else local skiphash=$3; fi
-  
+
   if [ -f "$destfile" ]
   then
     local destsize=`ls -la "$destfile" | awk '{print $5}'`
@@ -122,7 +129,7 @@ function ftpsyncDownloadFile() {
   local hidelog="$4"
   local resume="$5"
   local dlstatusfile="/tmp/ftpsync-$srchash.log"
-  
+
   # Check download resume
   local resumeCmd=""
   if [ "$resume" == "1" ]
@@ -134,7 +141,7 @@ function ftpsyncDownloadFile() {
       resumeCmd=" --continue"
     fi
   fi
-  
+
   # Check download retry
   if [ -z "$6" ]; then local retry=0; else local retry=$6; fi
 
@@ -174,7 +181,7 @@ function ftpsyncDownloadFile() {
     fi
   fi
   if [ -f "$dlstatusfile" ]; then rm "$dlstatusfile"; fi
-  
+
   local dlstatus=`ftpsyncIsDownloaded "$srcfileproc" "$srcfile" "1"`
   if [ $errordl == 0 -a ${dlstatus:0:1} -eq $FILE_STATUS_SIZE_EQUAL ]
   then
@@ -278,10 +285,10 @@ function ftpsyncProcess() {
         local srchash=`echo -n "$srcfileshort" | $HASH_CMD - | cut -d ' ' -f 1`
         ftpsyncAddLog "Hash: $srchash"
         ftpsyncAddLog "Size: $(ftpsyncGetHumanSize "$srcfileproc")"
-        
+
         # Check validity
         local dlstatus=`ftpsyncIsDownloaded "$srcfileproc" "$srcfile"`
-        
+
         if [ ${dlstatus:0:1} -eq $FILE_STATUS_NEVER_DL ]
         then
           ftpsyncAddLog "Status: Never downloaded..."
@@ -298,15 +305,15 @@ function ftpsyncProcess() {
           skipdl=1
           ftpsyncAddLog "Status: Hash sum exists. Skip download..."
         fi
-        
+
         # Check if download skipped and want to hide it in log file
         if [ "$skipdl" == "0" ] || [ "$DL_HIDE_SKIPPED" == "0" ]; then ftpsyncEcho "$LOG"; LOG=""; fi
-        
+
         if [ "$skipdl" == "0" ]
         then
           ftpsyncDownloadFile "$srcfileproc" "$srcfile" "$destfile" "$hidelog" "$resume"
         fi
-        
+
         # Time spent
         local endtime=$(awk 'BEGIN{srand();print srand()}')
         if [ -z "$LOG" ]; then ftpsyncEcho "Time spent: `ftpsyncFormatSeconds $(($endtime - $starttime))`"; fi
@@ -320,7 +327,7 @@ function ftpsyncStart() {
   # Check FTP_SRC
   FTP_SRC=`ftpsyncRebuildPath "$(echo $1 | xargs)"`
   ftpsyncDebug "FTP_SRC: $FTP_SRC"
-  
+
   # Check DIR_DEST
   DIR_DEST_REF=`ftpsyncRebuildPath "$DIR_DEST"`
   #if [ "$FTP_SOURCES_CNT" -gt "1" ] && [ "$DL_CREATE_MULTI_BASEDIR" == "1"]; then
@@ -332,10 +339,10 @@ function ftpsyncStart() {
   fi
   ftpsyncDebug "DIR_DEST: $DIR_DEST"
   ftpsyncDebug "DIR_DEST_REF: $DIR_DEST_REF"
-  
+
   ftpsyncEcho "Source: ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
   ftpsyncEcho "Destination: $DIR_DEST_REF"
-  
+
   # Check connection
   ftpsyncEcho "Checking connection to ftp://$FTP_HOST:$FTP_PORT$FTP_SRC..."
   if [ "$DL_METHOD" == "curl" ]
@@ -360,10 +367,10 @@ function ftpsyncStart() {
       exit 1
     fi
   fi
-  
+
   ftpsyncEcho "Successfully connected!"
   ftpsyncEcho "--------------"
-  
+
   # Process
   if [ -z "$DL_REGEX" ]; then DL_REGEX="^.*$;"; fi
   IFS=';' read -ra REGEX <<< "$DL_REGEX"
@@ -469,7 +476,7 @@ SCRIPT_NAME=$(basename "$0")
 # Read config file
 if [ ! -f "$CONFIG_FILE" ]
 then
-  echo "ERROR: Config file $CONFIG_FILE not found..."
+  echo "ERROR: Config file $CONFIG_FILE not found"
   exit 1
 else
   source "$CONFIG_FILE"
@@ -481,6 +488,17 @@ FILE_STATUS_SIZE_EQUAL=2
 FILE_STATUS_SIZE_DIFF=3
 FILE_STATUS_HASH_EXISTS=4
 
+# Log file
+if [ ! -d "$LOGS_DIR" ]; then mkdir -p "$LOGS_DIR"; fi
+LOG_FILE="$LOGS_DIR/`date +%Y%m%d%H%M%S`.log"
+if [ ! -w "$LOGS_DIR" ]
+then
+  echo "ERROR: Dir $LOGS_DIR is not writable by $(whoami)"
+  echo "Please run this script as root / sudoer"
+  exit 1
+fi
+touch "$LOG_FILE"
+
 # Destination folder
 DIR_DEST="$1"
 if [ -z "$DIR_DEST" ]
@@ -488,16 +506,44 @@ then
   echo "Usage: ./$0 DIR_DEST"
   exit 1
 fi
+if [ ! -w "$DIR_DEST" ]
+then
+  ftpsyncEcho "ERROR: Dir $DIR_DEST is not writable by $(whoami)"
+  ftpsyncEcho "Please run this script as root / sudoer"
+  exit 1
+fi
+
+# PID dir
+PID_DIR=$(dirname "${PID_FILE}")
+if [ ! -d "$PID_DIR" ] && [ ! $(mkdir -p "$PID_DIR" >/dev/null 2>&1) ]
+then
+  ftpsyncEcho "ERROR: Cannot create dir $PID_DIR with $(whoami) user"
+  ftpsyncEcho "Please run this script as root / sudoer"
+  exit 1
+fi
+if [ ! -w "$PID_DIR" ]
+then
+  ftpsyncEcho "ERROR: Dir $PID_DIR is not writable by $(whoami)"
+  ftpsyncEcho "Please run this script as root / sudoer"
+  exit 1
+fi
 
 # Hash dir
 if [ ! -d "$HASH_DIR" ]; then mkdir -p "$HASH_DIR"; fi
+if [ ! -d "$HASH_DIR" ] && [ ! $(mkdir -p "$HASH_DIR" >/dev/null 2>&1) ]
+then
+  ftpsyncEcho "ERROR: Cannot create dir $HASH_DIR with $(whoami) user"
+  ftpsyncEcho "Please run this script as root / sudoer"
+  exit 1
+fi
+if [ ! -w "$HASH_DIR" ]
+then
+  ftpsyncEcho "ERROR: Dir $HASH_DIR is not writable by $(whoami)"
+  ftpsyncEcho "Please run this script as root / sudoer"
+  exit 1
+fi
 
-# Log file
-if [ ! -d "$LOGS_DIR" ]; then mkdir -p "$LOGS_DIR"; fi
-LOG_FILE="$LOGS_DIR/`date +%Y%m%d%H%M%S`.log"
-touch "$LOG_FILE"
-
-ftpsyncEcho "FTP Sync v3.1 (`date +"%Y/%m/%d %H:%M:%S"`)"
+ftpsyncEcho "FTP Sync v3.2 (`date +"%Y/%m/%d %H:%M:%S"`)"
 ftpsyncEcho "--------------"
 
 # Check required packages
