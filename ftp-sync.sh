@@ -1,4 +1,4 @@
-#! /bin/bash 
+#! /bin/bash
 ### BEGIN INIT INFO
 # Provides:          ftp-sync
 # Required-Start:    $remote_fs $syslog
