@@ -1,9 +1,14 @@
 # Changelog
 
+## 4.0 (2017/03/14)
+
+* Shuffle file/folder listing (Issue #25)
+* Allow multiple instances (Issue #22)
+
 ## 3.2 (2016/06/20)
 
-* Add messages for permission issue ([Issue #19](https://github.com/crazy-max/ftp-sync/issues/19))
-* Move some instructions to Wiki ([Issue #18](https://github.com/crazy-max/ftp-sync/issues/18))
+* Add messages for permission issue (Issue #19)
+* Move some instructions to Wiki (Issue #18)
 * Update `ISSUE_TEMPLATE.md`
 * Add [.editorconfig](http://editorconfig.org/)
 * MIT License
@@ -12,17 +17,17 @@
 
 **You have to edit the config file `ftp-sync.conf` if you upgrade from a previous release!**
 
-* Add multiple ftp sources paths ([Issue #18](https://github.com/crazy-max/ftp-sync/issues/18))
-* Sed not escaping & char ([Issue #17](https://github.com/crazy-max/ftp-sync/issues/17))
+* Add multiple ftp sources paths (Issue #18)
+* Sed not escaping & char (Issue #17)
 * Add `DL_CREATE_BASEDIR` option to create basename of a ftp source path in the destination folder.
 
 ## 3.0 (2016/03/20)
 
 **You have to edit the config file `ftp-sync.conf` if you upgrade from a previous release!**
 
-* MD5 file not created with text mode ([Issue #16](https://github.com/crazy-max/ftp-sync/issues/16))
-* Implement FTPS support for Curl ([Issue #15](https://github.com/crazy-max/ftp-sync/issues/15))
-* Implement resume downloads support ([Issue #14](https://github.com/crazy-max/ftp-sync/issues/14))
+* MD5 file not created with text mode (Issue #16)
+* Implement FTPS support for Curl (Issue #15)
+* Implement resume downloads support (Issue #14)
 * Add DEBUG option
 * Full Curl implementation when selected for file size and list files
 * Bug with ftpsyncGetHumanSize function
@@ -39,19 +44,19 @@
 
 ## 2.02 (2015/03/21)
 
-* Bug checking MD5 ([Issue #11](https://github.com/crazy-max/ftp-sync/issues/11))
+* Bug checking MD5 (Issue #11)
 
 ## 2.01 (2015/03/20)
 
-* Bug download with sqlite3 ([Issue #10](https://github.com/crazy-max/ftp-sync/issues/10))
+* Bug download with sqlite3 (Issue #10)
 
 ## 2.00 (2015/03/19)
 
-* Add SQLite method to store MD5 hash ([Issue #8](https://github.com/crazy-max/ftp-sync/issues/8))
+* Add SQLite method to store MD5 hash (Issue #8)
 
 ## 1.95 (2014/08/09)
 
-* Bug trailing slash  ([Issue #6](https://github.com/crazy-max/ftp-sync/issues/6))
+* Bug trailing slash  (Issue #6)
 
 ## 1.94 (2014/05/22)
 
