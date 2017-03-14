@@ -222,10 +222,10 @@ function ftpsyncProcess() {
   else
     local files=$(wget -q $FTP_WGET -O - "$address$path" | grep -o 'ftp:[^"]*')
   fi
-	if [ "$DL_SHUFFLE" == "1" ]
-	then
-		files=$(echo -e "$files" | shuf)
-	fi
+  if [ "$DL_SHUFFLE" == "1" ]
+  then
+    files=$(echo -e "$files" | shuf)
+  fi
   while read -r line
   do
     if [ "$DL_METHOD" == "curl" ]
