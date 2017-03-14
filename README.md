@@ -92,5 +92,5 @@ Any funds donated will be used to help further development on this project! :gif
 
 ## License
 
-MIT. See `LICENSE` for more details.
+MIT. See `LICENSE` for more details.<br />
 Icon credit to [Nick Roach](http://www.elegantthemes.com/).
