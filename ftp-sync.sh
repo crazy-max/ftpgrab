@@ -222,6 +222,10 @@ function ftpsyncProcess() {
   else
     local files=$(wget -q $FTP_WGET -O - "$address$path" | grep -o 'ftp:[^"]*')
   fi
+	if [ "$DL_SHUFFLE" == "1" ]
+	then
+		files=$(echo -e "$files" | shuf)
+	fi
   while read -r line
   do
     if [ "$DL_METHOD" == "curl" ]
@@ -556,6 +560,9 @@ if [ ! -x `which gawk` ]; then ftpsyncEcho "ERROR: You need gawk for this script
 if [ ! -x `which md5sum` ]; then ftpsyncEcho "ERROR: You need md5sum for this script (try apt-get install md5sum)"; exit 1; fi
 if [ ! -x `which wget` ]; then ftpsyncEcho "ERROR: You need wget for this script (try apt-get install wget)"; exit 1; fi
 
+# Check conditionnaly required packages
+if [[ "$DL_SHUFFLE" == "1" ]] && [[ ! -x `which shuf` ]]; then ftpsyncEcho "ERROR: You need shuf for this script (try apt-get install shuf)"; exit 1; fi
+
 # Check download method
 if [ "$DL_METHOD" == "wget" ] || [ "$DL_METHOD" != "curl" ]
 then
@@ -660,6 +667,7 @@ ftpsyncEcho "FTP secure: $FTP_SECURE"
 ftpsyncEcho "Download method: $DL_METHOD"
 if [ ! -z "$DL_REGEX" ]; then ftpsyncEcho "Regex: $DL_REGEX"; fi
 ftpsyncEcho "Resume downloads: $DL_RESUME"
+ftpsyncEcho "Shuffle file/folder list: $DL_SHUFFLE"
 ftpsyncEcho "Hash type: $HASH_TYPE"
 ftpsyncEcho "Hash storage: $HASH_STORAGE"
 if [ "$HASH_ACTIVATED" == "1" ]; then ftpsyncEcho "Hash file: $HASH_FILE"; fi
