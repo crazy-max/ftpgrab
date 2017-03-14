@@ -10,7 +10,7 @@
 
 ###################################################################################
 #                                                                                 #
-#  FTP Sync v3.2                                                                  #
+#  FTP Sync v4.0                                                                  #
 #                                                                                 #
 #  A shell script to synchronize files between a remote FTP server and            #
 #  your local server/computer.                                                    #
@@ -45,13 +45,15 @@
 #  SOFTWARE.                                                                      #
 #                                                                                 #
 #  Related post: http://goo.gl/OcJFA                                              #
-#  Usage: ./ftp-sync.sh DIR_DEST                                                  #
+#  Usage: ./ftp-sync.sh CONFIG_FILE                                               #
 #                                                                                 #
 ###################################################################################
 
-CONFIG_FILE="/etc/ftp-sync/ftp-sync.conf"
-
-# No edits necessary beyond this line
+BASE_DIR="/opt/ftp-sync"
+CONFIG_DIR="$BASE_DIR/conf"
+HASH_DIR="$BASE_DIR/hash"
+LOGS_DIR="/var/log/ftp-sync"
+PID_DIR="/var/run/ftp-sync"
 
 ### FUNCTIONS ###
 
@@ -473,14 +475,17 @@ function ftpsyncDebug() {
 
 SCRIPT_NAME=$(basename "$0")
 
-# Read config file
+# Check config file
+CONFIG_FILE="$CONFIG_DIR/$1"
 if [ ! -f "$CONFIG_FILE" ]
 then
   echo "ERROR: Config file $CONFIG_FILE not found"
   exit 1
-else
-  source "$CONFIG_FILE"
 fi
+
+# Read config file
+source "$CONFIG_FILE"
+BASENAME_FILE=$(basename "$CONFIG_FILE" | cut -d. -f1)
 
 # File status
 FILE_STATUS_NEVER_DL=1
@@ -488,22 +493,11 @@ FILE_STATUS_SIZE_EQUAL=2
 FILE_STATUS_SIZE_DIFF=3
 FILE_STATUS_HASH_EXISTS=4
 
-# Log file
-if [ ! -d "$LOGS_DIR" ]; then mkdir -p "$LOGS_DIR"; fi
-LOG_FILE="$LOGS_DIR/`date +%Y%m%d%H%M%S`.log"
-if [ ! -w "$LOGS_DIR" ]
-then
-  echo "ERROR: Dir $LOGS_DIR is not writable by $(whoami)"
-  echo "Please run this script as root / sudoer"
-  exit 1
-fi
-touch "$LOG_FILE"
-
 # Destination folder
-DIR_DEST="$1"
-if [ -z "$DIR_DEST" ]
+if [ ! -d "$DIR_DEST" ] && [ ! $(mkdir -p "$DIR_DEST" >/dev/null 2>&1) ]
 then
-  echo "Usage: ./$0 DIR_DEST"
+  ftpsyncEcho "ERROR: Cannot create dir $DIR_DEST with $(whoami) user"
+  ftpsyncEcho "Please run this script as root / sudoer"
   exit 1
 fi
 if [ ! -w "$DIR_DEST" ]
@@ -513,8 +507,18 @@ then
   exit 1
 fi
 
-# PID dir
-PID_DIR=$(dirname "${PID_FILE}")
+# Log folder
+LOG_FILE="$LOGS_DIR/$BASENAME_FILE-`date +%Y%m%d%H%M%S`.log"
+if [ ! -w "$LOGS_DIR" ]
+then
+  echo "ERROR: Dir $LOGS_DIR is not writable by $(whoami)"
+  echo "Please run this script as root / sudoer"
+  exit 1
+fi
+touch "$LOG_FILE"
+
+# PID folder
+PID_FILE="$PID_DIR/$BASENAME_FILE.pid"
 if [ ! -d "$PID_DIR" ] && [ ! $(mkdir -p "$PID_DIR" >/dev/null 2>&1) ]
 then
   ftpsyncEcho "ERROR: Cannot create dir $PID_DIR with $(whoami) user"
@@ -528,8 +532,7 @@ then
   exit 1
 fi
 
-# Hash dir
-if [ ! -d "$HASH_DIR" ]; then mkdir -p "$HASH_DIR"; fi
+# Hash folder
 if [ ! -d "$HASH_DIR" ] && [ ! $(mkdir -p "$HASH_DIR" >/dev/null 2>&1) ]
 then
   ftpsyncEcho "ERROR: Cannot create dir $HASH_DIR with $(whoami) user"
@@ -543,7 +546,7 @@ then
   exit 1
 fi
 
-ftpsyncEcho "FTP Sync v3.2 (`date +"%Y/%m/%d %H:%M:%S"`)"
+ftpsyncEcho "FTP Sync v4.0 ($BASENAME_FILE - `date +"%Y/%m/%d %H:%M:%S"`)"
 ftpsyncEcho "--------------"
 
 # Check required packages
@@ -578,11 +581,11 @@ fi
 if [ "$HASH_STORAGE" == "text" ] || [ "$HASH_STORAGE" != "sqlite3" ]
 then
   HASH_STORAGE="text"
-  HASH_FILE="$HASH_DIR/ftp-sync.txt"
+  HASH_FILE="$HASH_DIR/$BASENAME_FILE.txt"
 elif [ "$HASH_STORAGE" == "sqlite3" ]
 then
   if [ ! -x `which sqlite3` ]; then ftpsyncEcho "ERROR: You need sqlite3 for this script (try apt-get install sqlite3)"; exit 1; fi
-  HASH_FILE="$HASH_DIR/ftp-sync.db"
+  HASH_FILE="$HASH_DIR/$BASENAME_FILE.db"
 fi
 
 # Basic command
@@ -613,9 +616,9 @@ if [ "$HASH_ENABLED" == "1" -a -f "$HASH_FILE" ]; then HASH_ACTIVATED=1; else HA
 
 # Init sqlite database
 if [ "$HASH_STORAGE" == "sqlite3" -a ! -s "$HASH_FILE" ]; then
-  echo "CREATE TABLE data (id INTEGER PRIMARY KEY,hash TEXT,filename TEXT);" > "$HASH_DIR/ftp-sync.struct"
-  sqlite3 "$HASH_FILE" < "$HASH_DIR/ftp-sync.struct";
-  rm -f "$HASH_DIR/ftp-sync.struct"
+  echo "CREATE TABLE data (id INTEGER PRIMARY KEY,hash TEXT,filename TEXT);" > "$HASH_DIR/$BASENAME_FILE.struct"
+  sqlite3 "$HASH_FILE" < "$HASH_DIR/$BASENAME_FILE.struct";
+  rm -f "$HASH_DIR/$BASENAME_FILE.struct"
 fi
 
 # Check ftpsyncProcess already running
@@ -625,7 +628,7 @@ then
   oldPid=`cat "$PID_FILE"`
   if [ -d "/proc/$oldPid" ]
   then
-    ftpsyncEcho "ERROR: ftp-sync already running..."
+    ftpsyncEcho "ERROR: ftp-sync ($BASENAME_FILE) already running..."
     read -t 10 -p "Do you want to kill the current process? [Y/n] : " choice
     choice=${choice:-timeout}
     echo -n "Do you want to kill the current process? [Y/n] : $choice" >> "$LOG_FILE"
@@ -649,6 +652,7 @@ if [ -z "$FTP_SOURCES" ]; then FTP_SOURCES="^.*$;"; fi
 IFS=';' read -ra FTP_SRC <<< "$FTP_SOURCES"
 FTP_SOURCES_CNT=${#FTP_SRC[@]}
 
+ftpsyncEcho "Config: $BASENAME_FILE"
 ftpsyncEcho "Script PID: $currentPid"
 ftpsyncEcho "Log file: $LOG_FILE"
 ftpsyncEcho "FTP sources count: $FTP_SOURCES_CNT"
