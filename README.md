@@ -1,5 +1,4 @@
 <p align="center"><a href="https://github.com/crazy-max/ftp-sync" target="_blank"><img width="100" src="https://raw.githubusercontent.com/wiki/crazy-max/ftp-sync/img/logo-128.png"></a></p>
-<p align="center">FTP Sync</p>
 
 <p align="center">
   <a href="https://github.com/crazy-max/ftp-sync/releases/latest"><img src="https://img.shields.io/github/release/crazy-max/ftp-sync.svg?style=flat-square" alt="GitHub release"></a>
