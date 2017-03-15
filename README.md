@@ -82,7 +82,7 @@ Any funds donated will be used to help further development on this project! :gif
 
 <p>
   <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7NFD44VBNE3VL">
-    <img src=".https://ftp-sync.github.io/img/paypal.png" alt="Donate Paypal">
+    <img src="https://ftp-sync.github.io/img/paypal.png" alt="Donate Paypal">
   </a>
   <a href="https://flattr.com/submit/auto?user_id=crazymax&url=https://ftp-sync.github.io">
     <img src="https://ftp-sync.github.io/img/flattr.png" alt="Flattr this!">
