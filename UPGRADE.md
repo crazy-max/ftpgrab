@@ -1,8 +1,32 @@
-## 3.x > 4.x
+## 4.0 > 4.1
+
+Since the project has been renamed `ftpgrab`, some changes has to be made.
+
+```console
+// Rename files and folders
+$ mv /opt/ftp-sync/ /opt/ftpgrab
+$ mv /var/log/ftp-sync/ /var/log/ftpgrab
+$ mv /var/run/ftp-sync/ /var/run/ftpgrab
+$ mv /opt/ftpgrab/ftp-sync.conf /opt/ftpgrab/ftpgrab.conf
+$ mv /etc/init.d/ftp-sync /etc/init.d/ftpgrab
+
+// Download the latest script and dist config
+$ wget https://raw.github.com/ftpgrab/ftpgrab/master/ftpgrab.sh -O /etc/init.d/ftpgrab --no-check-certificate
+$ chmod +x /etc/init.d/ftpgrab
+$ wget https://raw.github.com/ftpgrab/ftpgrab/master/ftpgrab.conf -O /opt/ftpgrab/ftpgrab.conf --no-check-certificate
+```
+
+If you have a cron, do not forget to change the script's name :
+
+```
+0 4 * * * cd /etc/init.d/ && ./ftpgrab seedbox.conf >/dev/null 2>&1
+```
+
+## 3.x > 4.0
 
 To upgrade from 3.x to 4.x you have to move some files and rename the config and hash file to a custom name like `seedbox.conf` in the below example.
 
-```
+```console
 // Move to /opt
 $ mv /etc/ftp-sync /opt
 $ cd /opt/ftp-sync/
