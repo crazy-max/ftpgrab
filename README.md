@@ -1,9 +1,9 @@
-<p align="center"><a href="https://github.com/crazy-max/ftp-sync" target="_blank"><img width="100" src="https://raw.githubusercontent.com/wiki/crazy-max/ftp-sync/img/logo-128.png"></a></p>
+<p align="center"><a href="https://ftp-sync.github.io" target="_blank"><img width="100" src="https://ftp-sync.github.io/img/logo.png"></a></p>
 
 <p align="center">
-  <a href="https://github.com/crazy-max/ftp-sync/releases/latest"><img src="https://img.shields.io/github/release/crazy-max/ftp-sync.svg?style=flat-square" alt="GitHub release"></a>
+  <a href="https://github.com/ftp-sync/ftp-sync/releases/latest"><img src="https://img.shields.io/github/release/ftp-sync/ftp-sync.svg?style=flat-square" alt="GitHub release"></a>
   <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7NFD44VBNE3VL"><img src="https://img.shields.io/badge/donate-paypal-blue.svg?style=flat-square" alt="Donate Paypal"></a>
-  <a href="https://flattr.com/submit/auto?user_id=crazymax&url=https://github.com/crazy-max/ftp-sync"><img src="https://img.shields.io/badge/flattr-this-green.svg?style=flat-square" alt="Flattr this!"></a>
+  <a href="https://flattr.com/submit/auto?user_id=crazymax&url=https://ftp-sync.github.io"><img src="https://img.shields.io/badge/flattr-this-green.svg?style=flat-square" alt="Flattr this!"></a>
 </p>
 
 ## About
@@ -25,7 +25,6 @@ Do not forget to star :star2: the project if you like it :heart_eyes:
 
 * [Requirements](../../wiki/Requirements)
 * [Installation](../../wiki/Installation)
-* [Upgrade to 4.x](../../wiki/Upgrade-to-4.x)
 * [Configuration](../../wiki/Configuration)
 * [Usage](../../wiki/Usage)
 * [Troubleshooting](../../wiki/Troubleshooting)
@@ -84,7 +83,7 @@ Any funds donated will be used to help further development on this project! :gif
   <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7NFD44VBNE3VL">
     <img src="../../wiki/img/paypal.png" alt="Donate Paypal">
   </a>
-  <a href="https://flattr.com/submit/auto?user_id=crazymax&url=https://github.com/crazy-max/ftp-sync">
+  <a href="https://flattr.com/submit/auto?user_id=crazymax&url=https://ftp-sync.github.io">
     <img src="../../wiki/img/flattr.png" alt="Flattr this!">
   </a>
 </p>

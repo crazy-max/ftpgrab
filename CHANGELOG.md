@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1 (2017/03/14)
+
+* Add an exclude filter (Issue #27)
+
 ## 4.0 (2017/03/14)
 
 * Shuffle file/folder listing (Issue #25)
