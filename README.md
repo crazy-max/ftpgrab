@@ -16,18 +16,19 @@ You can also apply a filter to search for files with a regular expression.<br />
 
 Because this script only need `wget`, it is ideal for those with a seedbox or a shared seedbox to synchronize with a NAS (Synology Qnap D-Link) or a local computer...<br />
 
-With the sqlite3 [HASH_STORAGE](../../wiki/Configuration#hash_storage), the process performance will be improved!.
+With the sqlite3 [HASH_STORAGE](https://ftp-sync.github.io/doc/configuration/#hash_storage), the process performance will be improved!.
 
-Before reporting an issue, please read the [Troubleshooting page](../../wiki/Troubleshooting).<br />
+Before reporting an issue, please read the [Troubleshooting page](https://ftp-sync.github.io/doc/troubleshooting).<br />
 Do not forget to star :star2: the project if you like it :heart_eyes:
 
 ## Documentation
 
-* [Requirements](../../wiki/Requirements)
-* [Installation](../../wiki/Installation)
-* [Configuration](../../wiki/Configuration)
-* [Usage](../../wiki/Usage)
-* [Troubleshooting](../../wiki/Troubleshooting)
+* [Get started](https://ftp-sync.github.io/doc/get-started)
+* [Configuration](https://ftp-sync.github.io/doc/configuration)
+* [Troubleshooting](https://ftp-sync.github.io/doc/troubleshooting)
+* [Changelog](https://ftp-sync.github.io/doc/changelog)
+* [Upgrade notes](https://ftp-sync.github.io/doc/upgrade-notes)
+* [Reporting an issue](https://ftp-sync.github.io/doc/reporting-issue)
 
 ## Logs
 
@@ -81,10 +82,10 @@ Any funds donated will be used to help further development on this project! :gif
 
 <p>
   <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7NFD44VBNE3VL">
-    <img src="../../wiki/img/paypal.png" alt="Donate Paypal">
+    <img src=".https://ftp-sync.github.io/img/paypal.png" alt="Donate Paypal">
   </a>
   <a href="https://flattr.com/submit/auto?user_id=crazymax&url=https://ftp-sync.github.io">
-    <img src="../../wiki/img/flattr.png" alt="Flattr this!">
+    <img src="https://ftp-sync.github.io/img/flattr.png" alt="Flattr this!">
   </a>
 </p>
 
