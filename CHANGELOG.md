@@ -1,8 +1,8 @@
 # Changelog
 
-## 4.1 (2017/03/14)
+## 4.1 (2017/03/15)
 
-* Add an exclude filter (Issue #27)
+* Rename the project ftpgrab ! (Issue #28)
 
 ## 4.0 (2017/03/14)
 
