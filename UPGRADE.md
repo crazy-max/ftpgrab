@@ -45,8 +45,8 @@ $ chmod +x /etc/init.d/ftp-sync
 $ wget https://raw.github.com/ftp-sync/ftp-sync/master/ftp-sync.conf -O /opt/ftp-sync/ftp-sync.conf --no-check-certificate
 
 // Rename log files
-cd /var/log/ftp-sync/
-for FILENAME in *; do mv $FILENAME seedbox-$FILENAME; done
+$ cd /var/log/ftp-sync/
+$ for FILENAME in *; do mv $FILENAME seedbox-$FILENAME; done
 ```
 
 Next you will have to edit your config file `/opt/ftp-sync/conf/seedbox.conf` :
