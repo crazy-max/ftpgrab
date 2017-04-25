@@ -19,8 +19,8 @@ before_script:
 
 script:
   - cd tests/
-  - bash test1_wget_md5_text.sh
-  - bash test1_wget_sha1_text.sh
+  - ./test1_wget_md5_text.sh
+  - ./test1_wget_sha1_text.sh
 
 after_script:
   - tree -pu /opt/ftpgrab/
