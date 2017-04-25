@@ -3,27 +3,26 @@ sudo: required
 dist: trusty
 
 before_install:
-  - sudo -s
-  - apt-get update
-  - apt-get install -y -q gawk curl wget mailutils tree
+  - sudo apt-get update
+  - sudo apt-get install -y -q gawk curl wget mailutils tree
 
 install:
-  - mkdir -p /opt/ftpgrab/conf /var/log/ftpgrab
-  - cp ftpgrab.sh /etc/init.d/ftpgrab
-  - chmod +x /etc/init.d/ftpgrab
-  - cp ftpgrab.conf /opt/ftpgrab/
+  - sudo mkdir -p /opt/ftpgrab/conf /var/log/ftpgrab
+  - sudo cp ftpgrab.sh /etc/init.d/ftpgrab
+  - sudo chmod +x /etc/init.d/ftpgrab
+  - sudo cp ftpgrab.conf /opt/ftpgrab/
 
 before_script:
-  - chmod +x tests/*.sh
+  - sudo chmod +x tests/*.sh
 
 script:
   - cd tests/
-  - ./test1_wget_md5_text.sh
-  - ./test1_wget_sha1_text.sh
+  - sudo bash test1_wget_md5_text.sh
+  - sudo bash test1_wget_sha1_text.sh
 
 after_script:
-  - tree -d /opt/ftpgrab/
-  - tree -d /var/log/ftpgrab/
+  - sudo tree -d /opt/ftpgrab/
+  - sudo tree -d /var/log/ftpgrab/
 
 notifications:
   slack:
