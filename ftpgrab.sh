@@ -10,7 +10,7 @@
 
 ###################################################################################
 #                                                                                 #
-#  FTPGrab  v4.1                                                                  #
+#  FTPGrab v4.1                                                                   #
 #                                                                                 #
 #  Simple script to grab your files from a remote FTP server.                     #
 #                                                                                 #
@@ -469,6 +469,32 @@ function ftpgrabDebug() {
 ### BEGIN ###
 
 SCRIPT_NAME=$(basename "$0")
+
+# Default config
+DIR_DEST="/tmp/seedbox"
+EMAIL_LOG=""
+DEBUG=0
+FTP_HOST="198.51.100.0"
+FTP_PORT="21"
+FTP_USER=""
+FTP_PASSWORD=""
+FTP_SOURCES="/"
+FTP_SECURE=0
+FTP_CHECK_CERT=0
+DL_METHOD="wget"
+DL_USER=""
+DL_GROUP=""
+DL_CHMOD=""
+DL_REGEX=""
+DL_RETRY=3
+DL_RESUME=0
+DL_SHUFFLE=0
+DL_HIDE_SKIPPED=0
+DL_HIDE_PROGRESS=1
+DL_CREATE_BASEDIR=0
+HASH_ENABLED=1
+HASH_TYPE="md5"
+HASH_STORAGE="text"
 
 # Check config file
 CONFIG_FILE="$CONFIG_DIR/$1"
