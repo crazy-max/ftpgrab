@@ -18,9 +18,7 @@ sed "s#DIR_DEST=\"$DEFAULT_DIR_DEST\"#DIR_DEST=\"$DIR_DEST\"#" -i "$CONFIG_FILE"
 sed "s#FTP_HOST=\"$DEFAULT_FTP_HOST\"#FTP_HOST=\"$SERVER1_IP\"#" -i "$CONFIG_FILE"
 sed "s#FTP_USER=\"\"#FTP_USER=\"$SERVER1_USER\"#" -i "$CONFIG_FILE"
 sed "s#FTP_PASSWORD=\"\"#FTP_PASSWORD=\"$SERVER1_PASSWORD\"#" -i "$CONFIG_FILE"
+sed "s#HASH_TYPE=\"$DEFAULT_HASH_TYPE\"#HASH_TYPE=\"sha1\"#" -i "$CONFIG_FILE"
 
 # Launch
-/etc/init.d/ftpgrab "$TEST_NAME.conf"
-
-# Relaunch to check hashes
 /etc/init.d/ftpgrab "$TEST_NAME.conf"

@@ -19,13 +19,13 @@ before_script:
 
 script:
   - cd tests/
-  - ./test1_wget_md5_text.sh
-  - ./test1_wget_sha1_text.sh
+  - ./test01_wget_md5_text.sh
+  - ./test02_wget_sha1_text.sh
+  - ./test03_curl_md5_sqlite3.sh
+  - ./test04_curl_sha1_sqlite3_secure.sh
 
 after_script:
-  - tree -pu /opt/ftpgrab/
-  - tree -pu /var/log/ftpgrab/
-  - tree -pu $HOME/download/
+  - tree -pu /opt/ftpgrab/ /var/log/ftpgrab/ $HOME/download/
 
 notifications:
   slack:
