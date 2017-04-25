@@ -21,7 +21,6 @@ Because this script only need `wget`, it is ideal for those with a seedbox or a 
 With the sqlite3 [HASH_STORAGE](https://ftpgrab.github.io/doc/configuration/#hash_storage), the process performance will be improved!.
 
 Before reporting an issue, please read the [Troubleshooting page](https://ftpgrab.github.io/doc/troubleshooting).<br />
-Do not forget to star :star2: the project if you like it :heart_eyes:
 
 ## Documentation
 
@@ -79,7 +78,9 @@ baf87b6719e9f5499627fc8691efbd3c Burn.Notice.S06E16.VOSTFR.HDTV.XviD.avi
 
 ## How can i help ?
 
-I'm a single developer and if you find this project useful, please consider making a donation.<br />
+**FTPGrab** is free and open source and always will be.<br />
+We welcome all kinds of contributions :raised_hands:!<br />
+The most basic way to show your support is to star :star2: the project, or to raise issues :speech_balloon:<br />
 Any funds donated will be used to help further development on this project! :gift_heart:
 
 <p>
