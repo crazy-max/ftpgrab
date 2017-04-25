@@ -10,7 +10,7 @@
 
 ###################################################################################
 #                                                                                 #
-#  FTPGrab v4.1                                                                   #
+#  FTPGrab v4.1.1                                                                 #
 #                                                                                 #
 #  Simple script to grab your files from a remote FTP server.                     #
 #                                                                                 #
@@ -457,7 +457,11 @@ function ftpgrabAddLog() {
 }
 
 function ftpgrabEcho() {
-  echo -e "$1" | tee -a "$LOG_FILE"
+  if [ -f "$LOG_FILE" ]; then
+    echo -e "$1" | tee -a "$LOG_FILE"
+  else
+    echo -e "$1"
+  fi
 }
 
 function ftpgrabDebug() {
@@ -515,67 +519,35 @@ FILE_STATUS_SIZE_DIFF=3
 FILE_STATUS_HASH_EXISTS=4
 
 # Destination folder
-if [ ! -d "$DIR_DEST" ] && [ ! $(mkdir -p "$DIR_DEST" >/dev/null 2>&1) ]
-then
-  ftpgrabEcho "ERROR: Cannot create dir $DIR_DEST with $(whoami) user"
-  ftpgrabEcho "Please run this script as root / sudoer"
-  exit 1
-fi
-if [ ! -w "$DIR_DEST" ]
-then
-  ftpgrabEcho "ERROR: Dir $DIR_DEST is not writable by $(whoami)"
-  ftpgrabEcho "Please run this script as root / sudoer"
-  exit 1
-fi
+mkdir -p "$DIR_DEST"
+if [ ! -d "$DIR_DEST" ]; then ftpgrabEcho "ERROR: Cannot create dir $DIR_DEST with $(whoami) user"; exit 1; fi
+if [ ! -w "$DIR_DEST" ]; then ftpgrabEcho "ERROR: Dir $DIR_DEST is not writable by $(whoami)"; exit 1; fi
 
 # Log folder
 LOG_FILE="$LOGS_DIR/$BASENAME_FILE-`date +%Y%m%d%H%M%S`.log"
-if [ ! -w "$LOGS_DIR" ]
-then
-  echo "ERROR: Dir $LOGS_DIR is not writable by $(whoami)"
-  echo "Please run this script as root / sudoer"
-  exit 1
-fi
+if [ ! -w "$LOGS_DIR" ]; then echo "ERROR: Dir $LOGS_DIR is not writable by $(whoami)"; exit 1; fi
 touch "$LOG_FILE"
 
 # PID folder
+mkdir -p "$PID_DIR"
+if [ ! -d "$PID_DIR" ]; then ftpgrabEcho "ERROR: Cannot create dir $PID_DIR with $(whoami) user"; exit 1; fi
+if [ ! -w "$PID_DIR" ]; then ftpgrabEcho "ERROR: Dir $PID_DIR is not writable by $(whoami)"; exit 1; fi
 PID_FILE="$PID_DIR/$BASENAME_FILE.pid"
-if [ ! -d "$PID_DIR" ] && [ ! $(mkdir -p "$PID_DIR" >/dev/null 2>&1) ]
-then
-  ftpgrabEcho "ERROR: Cannot create dir $PID_DIR with $(whoami) user"
-  ftpgrabEcho "Please run this script as root / sudoer"
-  exit 1
-fi
-if [ ! -w "$PID_DIR" ]
-then
-  ftpgrabEcho "ERROR: Dir $PID_DIR is not writable by $(whoami)"
-  ftpgrabEcho "Please run this script as root / sudoer"
-  exit 1
-fi
 
 # Hash folder
-if [ ! -d "$HASH_DIR" ] && [ ! $(mkdir -p "$HASH_DIR" >/dev/null 2>&1) ]
-then
-  ftpgrabEcho "ERROR: Cannot create dir $HASH_DIR with $(whoami) user"
-  ftpgrabEcho "Please run this script as root / sudoer"
-  exit 1
-fi
-if [ ! -w "$HASH_DIR" ]
-then
-  ftpgrabEcho "ERROR: Dir $HASH_DIR is not writable by $(whoami)"
-  ftpgrabEcho "Please run this script as root / sudoer"
-  exit 1
-fi
+mkdir -p "$HASH_DIR"
+if [ ! -d "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Cannot create dir $HASH_DIR with $(whoami) user"; exit 1; fi
+if [ ! -w "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Dir $HASH_DIR is not writable by $(whoami)"; exit 1; fi
 
 ftpgrabEcho "FTPGrab v4.1 ($BASENAME_FILE - `date +"%Y/%m/%d %H:%M:%S"`)"
 ftpgrabEcho "--------------"
 
 # Check required packages
-if [ ! -x `which awk` ]; then ftpgrabEcho "ERROR: You need awk for this script (try apt-get install awk)"; exit 1; fi
-if [ ! -x `which nawk` ]; then ftpgrabEcho "ERROR: You need nawk for this script (try apt-get install nawk)"; exit 1; fi
-if [ ! -x `which gawk` ]; then ftpgrabEcho "ERROR: You need gawk for this script (try apt-get install gawk)"; exit 1; fi
-if [ ! -x `which md5sum` ]; then ftpgrabEcho "ERROR: You need md5sum for this script (try apt-get install md5sum)"; exit 1; fi
-if [ ! -x `which wget` ]; then ftpgrabEcho "ERROR: You need wget for this script (try apt-get install wget)"; exit 1; fi
+if ! type awk > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need awk for this script (try apt-get install awk)"; exit 1; fi
+if ! type nawk > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need nawk for this script (try apt-get install nawk)"; exit 1; fi
+if ! type gawk > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need gawk for this script (try apt-get install gawk)"; exit 1; fi
+if ! type md5sum > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need md5sum for this script (try apt-get install md5sum)"; exit 1; fi
+if ! type wget > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need wget for this script (try apt-get install wget)"; exit 1; fi
 
 # Check conditionnaly required packages
 if [[ "$DL_SHUFFLE" == "1" ]] && [[ ! -x `which shuf` ]]; then ftpgrabEcho "ERROR: You need shuf for this script (try apt-get install shuf)"; exit 1; fi
