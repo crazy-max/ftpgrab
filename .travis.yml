@@ -3,7 +3,7 @@ sudo: required
 dist: trusty
 
 before_install:
-  - sudo -i
+  - sudo -s
   - apt-get update
   - apt-get install -y -q gawk curl wget mailutils tree
 
