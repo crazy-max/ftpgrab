@@ -4,7 +4,7 @@ source common.sh
 TEST_NAME=$(echo $(basename $0) | sed -e 's/^[SK][0-9]*//' -e 's/\.sh$//')
 
 CONFIG_FILE="/opt/ftpgrab/conf/$TEST_NAME.conf"
-DIR_DEST="/tmp/$TEST_NAME"
+DIR_DEST="$HOME/download/$TEST_NAME"
 
 # Clean
 rm -f "$CONFIG_FILE"
