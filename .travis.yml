@@ -16,7 +16,7 @@ before_script:
   - sudo chmod +x tests/*.sh
 
 script:
-  - sudo cd tests/
+  - cd tests/
   - sudo ./test1_wget_md5_text.sh
   - sudo ./test1_wget_sha1_text.sh
 
