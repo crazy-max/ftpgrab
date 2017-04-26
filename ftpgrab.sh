@@ -157,8 +157,8 @@ function ftpgrabDownloadFile() {
     if [ -z "$LOG" ] && [ "$DL_HIDE_PROGRESS" == "0" -a -f "$dlstatusfile" -a -s "$dlstatusfile" ]
     then
       ftpgrabEcho ""
-      cat "$dlstatusfile" | sed '/^$/d' | head -n -2
-      cat "$dlstatusfile" | sed '/^$/d' | head -n -2 >> "$LOG_FILE"
+      < "$dlstatusfile" | sed '/^$/d' | head -n -2
+      < "$dlstatusfile" | sed '/^$/d' | head -n -2 >> "$LOG_FILE"
       ftpgrabEcho ""
     fi
   else
@@ -168,8 +168,8 @@ function ftpgrabDownloadFile() {
     if [ -z "$LOG" ] && [ "$DL_HIDE_PROGRESS" == "0" -a -f "$dlstatusfile" -a -s "$dlstatusfile" ]
     then
       ftpgrabEcho ""
-      cat "$dlstatusfile" | sed s/\\r/\\n/g | sed '/\.\.\.\.\.\.\.\. /!d'
-      cat "$dlstatusfile" | sed s/\\r/\\n/g | sed '/\.\.\.\.\.\.\.\. /!d' >> "$LOG_FILE"
+      < "$dlstatusfile" | sed s/\\r/\\n/g | sed '/\.\.\.\.\.\.\.\. /!d'
+      < "$dlstatusfile" | sed s/\\r/\\n/g | sed '/\.\.\.\.\.\.\.\. /!d' >> "$LOG_FILE"
       ftpgrabEcho ""
     fi
   fi
@@ -689,6 +689,6 @@ ftpgrabEcho "Total time spent: $(ftpgrabFormatSeconds $((endtime - starttime)))"
 rm -f "$PID_FILE"
 
 # Send logs
-if [ ! -z "$EMAIL_LOG" ]; then cat "$LOG_FILE" | mail -s "ftpgrab on $(hostname)" $EMAIL_LOG; fi
+if [ ! -z "$EMAIL_LOG" ]; then < "$LOG_FILE" | mail -s "ftpgrab on $(hostname)" $EMAIL_LOG; fi
 
 exit 0
