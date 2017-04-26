@@ -378,7 +378,6 @@ function ftpgrabStart() {
 
 function ftpgrabKill() {
   local cpid="$1"
-  pids="$cpid"
   if [ -d "/proc/$cpid" ] && [ -f "/proc/$cpid/cmdline" ]
   then
     local cmdline=$(cat "/proc/$cpid/cmdline")
@@ -472,7 +471,7 @@ function ftpgrabDebug() {
 
 ### BEGIN ###
 
-SCRIPT_NAME=$(basename "$0")
+#SCRIPT_NAME=$(basename "$0")
 
 # Default config
 DIR_DEST="/tmp/seedbox"
