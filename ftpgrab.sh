@@ -53,15 +53,15 @@ function ftpgrabIsDownloaded() {
   local srcfile="$2"
   if [ "$DL_METHOD" == "curl" ]
   then
-    local srcfileshort=`echo -n "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-`
-    local srcfileshort2=`echo -n "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-`
-    local destfile=`echo "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#"`
+    local srcfileshort=$(echo -n "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-)
+    local srcfileshort2=$(echo -n "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-)
+    local destfile=$(echo "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#")
   else
-    local srcfileshort=`echo -n "$(ftpgrabUrlDecode "$srcfile")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-`
-    local srcfileshort2=`echo -n "$(ftpgrabUrlDecode "$srcfile")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-`
-    local destfile=`echo "$(ftpgrabUrlDecode "$srcfile")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#"`
+    local srcfileshort=$(echo -n "$(ftpgrabUrlDecode "$srcfile")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-)
+    local srcfileshort2=$(echo -n "$(ftpgrabUrlDecode "$srcfile")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-)
+    local destfile=$(echo "$(ftpgrabUrlDecode "$srcfile")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#")
   fi
-  local srchash=`echo -n "$srcfileshort" | $HASH_CMD - | cut -d ' ' -f 1`
+  local srchash=$(echo -n "$srcfileshort" | ${HASH_CMD} - | cut -d ' ' -f 1)
   local srcsize=$(ftpgrabGetSize "$srcfileproc")
 
   # Check skip hash
@@ -69,12 +69,12 @@ function ftpgrabIsDownloaded() {
 
   if [ -f "$destfile" ]
   then
-    local destsize=`ls -la "$destfile" | awk '{print $5}'`
+    local destsize=$(ls -la "$destfile" | awk '{print $5}')
     if [ "$srcsize" == "$destsize" ]
     then
       if [ "$HASH_ACTIVATED" == "1" ] && [ "$skiphash" == "0" ]
       then
-        if [ "$HASH_STORAGE" == "text" ] && [ -z "`grep "^$srchash" "$HASH_FILE"`" ]
+        if [ "$HASH_STORAGE" == "text" ] && [ -z $(grep "^$srchash" "$HASH_FILE") ]
         then
           echo "$srchash $srcfileshort" >> "$HASH_FILE"
         elif [ "$HASH_STORAGE" == "sqlite3" ] && [ $(sqlite3 "$HASH_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$srchash' LIMIT 1)") == 0 ]
@@ -89,7 +89,7 @@ function ftpgrabIsDownloaded() {
     exit 1
   elif [ "$HASH_ACTIVATED" == "1" ] && [ "$skiphash" == "0" ]
   then
-    if [ "$HASH_STORAGE" == "text" ] && [ ! -z "`grep "^$srchash" "$HASH_FILE"`" ]
+    if [ "$HASH_STORAGE" == "text" ] && [ ! -z $(grep "^$srchash" "$HASH_FILE") ]
     then
       echo $FILE_STATUS_HASH_EXISTS
       exit 1
@@ -175,7 +175,7 @@ function ftpgrabDownloadFile() {
   fi
   if [ -f "$dlstatusfile" ]; then rm "$dlstatusfile"; fi
 
-  local dlstatus=`ftpgrabIsDownloaded "$srcfileproc" "$srcfile" "1"`
+  local dlstatus=$(ftpgrabIsDownloaded "$srcfileproc" "$srcfile" "1")
   if [ $errordl == 0 -a ${dlstatus:0:1} -eq $FILE_STATUS_SIZE_EQUAL ]
   then
     if [ -z "$LOG" ]; then ftpgrabEcho "File successfully downloaded!"; fi
@@ -194,7 +194,7 @@ function ftpgrabDownloadFile() {
     rm -rf "$destfile"
     if [ $retry -lt $DL_RETRY ]
     then
-      retry=`expr $retry + 1`
+      retry=$((${retry} + 1))
       if [ -z "$LOG" ]; then ftpgrabEcho "ERROR $errordl${dlstatus:0:1}: Download failed... retry $retry/3"; fi
       ftpgrabDownloadFile "$srcfileproc" "$srcfile" "$destfile" "$hidelog" "$resume" "$retry"
     else
@@ -238,7 +238,7 @@ function ftpgrabProcess() {
       local srcfileshort=`echo -n "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-`
       local srcfileshort2=`echo -n "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-`
       local destfile=`echo "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#"`
-      local vregex=`echo -n "$srcfileshort2" | sed -n "/$regex/p"`
+      local vregex=$(echo -n "$srcfileshort2" | sed -n "/$regex/p")
     else
       local lineClean=$(echo "$line" | sed "s#&\#32;#%20#g" | sed "s#$address# #g" | cut -c2-)
       local basename=$(basename "$lineClean")
@@ -255,11 +255,11 @@ function ftpgrabProcess() {
     ftpgrabDebug "srcfileproc: $srcfileproc"
     ftpgrabDebug "srcfileshort: $srcfileshort"
     ftpgrabDebug "srcfileshort2: $srcfileshort2"
-    ftpgrabDebug "srchash: \"`echo -n "$srcfileshort" | $HASH_CMD - | cut -d ' ' -f 1`\""
+    ftpgrabDebug "srchash: $(echo -n "$srcfileshort" | ${HASH_CMD} - | cut -d ' ' -f 1)"
     ftpgrabDebug "srcsize: $(ftpgrabGetSize "$srcfileproc")"
     ftpgrabDebug "destfile: $destfile"
     if [ -f "$destfile" ]; then
-      ftpgrabDebug "destsize: `ls -la "$destfile" | awk '{print $5}'`"
+      ftpgrabDebug "destsize: $(ls -la "$destfile" | awk '{print $5}')"
     else
       ftpgrabDebug "destsize: N/A"
     fi
@@ -284,7 +284,7 @@ function ftpgrabProcess() {
         ftpgrabAddLog "Size: $(ftpgrabGetHumanSize "$srcfileproc")"
 
         # Check validity
-        local dlstatus=`ftpgrabIsDownloaded "$srcfileproc" "$srcfile"`
+        local dlstatus=$(ftpgrabIsDownloaded "$srcfileproc" "$srcfile")
 
         if [ ${dlstatus:0:1} -eq $FILE_STATUS_NEVER_DL ]
         then
@@ -313,7 +313,7 @@ function ftpgrabProcess() {
 
         # Time spent
         local endtime=$(awk 'BEGIN{srand();print srand()}')
-        if [ -z "$LOG" ]; then ftpgrabEcho "Time spent: `ftpgrabFormatSeconds $(($endtime - $starttime))`"; fi
+        if [ -z "$LOG" ]; then ftpgrabEcho "Time spent: $(ftpgrabFormatSeconds $((endtime - starttime)))"; fi
         if [ -z "$LOG" ]; then ftpgrabEcho "--------------"; fi
       fi
     fi
@@ -322,11 +322,11 @@ function ftpgrabProcess() {
 
 function ftpgrabStart() {
   # Check FTP_SRC
-  FTP_SRC=`ftpgrabRebuildPath "$(echo $1 | xargs)"`
+  FTP_SRC=$(ftpgrabRebuildPath "$(echo $1 | xargs)")
   ftpgrabDebug "FTP_SRC: $FTP_SRC"
 
   # Check DIR_DEST
-  DIR_DEST_REF=`ftpgrabRebuildPath "$DIR_DEST"`
+  DIR_DEST_REF=$(ftpgrabRebuildPath "$DIR_DEST")
   #if [ "$FTP_SOURCES_CNT" -gt "1" ] && [ "$DL_CREATE_MULTI_BASEDIR" == "1"]; then
   if [ "$FTP_SRC" != "/" ] && [ "$DL_CREATE_BASEDIR" == "1" ]; then
     DIR_DEST_REF="$DIR_DEST_REF$(basename "$FTP_SRC")/"
@@ -381,15 +381,15 @@ function ftpgrabKill() {
   pids="$cpid"
   if [ -d "/proc/$cpid" ] && [ -f "/proc/$cpid/cmdline" ]
   then
-    local cmdline=`cat "/proc/$cpid/cmdline"`
+    local cmdline=$(cat "/proc/$cpid/cmdline")
     kill -9 $cpid
     sleep 2
-    local oPidsFile=`find /proc -type f -name "cmdline" | grep '/proc/[1-9][0-9]*/cmdline'`
+    local oPidsFile=$(find /proc -type f -name "cmdline" | grep '/proc/[1-9][0-9]*/cmdline')
     echo "$oPidsFile" | sort | while read oPidFile
     do
       if [ -f "$oPidFile" ]
       then
-        local oCmdLine=`cat "$oPidFile" 2>/dev/null`
+        local oCmdLine=$(cat "$oPidFile" 2>/dev/null)
         if [ "$cmdline" == "$oCmdLine" ]
         then
           local oPid=$(echo "$oPidFile" | cut -d '/' -f 3)
@@ -524,7 +524,7 @@ if [ ! -d "$DIR_DEST" ]; then ftpgrabEcho "ERROR: Cannot create dir $DIR_DEST wi
 if [ ! -w "$DIR_DEST" ]; then ftpgrabEcho "ERROR: Dir $DIR_DEST is not writable by $(whoami)"; exit 1; fi
 
 # Log folder
-LOG_FILE="$LOGS_DIR/$BASENAME_FILE-`date +%Y%m%d%H%M%S`.log"
+LOG_FILE="$LOGS_DIR/$BASENAME_FILE-$(date +%Y%m%d%H%M%S).log"
 if [ ! -w "$LOGS_DIR" ]; then echo "ERROR: Dir $LOGS_DIR is not writable by $(whoami)"; exit 1; fi
 touch "$LOG_FILE"
 
@@ -539,26 +539,25 @@ mkdir -p "$HASH_DIR"
 if [ ! -d "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Cannot create dir $HASH_DIR with $(whoami) user"; exit 1; fi
 if [ ! -w "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Dir $HASH_DIR is not writable by $(whoami)"; exit 1; fi
 
-ftpgrabEcho "FTPGrab v4.1 ($BASENAME_FILE - `date +"%Y/%m/%d %H:%M:%S"`)"
+ftpgrabEcho "FTPGrab v4.1.1 ($BASENAME_FILE - $(date +"%Y/%m/%d %H:%M:%S")"
 ftpgrabEcho "--------------"
 
 # Check required packages
 if ! type awk > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need awk for this script (try apt-get install awk)"; exit 1; fi
 if ! type nawk > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need nawk for this script (try apt-get install nawk)"; exit 1; fi
 if ! type gawk > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need gawk for this script (try apt-get install gawk)"; exit 1; fi
-if ! type md5sum > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need md5sum for this script (try apt-get install md5sum)"; exit 1; fi
-if ! type wget > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need wget for this script (try apt-get install wget)"; exit 1; fi
 
 # Check conditionnaly required packages
-if [[ "$DL_SHUFFLE" == "1" ]] && [[ ! -x `which shuf` ]]; then ftpgrabEcho "ERROR: You need shuf for this script (try apt-get install shuf)"; exit 1; fi
+if [[ "$DL_SHUFFLE" == "1" ]] && ! type shuf > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need shuf for this script (try apt-get install shuf)"; exit 1; fi
 
 # Check download method
 if [ "$DL_METHOD" == "wget" ] || [ "$DL_METHOD" != "curl" ]
 then
+  if ! type wget > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need wget for this script (try apt-get install wget)"; exit 1; fi
   DL_METHOD="wget"
 elif [ "$HASH_TYPE" == "curl" ]
 then
-  if [ ! -x `which curl` ]; then ftpgrabEcho "ERROR: You need curl for this script (try apt-get install curl)"; exit 1; fi
+  if ! type curl > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need curl for this script (try apt-get install curl)"; exit 1; fi
   DL_METHOD="curl"
 fi
 
@@ -566,10 +565,11 @@ fi
 HASH_CMD=""
 if [ "$HASH_TYPE" == "md5" ] || [ "$HASH_TYPE" != "sha1" ]
 then
+  if ! type md5sum > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need md5sum for this script (try apt-get install md5sum)"; exit 1; fi
   HASH_CMD="md5sum"
 elif [ "$HASH_TYPE" == "sha1" ]
 then
-  if [ ! -x `which sha1sum` ]; then ftpgrabEcho "ERROR: You need sha1sum for this script (try apt-get install sha1sum)"; exit 1; fi
+  if ! type sha1sum > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need sha1sum for this script (try apt-get install sha1sum)"; exit 1; fi
   HASH_CMD="sha1sum"
 fi
 
@@ -580,7 +580,7 @@ then
   HASH_FILE="$HASH_DIR/$BASENAME_FILE.txt"
 elif [ "$HASH_STORAGE" == "sqlite3" ]
 then
-  if [ ! -x `which sqlite3` ]; then ftpgrabEcho "ERROR: You need sqlite3 for this script (try apt-get install sqlite3)"; exit 1; fi
+  if ! type sqlite3 > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need sqlite3 for this script (try apt-get install sqlite3)"; exit 1; fi
   HASH_FILE="$HASH_DIR/$BASENAME_FILE.db"
 fi
 
@@ -621,7 +621,7 @@ fi
 currentPid=$$
 if [ -f "$PID_FILE" ]
 then
-  oldPid=`cat "$PID_FILE"`
+  oldPid=$(cat "$PID_FILE")
   if [ -d "/proc/$oldPid" ]
   then
     ftpgrabEcho "ERROR: ftpgrab ($BASENAME_FILE) already running..."
@@ -684,7 +684,7 @@ fi
 
 ftpgrabEcho "Finished..."
 endtime=$(awk 'BEGIN{srand();print srand()}')
-ftpgrabEcho "Total time spent: `ftpgrabFormatSeconds $(($endtime - $starttime))`"
+ftpgrabEcho "Total time spent: $(ftpgrabFormatSeconds $((endtime - starttime)))"
 
 rm -f "$PID_FILE"
 
