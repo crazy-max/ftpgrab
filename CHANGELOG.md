@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.1.1 (2017/10/15)
+## 4.1.1 (2017/04/26)
 
 * Add tests (Issue #30)
 * Use type instead of which (Issue #29)
