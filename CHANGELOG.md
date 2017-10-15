@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.1.2 (2017/10/15)
+## 4.2.0 (2017/10/16)
 
 * Remove init script
 * Fix issue while resuming downloads
