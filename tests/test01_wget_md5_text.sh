@@ -20,4 +20,4 @@ sed "s#FTP_USER=\"\"#FTP_USER=\"$SERVER1_USER\"#" -i "$CONFIG_FILE"
 sed "s#FTP_PASSWORD=\"\"#FTP_PASSWORD=\"$SERVER1_PASSWORD\"#" -i "$CONFIG_FILE"
 
 # Launch
-/etc/init.d/ftpgrab "$TEST_NAME.conf"
+ftpgrab "$TEST_NAME.conf"

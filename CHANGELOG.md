@@ -1,5 +1,12 @@
 # Changelog
 
+## 4.1.2 (2017/10/15)
+
+* Remove init script
+* Fix issue while resuming downloads
+* Move script to `/usr/bin`
+* Coding style
+
 ## 4.1.1 (2017/04/26)
 
 * Add tests (Issue #30)

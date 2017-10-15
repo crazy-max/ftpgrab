@@ -21,4 +21,4 @@ sed "s#FTP_PASSWORD=\"\"#FTP_PASSWORD=\"$SERVER1_PASSWORD\"#" -i "$CONFIG_FILE"
 sed "s#HASH_TYPE=\"$DEFAULT_HASH_TYPE\"#HASH_TYPE=\"sha1\"#" -i "$CONFIG_FILE"
 
 # Launch
-/etc/init.d/ftpgrab "$TEST_NAME.conf"
+ftpgrab "$TEST_NAME.conf"

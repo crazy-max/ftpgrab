@@ -22,4 +22,4 @@ sed "s#DL_METHOD=\"$DEFAULT_DL_METHOD\"#DL_METHOD=\"curl\"#" -i "$CONFIG_FILE"
 sed "s#HASH_STORAGE=\"$DEFAULT_HASH_STORAGE\"#HASH_TYPE=\"sqlite3\"#" -i "$CONFIG_FILE"
 
 # Launch
-/etc/init.d/ftpgrab "$TEST_NAME.conf"
+ftpgrab "$TEST_NAME.conf"

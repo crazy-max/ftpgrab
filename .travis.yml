@@ -8,9 +8,9 @@ before_install:
 
 install:
   - sudo mkdir -p /opt/ftpgrab/conf /var/log/ftpgrab /var/run/ftpgrab
-  - sudo cp ftpgrab.sh /etc/init.d/ftpgrab
-  - sudo chmod +x /etc/init.d/ftpgrab
-  - sudo chown $USER /etc/init.d/ftpgrab
+  - sudo cp ftpgrab.sh /usr/bin/ftpgrab
+  - sudo chmod +x /usr/bin/ftpgrab
+  - sudo chown $USER /usr/bin/ftpgrab
   - sudo cp ftpgrab.conf /opt/ftpgrab/
   - sudo chown -R $USER /opt/ftpgrab/ /var/log/ftpgrab/ /var/run/ftpgrab/
 

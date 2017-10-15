@@ -1,16 +1,8 @@
 #! /bin/bash
-### BEGIN INIT INFO
-# Provides:          ftpgrab
-# Required-Start:    $remote_fs $syslog
-# Required-Stop:     $remote_fs $syslog
-# Default-Start:     2 3 4 5
-# Default-Stop:      0 1 6
-# Short-Description: FTPGrab
-### END INIT INFO
 
 ###################################################################################
 #                                                                                 #
-#  FTPGrab v4.1.1                                                                 #
+#  FTPGrab v4.2.0                                                                 #
 #                                                                                 #
 #  Simple script to grab your files from a remote FTP server.                     #
 #                                                                                 #
@@ -36,7 +28,7 @@
 #  SOFTWARE.                                                                      #
 #                                                                                 #
 #  Related post: http://goo.gl/OcJFA                                              #
-#  Usage: ./ftpgrab.sh CONFIG_FILE                                               #
+#  Usage: ./ftpgrab.sh CONFIG_FILE                                                #
 #                                                                                 #
 ###################################################################################
 
@@ -49,275 +41,292 @@ PID_DIR="/var/run/ftpgrab"
 ### FUNCTIONS ###
 
 function ftpgrabIsDownloaded() {
-  local srcfileproc="$1"
-  local srcfile="$2"
+  local _SRC_FILE_PROC="$1"
+  local _SRC_FILE="$2"
+  local _SRC_FILE_SHORT=""
+  local _SRC_FILE_SHORT_2=""
+  local _DEST_FILE=""
+  local _SKIP_HASH=""
+
   if [ "$DL_METHOD" == "curl" ]
   then
-    local srcfileshort=$(echo -n "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-)
-    local srcfileshort2=$(echo -n "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-)
-    local destfile=$(echo "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#")
+    local _SRC_FILE_SHORT=$(echo -n "$_SRC_FILE" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-)
+    local _SRC_FILE_SHORT_2=$(echo -n "$_SRC_FILE" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-)
+    local _DEST_FILE=$(echo "$_SRC_FILE" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#")
   else
-    local srcfileshort=$(echo -n "$(ftpgrabUrlDecode "$srcfile")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-)
-    local srcfileshort2=$(echo -n "$(ftpgrabUrlDecode "$srcfile")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-)
-    local destfile=$(echo "$(ftpgrabUrlDecode "$srcfile")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#")
+    local _SRC_FILE_SHORT=$(echo -n "$(ftpgrabUrlDecode "$_SRC_FILE")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-)
+    local _SRC_FILE_SHORT_2=$(echo -n "$(ftpgrabUrlDecode "$_SRC_FILE")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-)
+    local _DEST_FILE=$(echo "$(ftpgrabUrlDecode "$_SRC_FILE")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#")
   fi
-  local srchash=$(echo -n "$srcfileshort" | ${HASH_CMD} - | cut -d ' ' -f 1)
-  local srcsize=$(ftpgrabGetSize "$srcfileproc")
 
-  # Check skip hash
-  if [ -z "$3" ]; then local skiphash=0; else local skiphash=$3; fi
+  local _SRC_HASH=$(echo -n "$_SRC_FILE_SHORT" | ${HASH_CMD} - | cut -d ' ' -f 1)
+  local _SRC_SIZE=$(ftpgrabGetSize "$_SRC_FILE_PROC")
+  if [ ! -z "$3" ]; then local _SKIP_HASH=$3; fi
 
-  if [ -f "$destfile" ]
+  if [ -f "$_DEST_FILE" ]
   then
-    local destsize=$(ls -la "$destfile" | awk '{print $5}')
-    if [ "$srcsize" == "$destsize" ]
+    local _DEST_SIZE=$(ls -la "$_DEST_FILE" | awk '{print $5}')
+    if [ "$_SRC_SIZE" == "$_DEST_SIZE" ]
     then
-      if [ "$HASH_ACTIVATED" == "1" ] && [ "$skiphash" == "0" ]
+      if [ "$HASH_ACTIVATED" == "1" ] && [ "$_SKIP_HASH" == "0" ]
       then
-        if [ "$HASH_STORAGE" == "text" ] && [ -z $(grep "^$srchash" "$HASH_FILE") ]
+        if [ "$HASH_STORAGE" == "text" ] && [ -z $(grep "^$_SRC_HASH" "$HASH_FILE") ]
         then
-          echo "$srchash $srcfileshort" >> "$HASH_FILE"
-        elif [ "$HASH_STORAGE" == "sqlite3" ] && [ $(sqlite3 "$HASH_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$srchash' LIMIT 1)") == 0 ]
+          echo "$_SRC_HASH $_SRC_FILE_SHORT" >> "$HASH_FILE"
+        elif [ "$HASH_STORAGE" == "sqlite3" ] && [ $(sqlite3 "$HASH_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$_SRC_HASH' LIMIT 1)") == 0 ]
         then
-          sqlite3 "$HASH_FILE" "INSERT INTO data (hash,filename) VALUES (\"$srchash\",\"$srcfileshort\")";
+          sqlite3 "$HASH_FILE" "INSERT INTO data (hash,filename) VALUES (\"$_SRC_HASH\",\"$_SRC_FILE_SHORT\")";
         fi
       fi
-      echo $FILE_STATUS_SIZE_EQUAL
+      echo ${FILE_STATUS_SIZE_EQUAL}
       exit 1
     fi
-    echo $FILE_STATUS_SIZE_DIFF
+    echo ${FILE_STATUS_SIZE_DIFF}
     exit 1
-  elif [ "$HASH_ACTIVATED" == "1" ] && [ "$skiphash" == "0" ]
+  elif [ "$HASH_ACTIVATED" == "1" ] && [ "$_SKIP_HASH" == "0" ]
   then
-    if [ "$HASH_STORAGE" == "text" ] && [ ! -z $(grep "^$srchash" "$HASH_FILE") ]
+    if [ "$HASH_STORAGE" == "text" ] && [ ! -z $(grep "^$_SRC_HASH" "$HASH_FILE") ]
     then
-      echo $FILE_STATUS_HASH_EXISTS
+      echo ${FILE_STATUS_HASH_EXISTS}
       exit 1
-    elif [ "$HASH_STORAGE" == "sqlite3" ] && [ $(sqlite3 "$HASH_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$srchash' LIMIT 1)") == 1 ]
+    elif [ "$HASH_STORAGE" == "sqlite3" ] && [ $(sqlite3 "$HASH_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$_SRC_HASH' LIMIT 1)") == 1 ]
     then
-      echo $FILE_STATUS_HASH_EXISTS
+      echo ${FILE_STATUS_HASH_EXISTS}
       exit 1
     fi
   fi
 
-  echo $FILE_STATUS_NEVER_DL
+  echo ${FILE_STATUS_NEVER_DL}
   exit 1
 }
 
 function ftpgrabDownloadFile() {
-  local srcfileproc="$1"
-  local srcfile="$2"
+  local _SRC_FILE_PROC="$1"
+  local _SRC_FILE="$2"
+  local _SRC_FILE_SHORT=""
+  local _SRC_FILE_SHORT_2=""
+  local _DEST_FILE=""
+  local _RESUME_CMD=""
+
   if [ "$DL_METHOD" == "curl" ]
   then
-    local srcfileshort=`echo -n "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-`
-    local srcfileshort2=`echo -n "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-`
-    local destfile=`echo "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#"`
+    local _SRC_FILE_SHORT=`echo -n "$_SRC_FILE" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-`
+    local _SRC_FILE_SHORT_2=`echo -n "$_SRC_FILE" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-`
+    local _DEST_FILE=`echo "$_SRC_FILE" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#"`
   else
-    local srcfileshort=`echo -n "$(ftpgrabUrlDecode "$srcfile")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-`
-    local srcfileshort2=`echo -n "$(ftpgrabUrlDecode "$srcfile")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-`
-    local destfile=`echo "$(ftpgrabUrlDecode "$srcfile")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#"`
+    local _SRC_FILE_SHORT=`echo -n "$(ftpgrabUrlDecode "$_SRC_FILE")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-`
+    local _SRC_FILE_SHORT_2=`echo -n "$(ftpgrabUrlDecode "$_SRC_FILE")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-`
+    local _DEST_FILE=`echo "$(ftpgrabUrlDecode "$_SRC_FILE")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#"`
   fi
-  local srchash=`echo -n "$srcfileshort" | $HASH_CMD - | cut -d ' ' -f 1`
-  local destfile="$3"
-  local hidelog="$4"
-  local resume="$5"
-  local dlstatusfile="/tmp/ftpgrab-$srchash.log"
+
+  local _SRC_HASH=`echo -n "$_SRC_FILE_SHORT" | ${HASH_CMD} - | cut -d ' ' -f 1`
+  if [ ! -z "$3" ]; then local _DEST_FILE=$3; fi
+  local _RESUME="$4"
+  local _DL_RETRY_COUNT="$5"
+  local _DL_STATUS_FILE="/tmp/ftpgrab-$_SRC_HASH.log"
 
   # Check download resume
-  local resumeCmd=""
-  if [ "$resume" == "1" ]
+  if [ "$_RESUME" == "1" ]
   then
     if [ "$DL_METHOD" == "curl" ]
     then
-      resumeCmd=" --continue-at -"
+      local _RESUME_CMD=" --continue-at -"
     else
-      resumeCmd=" --continue"
+      local _RESUME_CMD=" --continue"
     fi
   fi
 
-  # Check download retry
-  if [ -z "$6" ]; then local retry=0; else local retry=$6; fi
-
   # Create destfile path if does not exist
-  local destpath="${destfile%/*}"
-  if [ ! -d "$destpath" ]
+  local _DEST_PATH="${_DEST_FILE%/*}"
+  if [ ! -d "$_DEST_PATH" ]
   then
-    mkdir -p "$destpath"
-    ftpgrabChangePerms "$destpath"
+    mkdir -p "$_DEST_PATH"
+    ftpgrabChangePerms "$_DEST_PATH"
   fi
 
   # Begin download
-  if [ -z "$LOG" ]; then ftpgrabEcho "Start download to $destfile... Please wait..."; fi
-  if [ -f "$dlstatusfile" ]; then rm "$dlstatusfile"; fi
+  local _ERROR_DL=0
+  if [ -z "$LOG" ]; then ftpgrabEcho "Start download to $_DEST_FILE... Please wait..."; fi
+  if [ -f "$_DL_STATUS_FILE" ]; then rm "$_DL_STATUS_FILE"; fi
   if [ "$DL_METHOD" == "curl" ]
   then
-    ftpgrabDebug "Download command: curl $FTP_CURL_HIDECREDS$resumeCmd \"ftp://$FTP_HOST:$FTP_PORT$srcfileproc\" -o \"$destfile\""
-    curl --stderr "$dlstatusfile" $FTP_CURL$resumeCmd "ftp://$FTP_HOST:$FTP_PORT$srcfileproc" -o "$destfile"
-    local errordl="$?"
-    if [ -z "$LOG" ] && [ "$DL_HIDE_PROGRESS" == "0" -a -f "$dlstatusfile" -a -s "$dlstatusfile" ]
+    ftpgrabDebug "Download command: curl ${FTP_CURL_HIDECREDS}${_RESUME_CMD} \"ftp://${FTP_HOST}:${FTP_PORT}${_SRC_FILE_PROC}\" -o \"${_DEST_FILE}\""
+    curl --stderr "$_DL_STATUS_FILE" ${FTP_CURL}${_RESUME_CMD} "ftp://${FTP_HOST}:${FTP_PORT}${_SRC_FILE_PROC}" -o "$_DEST_FILE"
+    local _ERROR_DL="$?"
+    if [ -z "$LOG" ] && [ ${DL_HIDE_PROGRESS} -eq 0 -a -f "$_DL_STATUS_FILE" -a -s "$_DL_STATUS_FILE" ]
     then
       ftpgrabEcho ""
-      < "$dlstatusfile" | sed '/^$/d' | head -n -2
-      < "$dlstatusfile" | sed '/^$/d' | head -n -2 >> "$LOG_FILE"
+      < "$_DL_STATUS_FILE" | sed '/^$/d' | head -n -2
+      < "$_DL_STATUS_FILE" | sed '/^$/d' | head -n -2 >> "$LOG_FILE"
       ftpgrabEcho ""
     fi
   else
-    ftpgrabDebug "Download command: wget --progress=dot:mega $FTP_WGET_HIDECREDS$resumeCmd -O \"$destfile\" \"ftp://$FTP_HOST:$FTP_PORT$srcfileproc\""
-    wget --progress=dot:mega $FTP_WGET$resumeCmd -O "$destfile" -a "$dlstatusfile" "ftp://$FTP_HOST:$FTP_PORT$srcfileproc"
-    local errordl="$?"
-    if [ -z "$LOG" ] && [ "$DL_HIDE_PROGRESS" == "0" -a -f "$dlstatusfile" -a -s "$dlstatusfile" ]
+    ftpgrabDebug "Download command: wget --progress=dot:mega ${FTP_WGET_HIDECREDS}${_RESUME_CMD} -O \"${_DEST_FILE}\" \"ftp://{$FTP_HOST}:${FTP_PORT}${_SRC_FILE_PROC}\""
+    wget --progress=dot:mega ${FTP_WGET}${_RESUME_CMD} -O "${_DEST_FILE}" -a "${_DL_STATUS_FILE}" "ftp://${FTP_HOST}:${FTP_PORT}${_SRC_FILE_PROC}"
+    local _ERROR_DL="$?"
+    if [ -z "$LOG" ] && [ ${DL_HIDE_PROGRESS} -eq 0 -a -f "$_DL_STATUS_FILE" -a -s "$_DL_STATUS_FILE" ]
     then
       ftpgrabEcho ""
-      < "$dlstatusfile" | sed s/\\r/\\n/g | sed '/\.\.\.\.\.\.\.\. /!d'
-      < "$dlstatusfile" | sed s/\\r/\\n/g | sed '/\.\.\.\.\.\.\.\. /!d' >> "$LOG_FILE"
+      < "$_DL_STATUS_FILE" | sed s/\\r/\\n/g | sed '/\.\.\.\.\.\.\.\. /!d'
+      < "$_DL_STATUS_FILE" | sed s/\\r/\\n/g | sed '/\.\.\.\.\.\.\.\. /!d' >> "$LOG_FILE"
       ftpgrabEcho ""
     fi
   fi
-  if [ -f "$dlstatusfile" ]; then rm "$dlstatusfile"; fi
+  if [ -f "$_DL_STATUS_FILE" ]; then rm "$_DL_STATUS_FILE"; fi
 
-  local dlstatus=$(ftpgrabIsDownloaded "$srcfileproc" "$srcfile" "1")
-  if [ $errordl == 0 -a ${dlstatus:0:1} -eq $FILE_STATUS_SIZE_EQUAL ]
+  local _DL_STATUS=$(ftpgrabIsDownloaded "$_SRC_FILE_PROC" "$_SRC_FILE" "1")
+  if [ ${_ERROR_DL} -eq 0 -a ${_DL_STATUS:0:1} -eq ${FILE_STATUS_SIZE_EQUAL} ]
   then
     if [ -z "$LOG" ]; then ftpgrabEcho "File successfully downloaded!"; fi
-    ftpgrabChangePerms "$destfile"
+    ftpgrabChangePerms "$_DEST_FILE"
     if [ "$HASH_ACTIVATED" == "1" ]
     then
-      if [ "$HASH_STORAGE" == "text" ] && [ -z "`grep "^$srchash" "$HASH_FILE"`" ]
+      if [ "$HASH_STORAGE" == "text" ] && [ -z "`grep "^$_SRC_HASH" "$HASH_FILE"`" ]
       then
-        echo "$srchash $srcfileshort" >> "$HASH_FILE"
-      elif [ "$HASH_STORAGE" == "sqlite3" ] && [ $(sqlite3 "$HASH_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$srchash' LIMIT 1)") == 0 ]
+        echo "$_SRC_HASH $_SRC_FILE_SHORT" >> "$HASH_FILE"
+      elif [ "$HASH_STORAGE" == "sqlite3" ] && [ $(sqlite3 "$HASH_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$_SRC_HASH' LIMIT 1)") == 0 ]
       then
-        sqlite3 "$HASH_FILE" "INSERT INTO data (hash,filename) VALUES (\"$srchash\",\"$srcfileshort\")";
+        sqlite3 "$HASH_FILE" "INSERT INTO data (hash,filename) VALUES (\"$_SRC_HASH\",\"$_SRC_FILE_SHORT\")";
       fi
     fi
   else
-    rm -rf "$destfile"
-    if [ $retry -lt $DL_RETRY ]
+    rm -rf "$_DEST_FILE"
+    if [ ${_DL_RETRY_COUNT} -lt ${DL_RETRY} ]
     then
-      retry=$((${retry} + 1))
-      if [ -z "$LOG" ]; then ftpgrabEcho "ERROR $errordl${dlstatus:0:1}: Download failed... retry $retry/3"; fi
-      ftpgrabDownloadFile "$srcfileproc" "$srcfile" "$destfile" "$hidelog" "$resume" "$retry"
+      local _DL_RETRY_COUNT=$((${_DL_RETRY_COUNT} + 1))
+      if [ -z "$LOG" ]; then ftpgrabEcho "ERROR $_ERROR_DL${_DL_STATUS:0:1}: Download failed... retry $_DL_RETRY_COUNT/3"; fi
+      ftpgrabDownloadFile "$_SRC_FILE_PROC" "$_SRC_FILE" "$_DEST_FILE" "$_RESUME" "$_DL_RETRY_COUNT"
     else
-      if [ -z "$LOG" ]; then ftpgrabEcho "ERROR $errordl${dlstatus:0:1}: Download failed and too many retries..."; fi
+      if [ -z "$LOG" ]; then ftpgrabEcho "ERROR $_ERROR_DL${_DL_STATUS:0:1}: Download failed and too many retries..."; fi
     fi
   fi
 }
 
 function ftpgrabProcess() {
-  local path="$1"
-  local regex="$2"
-  local address="ftp://$FTP_HOST:$FTP_PORT"
+  local _PATH="$1"
+  local _REGEX="$2"
+  local _ADDRESS="ftp://$FTP_HOST:$FTP_PORT"
+  local _FILES=""
+  local _LINECLEAN=""
+  local _BASENAME=""
+  local _SRC_FILE=""
+  local _SRC_FILE_PROC=""
+  local _SRC_FILE_SHORT=""
+  local _SRC_FILE_SHORT_2=""
+  local _DEST_FILE=""
+  local _VREGEX=""
+
   if [ "$DL_METHOD" == "curl" ]
   then
-    local files=$(curl --silent --list-only $FTP_CURL "$address$path")
+    local _FILES=$(curl --silent --list-only ${FTP_CURL} "$_ADDRESS$_PATH")
   else
-    local files=$(wget -q $FTP_WGET -O - "$address$path" | grep -o 'ftp:[^"]*')
+    local _FILES=$(wget -q ${FTP_WGET} -O - "$_ADDRESS$_PATH" | grep -o 'ftp:[^"]*')
   fi
   if [ "$DL_SHUFFLE" == "1" ]
   then
-    files=$(echo -e "$files" | shuf)
+    local _FILES=$(echo -e "$_FILES" | shuf)
   fi
-  while read -r line
+  while read -r _LINE
   do
     if [ "$DL_METHOD" == "curl" ]
     then
-      if [ "$line" == "." -o "$line" == ".." ]
+      if [ "$_LINE" == "." -o "$_LINE" == ".." ]
       then
         continue
       fi
-      local lineClean="$line"
-      ftpgrabDebug "checkfolder: curl --silent --list-only $FTP_CURL_HIDECREDS \"$address$(ftpgrabUrlEncode "$path$line")/\""
-      curl --silent --list-only $FTP_CURL "$address$(ftpgrabUrlEncode "$path$line")/" >/dev/null
+      local _LINECLEAN="$_LINE"
+      ftpgrabDebug "checkfolder: curl --silent --list-only $FTP_CURL_HIDECREDS \"$_ADDRESS$(ftpgrabUrlEncode "$_PATH$_LINE")/\""
+      curl --silent --list-only ${FTP_CURL} "$_ADDRESS$(ftpgrabUrlEncode "$_PATH$_LINE")/" >/dev/null
       if [ "$?" == "0" ]
       then
-        lineClean="$line/"
+        local _LINECLEAN="$_LINE/"
       fi
-      local basename=$(basename "$lineClean")
-      local srcfile="$path$basename"
-      local srcfileproc="$(ftpgrabUrlEncode "$path$basename")"
-      local srcfileshort=`echo -n "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-`
-      local srcfileshort2=`echo -n "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-`
-      local destfile=`echo "$srcfile" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#"`
-      local vregex=$(echo -n "$srcfileshort2" | sed -n "/$regex/p")
+      local _BASENAME=$(basename "$_LINECLEAN")
+      local _SRC_FILE="$_PATH$_BASENAME"
+      local _SRC_FILE_PROC="$(ftpgrabUrlEncode "$_PATH$_BASENAME")"
+      local _SRC_FILE_SHORT=`echo -n "$_SRC_FILE" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-`
+      local _SRC_FILE_SHORT_2=`echo -n "$_SRC_FILE" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-`
+      local _DEST_FILE=`echo "$_SRC_FILE" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#"`
+      local _VREGEX=$(echo -n "$_SRC_FILE_SHORT_2" | sed -n "/$_REGEX/p")
     else
-      local lineClean=$(echo "$line" | sed "s#&\#32;#%20#g" | sed "s#$address# #g" | cut -c2-)
-      local basename=$(basename "$lineClean")
-      local srcfile="$path$basename"
-      local srcfileproc="$srcfile"
-      local srcfileshort=`echo -n "$(ftpgrabUrlDecode "$srcfile")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-`
-      local srcfileshort2=`echo -n "$(ftpgrabUrlDecode "$srcfile")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-`
-      local destfile=`echo "$(ftpgrabUrlDecode "$srcfile")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#"`
-      local vregex=`echo -n "$srcfileshort2" | sed -n "/$regex/p"`
+      local _LINECLEAN=$(echo "$_LINE" | sed "s#&\#32;#%20#g" | sed "s#$_ADDRESS# #g" | cut -c2-)
+      local _BASENAME=$(basename "$_LINECLEAN")
+      local _SRC_FILE="$_PATH$_BASENAME"
+      local _SRC_FILE_PROC="$_SRC_FILE"
+      local _SRC_FILE_SHORT=`echo -n "$(ftpgrabUrlDecode "$_SRC_FILE")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")##" | cut -c1-`
+      local _SRC_FILE_SHORT_2=`echo -n "$(ftpgrabUrlDecode "$_SRC_FILE")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")# #" | cut -c2-`
+      local _DEST_FILE=`echo "$(ftpgrabUrlDecode "$_SRC_FILE")" | sed -e "s#$(ftpgrabEscapeSed "$FTP_SRC")#$(ftpgrabEscapeSed "$DIR_DEST_REF")#"`
+      local _VREGEX=`echo -n "$_SRC_FILE_SHORT_2" | sed -n "/$_REGEX/p"`
     fi
-    ftpgrabDebug "lineClean: $lineClean"
-    ftpgrabDebug "basename: $basename"
-    ftpgrabDebug "srcfile: $srcfile"
-    ftpgrabDebug "srcfileproc: $srcfileproc"
-    ftpgrabDebug "srcfileshort: $srcfileshort"
-    ftpgrabDebug "srcfileshort2: $srcfileshort2"
-    ftpgrabDebug "srchash: $(echo -n "$srcfileshort" | ${HASH_CMD} - | cut -d ' ' -f 1)"
-    ftpgrabDebug "srcsize: $(ftpgrabGetSize "$srcfileproc")"
-    ftpgrabDebug "destfile: $destfile"
-    if [ -f "$destfile" ]; then
-      ftpgrabDebug "destsize: $(ls -la "$destfile" | awk '{print $5}')"
+    ftpgrabDebug "lineClean: $_LINECLEAN"
+    ftpgrabDebug "basename: $_BASENAME"
+    ftpgrabDebug "srcfile: $_SRC_FILE"
+    ftpgrabDebug "srcfileproc: $_SRC_FILE_PROC"
+    ftpgrabDebug "srcfileshort: $_SRC_FILE_SHORT"
+    ftpgrabDebug "srcfileshort2: $_SRC_FILE_SHORT_2"
+    ftpgrabDebug "srchash: $(echo -n "$_SRC_FILE_SHORT" | ${HASH_CMD} - | cut -d ' ' -f 1)"
+    ftpgrabDebug "srcsize: $(ftpgrabGetSize "$_SRC_FILE_PROC")"
+    ftpgrabDebug "destfile: $_DEST_FILE"
+    if [ -f "$_DEST_FILE" ]; then
+      ftpgrabDebug "destsize: $(ls -la "$_DEST_FILE" | awk '{print $5}')"
     else
       ftpgrabDebug "destsize: N/A"
     fi
-    ftpgrabDebug "vregex: $vregex"
-    if [[ "$lineClean" == */ ]]
+    ftpgrabDebug "vregex: $_VREGEX"
+    if [[ "$_LINECLEAN" == */ ]]
     then
-      ftpgrabProcess "$srcfile/" "$regex"
-    elif [ ! -z "$vregex" ]
+      ftpgrabProcess "$_SRC_FILE/" "$_REGEX"
+    elif [ ! -z "$_VREGEX" ]
     then
       LOG=""
-      local skipdl=0
-      local resume=0
-      local starttime=$(awk 'BEGIN{srand();print srand()}')
-      if [ ${destfile:${#destfile} - 1} == "/" ]
+      local _SKIP_DL=0
+      local _RESUME=0
+      local _START_TIME=$(awk "BEGIN{srand();print srand()}")
+      if [ ${_DEST_FILE: -1} == "/" ]
       then
-        mkdir -p "$destfile"
+        mkdir -p "$_DEST_FILE"
       else
         # Start process on a file
-        ftpgrabAddLog "Process file: $srcfileshort"
-        local srchash=`echo -n "$srcfileshort" | $HASH_CMD - | cut -d ' ' -f 1`
-        ftpgrabAddLog "Hash: $srchash"
-        ftpgrabAddLog "Size: $(ftpgrabGetHumanSize "$srcfileproc")"
+        ftpgrabAddLog "Process file: $_SRC_FILE_SHORT"
+        local _SRC_HASH=`echo -n "$_SRC_FILE_SHORT" | ${HASH_CMD} - | cut -d ' ' -f 1`
+        ftpgrabAddLog "Hash: $_SRC_HASH"
+        ftpgrabAddLog "Size: $(ftpgrabGetHumanSize "$_SRC_FILE_PROC")"
 
         # Check validity
-        local dlstatus=$(ftpgrabIsDownloaded "$srcfileproc" "$srcfile")
+        local _DL_STATUS=$(ftpgrabIsDownloaded "$_SRC_FILE_PROC" "$_SRC_FILE")
 
-        if [ ${dlstatus:0:1} -eq $FILE_STATUS_NEVER_DL ]
+        if [ ${_DL_STATUS:0:1} -eq ${FILE_STATUS_NEVER_DL} ]
         then
           ftpgrabAddLog "Status: Never downloaded..."
-        elif [ ${dlstatus:0:1} -eq $FILE_STATUS_SIZE_EQUAL ]
+        elif [ ${_DL_STATUS:0:1} -eq ${FILE_STATUS_SIZE_EQUAL} ]
         then
-          skipdl=1
+          local _SKIP_DL=1
           ftpgrabAddLog "Status: Already downloaded and valid. Skip download..."
-        elif [ ${dlstatus:0:1} -eq $FILE_STATUS_SIZE_DIFF ]
+        elif [ ${_DL_STATUS:0:1} -eq ${FILE_STATUS_SIZE_DIFF} ]
         then
-          if [ "$DL_RESUME" == "1" ]; then resume=1; fi
+          if [ "$DL_RESUME" == "1" ]; then local _RESUME=1; fi
           ftpgrabAddLog "Status: Exists but sizes are different..."
-        elif [ ${dlstatus:0:1} -eq $FILE_STATUS_HASH_EXISTS ]
+        elif [ ${_DL_STATUS:0:1} -eq ${FILE_STATUS_HASH_EXISTS} ]
         then
-          skipdl=1
+          local _SKIP_DL=1
           ftpgrabAddLog "Status: Hash sum exists. Skip download..."
         fi
 
         # Check if download skipped and want to hide it in log file
-        if [ "$skipdl" == "0" ] || [ "$DL_HIDE_SKIPPED" == "0" ]; then ftpgrabEcho "$LOG"; LOG=""; fi
+        if [ "$_SKIP_DL" == "0" ] || [ "$DL_HIDE_SKIPPED" == "0" ]; then ftpgrabEcho "$LOG"; LOG=""; fi
 
-        if [ "$skipdl" == "0" ]
+        if [ "$_SKIP_DL" == "0" ]
         then
-          ftpgrabDownloadFile "$srcfileproc" "$srcfile" "$destfile" "$hidelog" "$resume"
+          ftpgrabDownloadFile "$_SRC_FILE_PROC" "$_SRC_FILE" "$_DEST_FILE" "$_RESUME" "0"
         fi
 
         # Time spent
-        local endtime=$(awk 'BEGIN{srand();print srand()}')
-        if [ -z "$LOG" ]; then ftpgrabEcho "Time spent: $(ftpgrabFormatSeconds $((endtime - starttime)))"; fi
+        local _END_TIME=$(awk 'BEGIN{srand();print srand()}')
+        if [ -z "$LOG" ]; then ftpgrabEcho "Time spent: $(ftpgrabFormatSeconds $((_END_TIME - _START_TIME)))"; fi
         if [ -z "$LOG" ]; then ftpgrabEcho "--------------"; fi
       fi
     fi
-  done <<< "$files"
+  done <<< "$_FILES"
 }
 
 function ftpgrabStart() {
@@ -344,22 +353,22 @@ function ftpgrabStart() {
   ftpgrabEcho "Checking connection to ftp://$FTP_HOST:$FTP_PORT$FTP_SRC..."
   if [ "$DL_METHOD" == "curl" ]
   then
-    ftpgrabDebug "checkConnection: curl --silent --retry 1 --retry-delay 5 $FTP_CURL "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC""
-    curl --silent --retry 1 --retry-delay 5 $FTP_CURL "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC" >/dev/null
-    connectionExitCode="$?"
-    if [ $connectionExitCode != "0" ]
+    ftpgrabDebug "checkConnection: curl --silent --retry 1 --retry-delay 5 $FTP_CURL "ftp://${FTP_HOST}:${FTP_PORT}${FTP_SRC}""
+    curl --silent --retry 1 --retry-delay 5 ${FTP_CURL} "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC" >/dev/null
+    local _CON_EXIT_CODE="$?"
+    if [ ${_CON_EXIT_CODE} != "0" ]
     then
-      ftpgrabEcho "ERROR: Curl error $connectionExitCode"
+      ftpgrabEcho "ERROR: Curl error $_CON_EXIT_CODE"
       ftpgrabEcho "More infos: https://curl.haxx.se/libcurl/c/libcurl-errors.html"
       exit 1
     fi
   else
-    ftpgrabDebug "checkConnection: wget --spider -q --tries=1 --timeout=5 $FTP_WGET -O - "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC""
-    wget --spider -q --tries=1 --timeout=5 $FTP_WGET -O - "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
-    connectionExitCode="$?"
-    if [ $connectionExitCode != "0" ]
+    ftpgrabDebug "checkConnection: wget --spider -q --tries=1 --timeout=5 $FTP_WGET -O - "ftp://${FTP_HOST}:${FTP_PORT}${FTP_SRC}""
+    wget --spider -q --tries=1 --timeout=5 ${FTP_WGET} -O - "ftp://$FTP_HOST:$FTP_PORT$FTP_SRC"
+    local _CON_EXIT_CODE="$?"
+    if [ ${_CON_EXIT_CODE} != "0" ]
     then
-      ftpgrabEcho "ERROR: Wget error $connectionExitCode"
+      ftpgrabEcho "ERROR: Wget error $_CON_EXIT_CODE"
       ftpgrabEcho "More infos: http://www.gnu.org/software/wget/manual/html_node/Exit-Status.html"
       exit 1
     fi
@@ -371,28 +380,28 @@ function ftpgrabStart() {
   # Process
   if [ -z "$DL_REGEX" ]; then DL_REGEX="^.*$;"; fi
   IFS=';' read -ra REGEX <<< "$DL_REGEX"
-  for p in "${REGEX[@]}"; do
-    ftpgrabProcess "$FTP_SRC" "$(echo $p | xargs)"
+  for _P in "${REGEX[@]}"; do
+    ftpgrabProcess "$FTP_SRC" "$(echo ${_P} | xargs)"
   done
 }
 
 function ftpgrabKill() {
-  local cpid="$1"
-  if [ -d "/proc/$cpid" ] && [ -f "/proc/$cpid/cmdline" ]
+  local _CPID="$1"
+  if [ -d "/proc/$_CPID" ] && [ -f "/proc/$_CPID/cmdline" ]
   then
-    local cmdline=$(cat "/proc/$cpid/cmdline")
-    kill -9 $cpid
+    local _CMD_LINE=$(cat "/proc/$_CPID/cmdline")
+    kill -9 ${_CPID}
     sleep 2
-    local oPidsFile=$(find /proc -type f -name "cmdline" | grep '/proc/[1-9][0-9]*/cmdline')
-    echo "$oPidsFile" | sort | while read oPidFile
+    local _O_PIDS_FILE=$(find /proc -type f -name "cmdline" | grep '/proc/[1-9][0-9]*/cmdline')
+    echo "$_O_PIDS_FILE" | sort | while read _O_PID_FILE
     do
-      if [ -f "$oPidFile" ]
+      if [ -f "$_O_PID_FILE" ]
       then
-        local oCmdLine=$(cat "$oPidFile" 2>/dev/null)
-        if [ "$cmdline" == "$oCmdLine" ]
+        local _O_CMD_LINE=$(cat "$_O_PID_FILE" 2>/dev/null)
+        if [ "$_CMD_LINE" == "$_O_CMD_LINE" ]
         then
-          local oPid=$(echo "$oPidFile" | cut -d '/' -f 3)
-          if [ $oPid != $$ ]; then kill -9 $oPid 2>/dev/null; fi
+          local _O_PID=$(echo "$_O_PID_FILE" | cut -d '/' -f 3)
+          if [ ${_O_PID} != $$ ]; then kill -9 ${_O_PID} 2>/dev/null; fi
         fi
       fi
     done
@@ -410,9 +419,9 @@ function ftpgrabUrlDecode() {
 function ftpgrabGetSize() {
   if [ "$DL_METHOD" == "curl" ]
   then
-    echo $(curl --silent --head $FTP_CURL "ftp://$FTP_HOST:$FTP_PORT$1" | grep Content-Length | awk '{print $2}' | tr -d '\r')
+    echo $(curl --silent --head ${FTP_CURL} "ftp://$FTP_HOST:$FTP_PORT$1" | grep Content-Length | awk '{print $2}' | tr -d '\r')
   else
-    echo $(wget -S --spider $FTP_WGET -O - "ftp://$FTP_HOST:$FTP_PORT$1" >&1 2>&1 | grep '^213' | awk '{print $2}')
+    echo $(wget -S --spider ${FTP_WGET} -O - "ftp://$FTP_HOST:$FTP_PORT$1" >&1 2>&1 | grep '^213' | awk '{print $2}')
   fi
 }
 
@@ -425,34 +434,34 @@ function ftpgrabEscapeSed() {
 }
 
 function ftpgrabChangePerms() {
-  local path="$1"
-  if [ "$DL_USER" != "" ]; then chown $DL_USER:$DL_GROUP "$path"; fi
-  if [ "$DL_CHMOD" != "" ]; then chmod $DL_CHMOD "$path"; fi
+  local _PATH="$1"
+  if [ "$DL_USER" != "" ]; then chown ${DL_USER}.${DL_GROUP} "$_PATH"; fi
+  if [ "$DL_CHMOD" != "" ]; then chmod ${DL_CHMOD} "$_PATH"; fi
 }
 
 function ftpgrabFormatSeconds() {
-  local s=${1}
-  ((h=s/3600))
-  ((m=s%3600/60))
-  ((s=s%60))
-  if [ "${#h}" == 1 ]; then h="0"$h; fi
-  if [ "${#m}" == 1 ]; then m="0"$m; fi
-  if [ "${#s}" == 1 ]; then s="0"$s; fi
-  echo "$h:$m:$s"
+  local _S=${1}
+  ((_H=_S/3600))
+  ((_M=_S%3600/60))
+  ((_S=_S%60))
+  if [ "${#_H}" == 1 ]; then _H="0"${_H}; fi
+  if [ "${#_M}" == 1 ]; then _M="0"${_M}; fi
+  if [ "${#_S}" == 1 ]; then _S="0"${_S}; fi
+  echo "$_H:$_M:$_S"
 }
 
 function ftpgrabRebuildPath() {
-  local path="$1"
-  local len=${#path}-1
-  if [ "${path:len}" != "/" ]; then path="$path/"; fi
-  if [ "${path:0:1}" != "/" ]; then path="/$path"; fi
-  echo "$path"
+  local _PATH="$1"
+  local _LEN=${#_PATH}-1
+  if [ "${_PATH:_LEN}" != "/" ]; then _PATH="$_PATH/"; fi
+  if [ "${_PATH:0:1}" != "/" ]; then _PATH="/$_PATH"; fi
+  echo "$_PATH"
 }
 
 function ftpgrabAddLog() {
-  local text="$1"
-  if [ ! -z "$LOG" ]; then LOG=$LOG"\n"; fi
-  LOG=$LOG"$text"
+  local _TEXT="$1"
+  if [ ! -z "$LOG" ]; then LOG=${LOG}"\n"; fi
+  LOG=${LOG}"$_TEXT"
 }
 
 function ftpgrabEcho() {
@@ -499,6 +508,9 @@ HASH_ENABLED=1
 HASH_TYPE="md5"
 HASH_STORAGE="text"
 
+LOG=""
+DIR_DEST_REF=$(ftpgrabRebuildPath "$DIR_DEST")
+
 # Check config file
 CONFIG_FILE="$CONFIG_DIR/$1"
 if [ ! -f "$CONFIG_FILE" ]
@@ -538,7 +550,7 @@ mkdir -p "$HASH_DIR"
 if [ ! -d "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Cannot create dir $HASH_DIR with $(whoami) user"; exit 1; fi
 if [ ! -w "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Dir $HASH_DIR is not writable by $(whoami)"; exit 1; fi
 
-ftpgrabEcho "FTPGrab v4.1.1 ($BASENAME_FILE - $(date +"%Y/%m/%d %H:%M:%S")"
+ftpgrabEcho "FTPGrab v4.2.0 ($BASENAME_FILE - $(date +"%Y/%m/%d %H:%M:%S"))"
 ftpgrabEcho "--------------"
 
 # Check required packages
@@ -638,10 +650,10 @@ then
     esac
   fi
 fi
-echo $currentPid > "$PID_FILE"
+echo ${currentPid} > "$PID_FILE"
 
 # Start
-starttime=$(awk 'BEGIN{srand();print srand()}')
+starttime=$(awk "BEGIN{srand();print srand()}")
 
 if [ -z "$FTP_SOURCES" ]; then FTP_SOURCES="^.*$;"; fi
 IFS=';' read -ra FTP_SRC <<< "$FTP_SOURCES"
@@ -669,12 +681,12 @@ done
 if [ "$DL_USER" != "" ]
 then
   ftpgrabEcho "Change the ownership recursively of 'Destination' path to $DL_USER:$DL_GROUP"
-  chown -R $DL_USER:$DL_GROUP "$DIR_DEST"
+  chown -R ${DL_USER}:${DL_GROUP} "$DIR_DEST"
 fi
 if [ "$DL_CHMOD" != "" ]
 then
   ftpgrabEcho "Change the access permissions recursively of 'Destination' path to $DL_CHMOD"
-  chmod -R $DL_CHMOD "$DIR_DEST"
+  chmod -R ${DL_CHMOD} "$DIR_DEST"
 fi
 if [ "$DL_USER" != "" ] || [ "$DL_CHMOD" != "" ]
 then
@@ -688,6 +700,6 @@ ftpgrabEcho "Total time spent: $(ftpgrabFormatSeconds $((endtime - starttime)))"
 rm -f "$PID_FILE"
 
 # Send logs
-if [ ! -z "$EMAIL_LOG" ]; then < "$LOG_FILE" | mail -s "ftpgrab on $(hostname)" $EMAIL_LOG; fi
+if [ ! -z "$EMAIL_LOG" ]; then < "$LOG_FILE" | mail -s "ftpgrab on $(hostname)" ${EMAIL_LOG}; fi
 
 exit 0

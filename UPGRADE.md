@@ -1,3 +1,16 @@
+## 4.1 > 4.2.0
+
+```console
+$ mv /etc/init.d/ftpgrab /usr/bin/
+$ update-rc.d ftpgrab remove
+```
+
+If you have a cron, do not forget to change it :
+
+```
+0 4 * * * ftpgrab seedbox.conf >/dev/null 2>&1
+```
+
 ## 4.0 > 4.1
 
 Since the project has been renamed `ftpgrab`, some changes has to be made.
