@@ -20,6 +20,9 @@ Because this script only need `wget`, it is ideal for those with a seedbox or a 
 
 With the sqlite3 [HASH_STORAGE](https://ftpgrab.github.io/doc/configuration/#hash_storage), the process performance will be improved!.
 
+You can install FTPGrab using Docker !<br />
+An [official docker image](https://hub.docker.com/r/crazymax/ftpgrab/) 🐳 is available for FTPGrab. For more info, have a look on the [docker repository](https://github.com/ftpgrab/docker).
+
 Before reporting an issue, please read the [Troubleshooting page](https://ftpgrab.github.io/doc/troubleshooting).<br />
 
 ## Documentation

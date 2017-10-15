@@ -2,6 +2,7 @@
 
 ## 4.2.0 (2017/10/16)
 
+* Add Docker image (more info on [docker repository](https://github.com/ftpgrab/docker))
 * Remove init script
 * Fix issue while resuming downloads
 * Move script to `/usr/bin`
