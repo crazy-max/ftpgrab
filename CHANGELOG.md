@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.1.1 (2017/10/15)
+
+* Add tests (Issue #30)
+* Use type instead of which (Issue #29)
+* Fix error prone and performance issues
+* Coding style
+* Add default config
+* Add Codacy
+
 ## 4.1 (2017/03/15)
 
 * Rename the project ftpgrab ! (Issue #28)
