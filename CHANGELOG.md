@@ -1,6 +1,11 @@
 # Changelog
 
-## 4.2.0 (2017/10/16)
+## 4.2.1 (2017/10/16)
+
+* Add ssmtp on Docker image to send emails
+* Use sendmail instead of mail command
+
+## 4.2.0 (2017/10/15)
 
 * Add Docker image (more info on [docker repository](https://github.com/ftpgrab/docker))
 * Remove init script
