@@ -2,7 +2,7 @@
 
 ###################################################################################
 #                                                                                 #
-#  FTPGrab v4.2.0                                                                 #
+#  FTPGrab v4.2.1                                                                 #
 #                                                                                 #
 #  Simple script to grab your files from a remote FTP server.                     #
 #                                                                                 #
@@ -167,8 +167,8 @@ function ftpgrabDownloadFile() {
     if [ -z "$LOG" ] && [ ${DL_HIDE_PROGRESS} -eq 0 -a -f "$_DL_STATUS_FILE" -a -s "$_DL_STATUS_FILE" ]
     then
       ftpgrabEcho ""
-      < "$_DL_STATUS_FILE" | sed s/\\r/\\n/g | sed '/\.\.\.\.\.\.\.\. /!d'
-      < "$_DL_STATUS_FILE" | sed s/\\r/\\n/g | sed '/\.\.\.\.\.\.\.\. /!d' >> "$LOG_FILE"
+      cat "$_DL_STATUS_FILE" | sed s/\\r/\\n/g | sed '/\.\.\.\.\.\.\.\. /!d'
+      cat "$_DL_STATUS_FILE" | sed s/\\r/\\n/g | sed '/\.\.\.\.\.\.\.\. /!d' >> "$LOG_FILE"
       ftpgrabEcho ""
     fi
   fi
@@ -550,7 +550,7 @@ mkdir -p "$HASH_DIR"
 if [ ! -d "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Cannot create dir $HASH_DIR with $(whoami) user"; exit 1; fi
 if [ ! -w "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Dir $HASH_DIR is not writable by $(whoami)"; exit 1; fi
 
-ftpgrabEcho "FTPGrab v4.2.0 ($BASENAME_FILE - $(date +"%Y/%m/%d %H:%M:%S"))"
+ftpgrabEcho "FTPGrab v4.2.1 ($BASENAME_FILE - $(date +"%Y/%m/%d %H:%M:%S"))"
 ftpgrabEcho "--------------"
 
 # Check required packages
@@ -700,6 +700,12 @@ ftpgrabEcho "Total time spent: $(ftpgrabFormatSeconds $((endtime - starttime)))"
 rm -f "$PID_FILE"
 
 # Send logs
-if [ ! -z "$EMAIL_LOG" ]; then < "$LOG_FILE" | mail -s "ftpgrab on $(hostname)" ${EMAIL_LOG}; fi
+if [ ! -z "$EMAIL_LOG" ]; then
+  (
+    echo "To: ${EMAIL_LOG}";
+    echo "Subject: FTPGrab on $(hostname)";
+    cat "$LOG_FILE"
+  ) | sendmail -t
+fi
 
 exit 0
