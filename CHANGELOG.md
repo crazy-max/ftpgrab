@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.2.2 (2017/10/29)
+
+* Rebuild PATH
+
 ## 4.2.1 (2017/10/16)
 
 * Add ssmtp on Docker image to send emails
