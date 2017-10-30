@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.2.3 (2017/10/30)
+
+* Fix files download again (Issue #32)
+
 ## 4.2.2 (2017/10/29)
 
 * Rebuild PATH
