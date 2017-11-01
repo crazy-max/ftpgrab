@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.2.4 (2017/11/01)
+
+* Do not exit if connection failed
+
 ## 4.2.3 (2017/10/30)
 
 * Fix files download again (Issue #32)

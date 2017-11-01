@@ -2,7 +2,7 @@
 
 ###################################################################################
 #                                                                                 #
-#  FTPGrab v4.2.3                                                                 #
+#  FTPGrab v4.2.4                                                                 #
 #                                                                                 #
 #  Simple script to grab your files from a remote FTP server.                     #
 #                                                                                 #
@@ -360,7 +360,8 @@ function ftpgrabStart() {
     then
       ftpgrabEcho "ERROR: Curl error $_CON_EXIT_CODE"
       ftpgrabEcho "More infos: https://curl.haxx.se/libcurl/c/libcurl-errors.html"
-      exit 1
+      ftpgrabEcho "--------------"
+      return 1
     fi
   else
     ftpgrabDebug "checkConnection: wget --spider -q --tries=1 --timeout=5 $FTP_WGET -O - "ftp://${FTP_HOST}:${FTP_PORT}${FTP_SRC}""
@@ -370,7 +371,8 @@ function ftpgrabStart() {
     then
       ftpgrabEcho "ERROR: Wget error $_CON_EXIT_CODE"
       ftpgrabEcho "More infos: http://www.gnu.org/software/wget/manual/html_node/Exit-Status.html"
-      exit 1
+      ftpgrabEcho "--------------"
+      return 1
     fi
   fi
 
@@ -551,7 +553,7 @@ mkdir -p "$HASH_DIR"
 if [ ! -d "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Cannot create dir $HASH_DIR with $(whoami) user"; exit 1; fi
 if [ ! -w "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Dir $HASH_DIR is not writable by $(whoami)"; exit 1; fi
 
-ftpgrabEcho "FTPGrab v4.2.3 ($BASENAME_FILE - $(date +"%Y/%m/%d %H:%M:%S"))"
+ftpgrabEcho "FTPGrab v4.2.4 ($BASENAME_FILE - $(date +"%Y/%m/%d %H:%M:%S"))"
 ftpgrabEcho "--------------"
 
 # Check required packages
