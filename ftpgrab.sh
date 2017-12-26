@@ -2,12 +2,12 @@
 
 ###################################################################################
 #                                                                                 #
-#  FTPGrab v4.2.4                                                                 #
+#  FTPGrab v4.3.0                                                                 #
 #                                                                                 #
 #  Simple script to grab your files from a remote FTP server.                     #
 #                                                                                 #
 #  MIT License                                                                    #
-#  Copyright (c) 2013-2017 Cr@zy                                                  #
+#  Copyright (c) 2013-2017 CrazyMax                                               #
 #                                                                                 #
 #  Permission is hereby granted, free of charge, to any person obtaining a copy   #
 #  of this software and associated documentation files (the "Software"), to deal  #
@@ -282,6 +282,7 @@ function ftpgrabProcess() {
       local _SKIP_DL=0
       local _RESUME=0
       local _START_TIME=$(awk "BEGIN{srand();print srand()}")
+      local _EXCLUDE=0
       if [ ${_DEST_FILE: -1} == "/" ]
       then
         mkdir -p "$_DEST_FILE"
@@ -292,24 +293,42 @@ function ftpgrabProcess() {
         ftpgrabAddLog "Hash: $_SRC_HASH"
         ftpgrabAddLog "Size: $(ftpgrabGetHumanSize "$_SRC_FILE_PROC")"
 
-        # Check validity
-        local _DL_STATUS=$(ftpgrabIsDownloaded "$_SRC_FILE_PROC" "$_SRC_FILE")
+        # Check exclude
+        if [ ! -z "$DL_EXCLUDE_REGEX" ]
+        then
+          IFS=';' read -ra EXCLUDE_REGEX <<< "$DL_EXCLUDE_REGEX"
+          for _P in "${EXCLUDE_REGEX[@]}"; do
+            if $(echo "$_SRC_FILE_SHORT" | grep -Eq "^$_P$")
+            then
+              local _EXCLUDE=1
+              local _SKIP_DL=1
+              ftpgrabAddLog "Status: File skipped with exclude filter '$_P'..."
+              break
+            fi
+          done
+        fi
 
-        if [ ${_DL_STATUS:0:1} -eq ${FILE_STATUS_NEVER_DL} ]
+        # Check validity
+        if [ "$_EXCLUDE" == "0" ]
         then
-          ftpgrabAddLog "Status: Never downloaded..."
-        elif [ ${_DL_STATUS:0:1} -eq ${FILE_STATUS_SIZE_EQUAL} ]
-        then
-          local _SKIP_DL=1
-          ftpgrabAddLog "Status: Already downloaded and valid. Skip download..."
-        elif [ ${_DL_STATUS:0:1} -eq ${FILE_STATUS_SIZE_DIFF} ]
-        then
-          if [ "$DL_RESUME" == "1" ]; then local _RESUME=1; fi
-          ftpgrabAddLog "Status: Exists but sizes are different..."
-        elif [ ${_DL_STATUS:0:1} -eq ${FILE_STATUS_HASH_EXISTS} ]
-        then
-          local _SKIP_DL=1
-          ftpgrabAddLog "Status: Hash sum exists. Skip download..."
+          local _DL_STATUS=$(ftpgrabIsDownloaded "$_SRC_FILE_PROC" "$_SRC_FILE")
+
+          if [ ${_DL_STATUS:0:1} -eq ${FILE_STATUS_NEVER_DL} ]
+          then
+            ftpgrabAddLog "Status: Never downloaded..."
+          elif [ ${_DL_STATUS:0:1} -eq ${FILE_STATUS_SIZE_EQUAL} ]
+          then
+            local _SKIP_DL=1
+            ftpgrabAddLog "Status: Already downloaded and valid. Skip download..."
+          elif [ ${_DL_STATUS:0:1} -eq ${FILE_STATUS_SIZE_DIFF} ]
+          then
+            if [ "$DL_RESUME" == "1" ]; then local _RESUME=1; fi
+            ftpgrabAddLog "Status: Exists but sizes are different..."
+          elif [ ${_DL_STATUS:0:1} -eq ${FILE_STATUS_HASH_EXISTS} ]
+          then
+            local _SKIP_DL=1
+            ftpgrabAddLog "Status: Hash sum exists. Skip download..."
+          fi
         fi
 
         # Check if download skipped and want to hide it in log file
@@ -501,6 +520,7 @@ DL_USER=""
 DL_GROUP=""
 DL_CHMOD=""
 DL_REGEX=""
+DL_EXCLUDE_REGEX=""
 DL_RETRY=3
 DL_RESUME=0
 DL_SHUFFLE=0
@@ -553,7 +573,7 @@ mkdir -p "$HASH_DIR"
 if [ ! -d "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Cannot create dir $HASH_DIR with $(whoami) user"; exit 1; fi
 if [ ! -w "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Dir $HASH_DIR is not writable by $(whoami)"; exit 1; fi
 
-ftpgrabEcho "FTPGrab v4.2.4 ($BASENAME_FILE - $(date +"%Y/%m/%d %H:%M:%S"))"
+ftpgrabEcho "FTPGrab v4.3.0 ($BASENAME_FILE - $(date +"%Y/%m/%d %H:%M:%S"))"
 ftpgrabEcho "--------------"
 
 # Check required packages

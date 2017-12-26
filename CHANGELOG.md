@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.0 (2017/12/26)
+
+* Add an exclude filter for files through [DL_EXCLUDE_REGEX](https://ftpgrab.github.io/doc/configuration/#dl_exclude_regex) (Issue #27)
+
 ## 4.2.4 (2017/11/01)
 
 * Do not exit if connection failed
