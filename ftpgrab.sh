@@ -70,7 +70,7 @@ function ftpgrabIsDownloaded() {
     then
       if [ "$HASH_ACTIVATED" == "1" ] && [ "$_SKIP_HASH" == "0" ]
       then
-        if [ "$HASH_STORAGE" == "text" ] && [ -z $(grep "^$_SRC_HASH" "$HASH_FILE") ]
+        if [[ "$HASH_STORAGE" == "text" ]] && [[ -z $(grep "^$_SRC_HASH" "$HASH_FILE") ]]
         then
           echo "$_SRC_HASH $_SRC_FILE_SHORT" >> "$HASH_FILE"
         elif [ "$HASH_STORAGE" == "sqlite3" ] && [ $(sqlite3 "$HASH_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$_SRC_HASH' LIMIT 1)") == 0 ]
@@ -85,7 +85,7 @@ function ftpgrabIsDownloaded() {
     exit 1
   elif [ "$HASH_ACTIVATED" == "1" ] && [ "$_SKIP_HASH" == "0" ]
   then
-    if [ "$HASH_STORAGE" == "text" ] && [ ! -z $(grep "^$_SRC_HASH" "$HASH_FILE") ]
+    if [[ "$HASH_STORAGE" == "text" ]] && [[ ! -z $(grep "^$_SRC_HASH" "$HASH_FILE") ]]
     then
       echo ${FILE_STATUS_HASH_EXISTS}
       exit 1
@@ -181,7 +181,7 @@ function ftpgrabDownloadFile() {
     ftpgrabChangePerms "$_DEST_FILE"
     if [ "$HASH_ACTIVATED" == "1" ]
     then
-      if [ "$HASH_STORAGE" == "text" ] && [ -z "`grep "^$_SRC_HASH" "$HASH_FILE"`" ]
+      if [[ "$HASH_STORAGE" == "text" ]] && [[ -z "`grep "^$_SRC_HASH" "$HASH_FILE"`" ]]
       then
         echo "$_SRC_HASH $_SRC_FILE_SHORT" >> "$HASH_FILE"
       elif [ "$HASH_STORAGE" == "sqlite3" ] && [ $(sqlite3 "$HASH_FILE" "SELECT EXISTS(SELECT 1 FROM data WHERE hash='$_SRC_HASH' LIMIT 1)") == 0 ]
