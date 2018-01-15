@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.1 (2018/01/15)
+
+* Fix issue while checking source hash (Issue #35)
+
 ## 4.3.0 (2017/12/26)
 
 * Add an exclude filter for files through [DL_EXCLUDE_REGEX](https://ftpgrab.github.io/doc/configuration/#dl_exclude_regex) (Issue #27)
