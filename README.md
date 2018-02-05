@@ -4,26 +4,25 @@
   <a href="https://github.com/ftpgrab/ftpgrab/releases/latest"><img src="https://img.shields.io/github/release/ftpgrab/ftpgrab.svg?style=flat-square" alt="GitHub release"></a>
   <a href="https://travis-ci.org/ftpgrab/ftpgrab"><img src="https://img.shields.io/travis/ftpgrab/ftpgrab/master.svg?style=flat-square" alt="Build Status"></a>
   <a href="https://www.codacy.com/app/crazy-max/ftpgrab"><img src="https://img.shields.io/codacy/grade/354bfb181fc5482dac1e8f31e8e29af5.svg?style=flat-square" alt="Code Quality"></a>
-  <a href="https://saythanks.io/to/crazymax"><img src="https://img.shields.io/badge/thank-crazymax-426aa5.svg?style=flat-square" alt="Say Thanks"></a>
   <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7NFD44VBNE3VL"><img src="https://img.shields.io/badge/donate-paypal-7057ff.svg?style=flat-square" alt="Donate Paypal"></a>
 </p>
 
 ## About
 
-**FTPGrab** (formerly *FTP Sync*) is a shell script to grab your files from a remote FTP server to your NAS / server / computer.<br />
+**FTPGrab** (formerly *FTP Sync*) is a shell script to grab your files from a remote FTP server to your NAS / server / computer.
 
-A file containing the hash of the name of each downloaded file will prevent re-download a file even if it is not present in the destination directory.<br />
+A file containing the hash of the name of each downloaded file will prevent re-download a file even if it is not present in the destination directory.
 
-You can also apply a filter to search for files with a regular expression.<br />
+You can also apply a filter to search for files with a regular expression.
 
-Because this script only need `wget`, it is ideal for those with a seedbox or a shared seedbox to synchronize with a NAS (Synology Qnap D-Link) or a local computer...<br />
+Because this script only need `wget`, it is ideal for those with a seedbox or a shared seedbox to synchronize with a NAS (Synology Qnap D-Link) or a local computer...
 
-With the sqlite3 [HASH_STORAGE](https://ftpgrab.github.io/doc/configuration/#hash_storage), the process performance will be improved!.
+With sqlite3 [HASH_STORAGE](https://ftpgrab.github.io/doc/configuration/#hash_storage), the process performance will be improved!.
 
 You can install FTPGrab using Docker !<br />
 An [official docker image](https://hub.docker.com/r/crazymax/ftpgrab/) 🐳 is available for FTPGrab. For more info, have a look on the [docker repository](https://github.com/ftpgrab/docker).
 
-Before reporting an issue, please read the [Troubleshooting page](https://ftpgrab.github.io/doc/troubleshooting).<br />
+Before reporting an issue, please read the [Troubleshooting page](https://ftpgrab.github.io/doc/troubleshooting).
 
 ## Documentation
 
