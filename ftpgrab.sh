@@ -2,7 +2,7 @@
 
 ###################################################################################
 #                                                                                 #
-#  FTPGrab v4.3.1                                                                 #
+#  FTPGrab v4.3.2                                                                 #
 #                                                                                 #
 #  Simple script to grab your files from a remote FTP server.                     #
 #                                                                                 #
@@ -585,7 +585,7 @@ mkdir -p "$HASH_DIR"
 if [ ! -d "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Cannot create dir $HASH_DIR with $(whoami) user"; exit 1; fi
 if [ ! -w "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Dir $HASH_DIR is not writable by $(whoami)"; exit 1; fi
 
-ftpgrabEcho "FTPGrab v4.3.1 ($BASENAME_FILE - $(date +"%Y/%m/%d %H:%M:%S"))"
+ftpgrabEcho "FTPGrab v4.3.2 ($BASENAME_FILE - $(date +"%Y/%m/%d %H:%M:%S"))"
 ftpgrabEcho "--------------"
 
 # Check required packages
