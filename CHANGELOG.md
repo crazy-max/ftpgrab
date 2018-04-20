@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.2 (2018/04/20)
+
+* Detect if file size is currently changing and hold for download (Issue #37)
+
 ## 4.3.1 (2018/01/15)
 
 * Fix issue while checking source hash (Issue #35)
