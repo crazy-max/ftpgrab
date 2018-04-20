@@ -144,6 +144,18 @@ function ftpgrabDownloadFile() {
     ftpgrabChangePerms "$_DEST_PATH"
   fi
 
+  # Check if file size is changing
+  local _SRC_CURRENT_SIZE=$(ftpgrabGetSize "$_SRC_FILE_PROC")
+  sleep 2
+  if [ "$_SRC_CURRENT_SIZE" -ne "$(ftpgrabGetSize "$_SRC_FILE_PROC")" ]
+  then
+    if [ -z "$LOG" ]; then ftpgrabEcho "File size is currently changing. Hold for download..."; fi
+    while [[ "$_SRC_CURRENT_SIZE" -ne "$(ftpgrabGetSize "$_SRC_FILE_PROC")" ]]; do
+      sleep 2
+      _SRC_CURRENT_SIZE=$(ftpgrabGetSize "$_SRC_FILE_PROC")
+    done
+  fi
+
   # Begin download
   local _ERROR_DL=0
   if [ -z "$LOG" ]; then ftpgrabEcho "Start download to $_DEST_FILE... Please wait..."; fi
