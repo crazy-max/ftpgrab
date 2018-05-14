@@ -2,7 +2,7 @@
 
 ###################################################################################
 #                                                                                 #
-#  FTPGrab v4.3.2                                                                 #
+#  FTPGrab v4.3.3                                                                 #
 #                                                                                 #
 #  Simple script to grab your files from a remote FTP server.                     #
 #                                                                                 #
@@ -585,13 +585,11 @@ mkdir -p "$HASH_DIR"
 if [ ! -d "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Cannot create dir $HASH_DIR with $(whoami) user"; exit 1; fi
 if [ ! -w "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Dir $HASH_DIR is not writable by $(whoami)"; exit 1; fi
 
-ftpgrabEcho "FTPGrab v4.3.2 ($BASENAME_FILE - $(date +"%Y/%m/%d %H:%M:%S"))"
+ftpgrabEcho "FTPGrab v4.3.3 ($BASENAME_FILE - $(date +"%Y/%m/%d %H:%M:%S"))"
 ftpgrabEcho "--------------"
 
 # Check required packages
 if ! type awk > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need awk for this script (try apt-get install awk)"; exit 1; fi
-if ! type nawk > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need nawk for this script (try apt-get install nawk)"; exit 1; fi
-if ! type gawk > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need gawk for this script (try apt-get install gawk)"; exit 1; fi
 
 # Check conditionnaly required packages
 if [[ "$DL_SHUFFLE" == "1" ]] && ! type shuf > /dev/null 2>&1; then ftpgrabEcho "ERROR: You need shuf for this script (try apt-get install shuf)"; exit 1; fi

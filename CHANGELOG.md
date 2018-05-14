@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.3 (2018/05/14)
+
+* nawk and gawk not required (Issue #38)
+
 ## 4.3.2 (2018/04/20)
 
 * Detect if file size is currently changing and hold for download (Issue #37)
