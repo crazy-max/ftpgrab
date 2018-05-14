@@ -2,7 +2,7 @@
 
 ## 4.3.3 (2018/05/14)
 
-* nawk and gawk not required (Issue #38)
+* nawk and gawk not required anymore (Issue #38)
 
 ## 4.3.2 (2018/04/20)
 
