@@ -2,7 +2,7 @@
 
 ###################################################################################
 #                                                                                 #
-#  FTPGrab v4.3.3                                                                 #
+#  FTPGrab v4.3.4                                                                 #
 #                                                                                 #
 #  Simple script to grab your files from a remote FTP server.                     #
 #                                                                                 #
@@ -233,6 +233,11 @@ function ftpgrabProcess() {
     local _FILES=$(curl --silent --list-only ${FTP_CURL} "$_ADDRESS$_PATH")
   else
     local _FILES=$(wget -q ${FTP_WGET} -O - "$_ADDRESS$_PATH" | grep -o 'ftp:[^"]*')
+  fi
+  ftpgrabDebug "_FILES: $_FILES"
+  if [ -z "$_FILES" ]
+  then
+    return 0
   fi
   if [ "$DL_SHUFFLE" == "1" ]
   then
@@ -585,7 +590,7 @@ mkdir -p "$HASH_DIR"
 if [ ! -d "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Cannot create dir $HASH_DIR with $(whoami) user"; exit 1; fi
 if [ ! -w "$HASH_DIR" ]; then ftpgrabEcho "ERROR: Dir $HASH_DIR is not writable by $(whoami)"; exit 1; fi
 
-ftpgrabEcho "FTPGrab v4.3.3 ($BASENAME_FILE - $(date +"%Y/%m/%d %H:%M:%S"))"
+ftpgrabEcho "FTPGrab v4.3.4 ($BASENAME_FILE - $(date +"%Y/%m/%d %H:%M:%S"))"
 ftpgrabEcho "--------------"
 
 # Check required packages

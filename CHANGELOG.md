@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.4 (2018/08/15)
+
+* Empty folder leeds to spinlock (Issue #33)
+
 ## 4.3.3 (2018/05/14)
 
 * nawk and gawk not required anymore (Issue #38)
