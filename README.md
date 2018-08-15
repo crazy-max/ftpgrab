@@ -9,13 +9,13 @@
 
 ## About
 
-**FTPGrab** (formerly *FTP Sync*) is a shell script to grab your files from a remote FTP server to your NAS / server / computer.
+**FTPGrab** is a shell script to grab your files from a remote FTP server to your NAS / server / computer.
 
 A file containing the hash of the name of each downloaded file will prevent re-download a file even if it is not present in the destination directory.
 
 You can also apply a filter to search for files with a regular expression.
 
-Because this script only need `wget`, it is ideal for those with a seedbox or a shared seedbox to synchronize with a NAS (Synology Qnap D-Link) or a local computer...
+Because this script only need `wget`, it is ideal for those with a seedbox or a shared seedbox to grab your files to your NAS (Synology Qnap D-Link) or your local computer...
 
 With sqlite3 [HASH_STORAGE](https://ftpgrab.github.io/doc/configuration/#hash_storage), the process performance will be improved!.
 
