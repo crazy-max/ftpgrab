@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.5 (2019/02/04)
+
+* Switch to Travis CI (com)
+
 ## 4.3.4 (2018/08/15)
 
 * Empty folder leeds to spinlock (Issue #33)
