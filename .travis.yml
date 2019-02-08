@@ -1,33 +1,31 @@
-language: bash
-sudo: required
-dist: trusty
+language: go
+go:
+  - 1.11.x
+
+env:
+  global:
+    - GO111MODULE=on
 
 before_install:
-  - sudo apt-get update
-  - sudo apt-get install -y -q gawk curl wget mailutils tree
-
-install:
-  - sudo mkdir -p /opt/ftpgrab/conf /var/log/ftpgrab /var/run/ftpgrab
-  - sudo cp ftpgrab.sh /usr/bin/ftpgrab
-  - sudo chmod +x /usr/bin/ftpgrab
-  - sudo chown $USER /usr/bin/ftpgrab
-  - sudo cp ftpgrab.conf /opt/ftpgrab/
-  - sudo chown -R $USER /opt/ftpgrab/ /var/log/ftpgrab/ /var/run/ftpgrab/
-
-before_script:
-  - chmod +x tests/*.sh
+  - go version
+  - go env
+  - curl -sL https://git.io/goreleaser | head -n -2 | bash
+  - tar -xf /tmp/goreleaser.tar.gz -C $GOPATH/bin
+  - goreleaser -v
 
 script:
-  - cd tests/
-  - ./test01_wget_md5_text.sh
-  - ./test02_wget_sha1_text.sh
-  - ./test03_curl_md5_sqlite3.sh
-  - ./test04_curl_sha1_sqlite3_secure.sh
-  - ./test05_exclude.sh
+  - goreleaser release --skip-publish
 
-after_script:
-  - tree -pu /opt/ftpgrab/ /var/log/ftpgrab/ $HOME/download/
-
-notifications:
-  webhooks:
-    secure: QjLOJOPsNZxoVcSI+fn6tWXp7TDb+t2Eykm55TI85ctb0JA8yepQDLfPT0HfnYt/Hnd8bME3No9JPE8H1kDlR+XaaG1fFWIBnQdDWySJKDIndOGb8gKLDUbvFPO/YRoLIsTrItEh//EJgSApkwqVlZbJIJ+if1lPzIsIy9/dG+3gaTc99VR7O0RZuwkkC0t+xgbMjrFpTSmgbMPAOB4jwFqrNKUQBc5Kxjd/wIqM1ZsWtQ4lFHUKQJBgTsnH5o2JMkpkwUJ+XHrWnmknJTD4mVwl1es2axUicumhERiyGN1WrDwY2kVs9UI0AqLHYNeBP3aNXV2lwngkmt59MIFpnqT6ELlOb34WKDCaNTXMzHBphtzevzXshGOUPB6be0S4ai2xukAq1rOzDhUSNzhrupxjjb8FhxHz0TtoKjcAO1ZlT+92dIgcEPx3qf3Y9e46lUKEokidmZOhwHnT0D0uF7LJ+c2z9oopG7DyzBNIVDTyitQmdlvfCUc+RJRfnDQ/8v5qoI8TzkJ6VXwpyWWdZJRJIknkWwf2BKxkGP1pCCSsfSiSKAvsRa1GPq6ztfnfC4jcrfurnSFrLmeGc4+kvDXuYiC4NZ6LoezDsjUKnR3gf1s0IvZNurcb6PA0yPIoAnOWzUYR8ObOcU1gs51zvXsDqxZC3D+O4lChHWsOy8U=
+deploy:
+  provider: releases
+  api_key:
+    secure: Kfb2+RBJI178gF605QvVHQN1LSMcGcVaF9rCA8ip/HAaoPkYbuHohog4QF2H4uLbeXohQzmtB2sKVp/By4aMxAvp4xpQ4rB1NKJFndS8tmeTVWQuy6V694irPGmEgvxL/6Y7XWWaeY7QZ4+cRloQ2Y9UnNPhP2etn9JHhiS3rYY=
+  file_glob: true
+  file:
+    - dist/checksums.txt
+    - dist/*.tar.gz
+    - dist/*.zip
+  skip_cleanup: true
+  draft: true
+  on:
+    tags: true

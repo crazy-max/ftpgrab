@@ -1,0 +1,40 @@
+app:
+  timezone: UTC
+
+server:
+  host:
+  port: 21
+  username:
+  password:
+  connections_per_host: 5
+  timeout: 5
+  disable_epsv: false
+  tls:
+    enable: true
+    implicit: true
+    insecure_skip_verify: true
+  sources:
+    - /
+
+download:
+  dest:
+  uid: 1000
+  gid: 1000
+  chmod_file: 644
+  chmod_dir: 755
+  include:
+  exclude:
+  since: 0001-01-01T00:00:00Z
+  retry: 3
+  hash_enabled: true
+  hide_skipped: false
+  create_basedir: false
+
+mail:
+  enabled: false
+  host: localhost
+  port: 25
+  username:
+  password:
+  from:
+  to:

@@ -9,20 +9,26 @@
 
 ## About
 
-**FTPGrab** is a shell script to grab your files from a remote FTP server to your NAS / server / computer.
+**FTPGrab** is a CLI application written in [Go](https://golang.org/) distributed through a single binary to grab your files from a remote FTP server to your NAS, server or computer.
 
-A file containing the hash of the name of each downloaded file will prevent re-download a file even if it is not present in the destination directory.
-
-You can also apply a filter to search for files with a regular expression.
-
-Because this script only need `wget`, it is ideal for those with a seedbox or a shared seedbox to grab your files to your NAS (Synology Qnap D-Link) or your local computer...
-
-With sqlite3 [HASH_STORAGE](https://ftpgrab.github.io/doc/configuration/#hash_storage), the process performance will be improved!.
-
-You can install FTPGrab using Docker !<br />
-An [official docker image](https://hub.docker.com/r/crazymax/ftpgrab/) 🐳 is available for FTPGrab. For more info, have a look on the [docker repository](https://github.com/ftpgrab/docker).
+This application can be used on many platforms like Linux, MacOS, Windows, Synology, Qnap, D-Link...
 
 Before reporting an issue, please read the [Troubleshooting page](https://ftpgrab.github.io/doc/troubleshooting).
+
+## Features
+
+* Multiple sources
+* Prevent re-download through a hash
+* Efficient key/value store database to store hash
+* Internal cron implementation through go routines
+* Include and exclude filters with regular expression
+* Date filter
+* Retry on failed download
+* Change file/folder permissions and owner
+* Beautiful email report
+* Enhanced logging
+* Timezone can be changed
+* 🐳 Official [Docker image available](https://hub.docker.com/r/ftpgrab/ftpgrab/). Check [this repo](https://github.com/ftpgrab/docker) for more info
 
 ## Documentation
 
@@ -35,52 +41,32 @@ Before reporting an issue, please read the [Troubleshooting page](https://ftpgra
 
 ## Logs
 
-Each time the script is executed, a log file is created prefiexd by the config used.<br />
-Here is an example :
-
 ```console
-FTPGrab v4.1 (seedbox - 2017/03/15 01:41:49)
---------------
-Config: seedbox
-Script PID: 19383
-Log file: /var/log/ftpgrab/seedbox-20170315014149.log
-FTP sources count: 1
-FTP secure: 1
-Download method: curl
-Resume downloads: 1
-Hash type: md5
-Hash storage: sqlite3
-Hash file: /opt/ftpgrab/hash/seedbox.db
---------------
-Source: ftp://198.51.100.0:21/complete/
-Destination: /tmp/seedbox/
-Checking connection to ftp://198.51.100.0:21/complete/...
-Successfully connected!
---------------
-Process file: Burn.Notice.S06E16.VOSTFR.HDTV.XviD.avi
-Hash: baf87b6719e9f5499627fc8691efbd3c
-Size: 184.18 Mb
-Status: Never downloaded...
-Start download to /tmp/seedbox/Burn.Notice.S06E16.VOSTFR.HDTV.XviD.avi... Please wait...
-File successfully downloaded!
-Time spent: 00:00:48
---------------
-Change the ownership recursively of 'Destination' path to ftpuser:ftpgroup
-Change the access permissions recursively of 'Destination' path to 755
---------------
-Finished...
-Total time spent: 00:00:49
+Tue, 29 Jan 2019 22:23:58 CET INF Starting FTPGrab 5.0.0
+Tue, 29 Jan 2019 22:23:58 CET INF ########
+Tue, 29 Jan 2019 22:23:58 CET INF Connecting to 198.51.100.0:21...
+Tue, 29 Jan 2019 22:23:58 CET INF Grabbing from /complete/
+Tue, 29 Jan 2019 22:23:59 CET INF --------
+Tue, 29 Jan 2019 22:23:59 CET INF Checking /complete/Burn.Notice.S06E16.VOSTFR.HDTV.XviD.avi
+Tue, 29 Jan 2019 22:23:59 CET INF Never downloaded
+Tue, 29 Jan 2019 22:23:59 CET INF Downloading file (184.18MB) to /tmp/seedbox/Burn.Notice.S06E16.VOSTFR.HDTV.XviD.avi...
+Tue, 29 Jan 2019 22:24:47 CET INF File successfully downloaded!
+Tue, 29 Jan 2019 22:24:47 CET INF Time spent: 48 seconds
+Tue, 29 Jan 2019 22:24:47 CET INF --------
+Tue, 29 Jan 2019 22:24:47 CET INF Checking /complete/Burn.Notice.S06E17.VOSTFR.HDTV.XviD.avi
+Tue, 29 Jan 2019 22:24:47 CET INF Never downloaded
+Tue, 29 Jan 2019 22:24:47 CET INF Downloading file (186.27MB) to /tmp/seedbox/Burn.Notice.S06E17.VOSTFR.HDTV.XviD.avi...
+Tue, 29 Jan 2019 22:25:40 CET INF File successfully downloaded!
+Tue, 29 Jan 2019 22:25:40 CET INF Time spent: 50 seconds
+Tue, 29 Jan 2019 22:25:40 CET INF ########
+Tue, 29 Jan 2019 22:25:41 CET INF Finished, total time spent: 1 minute 49 seconds
 ```
 
-The hash file looks like this if you used `text` as `HASH_STORAGE` :
+## Email notifications
 
-```console
-baf87b6719e9f5499627fc8691efbd3c Burn.Notice.S06E16.VOSTFR.HDTV.XviD.avi
-```
+## How can I help ?
 
-## How can i help ?
-
-All kinds of contributions are welcomed :raised_hands:!<br />
+All kinds of contributions are welcome :raised_hands:!<br />
 The most basic way to show your support is to star :star2: the project, or to raise issues :speech_balloon:<br />
 But we're not gonna lie to each other, I'd rather you buy me a beer or two :beers:!
 
