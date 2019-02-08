@@ -2,43 +2,26 @@
 
 ## Reporting an issue
 
-First,
+Please do a search in [open issues](https://github.com/ftpgrab/ftpgrab/issues?utf8=%E2%9C%93&q=) to see if the issue or feature request has already been filed and read the [Troubleshooting](https://ftpgrab.github.io/doc/troubleshooting/) page first.
 
-* Read the [Troubleshooting](https://ftpgrab.github.io/doc/troubleshooting/) page.
-* Search for [existing issues](https://github.com/ftpgrab/ftpgrab/issues?utf8=✓&q=).
-* Reproduce the problem with `DEBUG=1` in the config file.
+If you find your issue already exists, make relevant comments and add your [reaction](https://github.com/blog/2119-add-reactions-to-pull-requests-issues-and-comments). Use a reaction in place of a "+1" comment.
 
-Then create a new issue based on this template :
+:+1: - upvote
 
-```
-### Steps to reproduce this issue
+:-1: - downvote
 
-1.
-2.
-3.
+If you cannot find an existing issue that describes your bug or feature, submit an issue using the guidelines below.
 
-### Expected Behaviour
-Tell me what should happen
+## Writing good bug reports and feature requests
 
-#### Actual Behaviour
-Tell me what happens instead
+File a single issue per problem and feature request.
 
-#### Configuration
+* Do not enumerate multiple bugs or feature requests in the same issue.
+* Do not add your issue as a comment to an existing issue unless it's for the identical input. Many issues look similar, but have different causes.
 
-**Operating system and platform (ex.Debian 8 64bits)** :
+The more information you can provide, the more likely someone will be successful reproducing the issue and finding a fix.
 
-**ftpgrab version (ex. 3.0)** :
-
-**wget version (ex. 1.16)** :
-
-**curl version (ex. 7.38.0)** :
-
-**md5sum / sha1sum version (ex. 8.23)** :
-
-**sqlite3 version (ex. 3.8.7.1)** :
-```
-
-Attach your log file located in `/var/log/ftpgrab` with a drag and drop in the issue.
+You are now ready to [create a new issue](https://github.com/ftpgrab/ftpgrab/issues/new/choose)!
 
 ## Closure policy
 
