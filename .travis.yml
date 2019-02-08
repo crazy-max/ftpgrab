@@ -14,7 +14,7 @@ before_install:
   - goreleaser -v
 
 script:
-  - goreleaser release --skip-publish
+  - test -n "$TRAVIS_TAG" && goreleaser release --skip-publish
 
 deploy:
   provider: releases
