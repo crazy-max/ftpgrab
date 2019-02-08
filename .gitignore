@@ -1,3 +1,7 @@
 /.idea
 /*.iml
+
 /.dev
+/bin
+/dist
+/vendor
