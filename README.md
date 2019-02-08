@@ -62,8 +62,6 @@ Tue, 29 Jan 2019 22:25:40 CET INF ########
 Tue, 29 Jan 2019 22:25:41 CET INF Finished, total time spent: 1 minute 49 seconds
 ```
 
-## Email notifications
-
 ## How can I help ?
 
 All kinds of contributions are welcome :raised_hands:!<br />
