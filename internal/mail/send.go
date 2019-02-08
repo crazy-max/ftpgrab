@@ -13,6 +13,7 @@ import (
 	"github.com/matcornic/hermes/v2"
 )
 
+// Send creates and sends an email with journal entries
 func Send(jnl model.Journal, cfg *config.Configuration) error {
 	h := hermes.Hermes{
 		Theme: new(Theme),

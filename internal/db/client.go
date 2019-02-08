@@ -14,6 +14,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+// Client represents an active db object
 type Client struct {
 	*bolt.DB
 	fg     *config.Configuration
@@ -26,6 +27,7 @@ type entry struct {
 	Size int64     `json:"size"`
 }
 
+// New creates new db instance
 func New(cfg *config.Configuration) (c *Client, err error) {
 	var db *bolt.DB
 	var bucket = "ftpgrab"
@@ -60,10 +62,12 @@ func New(cfg *config.Configuration) (c *Client, err error) {
 	return &Client{db, cfg, bucket}, nil
 }
 
+// Enabled verifies if db is enabled
 func (c *Client) Enabled() bool {
 	return c.fg.Download.HashEnabled
 }
 
+// Close closes db connection
 func (c *Client) Close() error {
 	if !c.Enabled() {
 		return nil
@@ -71,6 +75,7 @@ func (c *Client) Close() error {
 	return c.DB.Close()
 }
 
+// HasHash checks if hash is present for a file in db
 func (c *Client) HasHash(base string, source string, file os.FileInfo) bool {
 	exists := false
 	filename := strings.TrimPrefix(path.Join(source, file.Name()), base)
@@ -87,6 +92,7 @@ func (c *Client) HasHash(base string, source string, file os.FileInfo) bool {
 	return exists
 }
 
+// PutHash add hash in db for a given file
 func (c *Client) PutHash(base string, source string, file os.FileInfo) error {
 	filename := strings.TrimPrefix(path.Join(source, file.Name()), base)
 	hash := utl.Hash(filename)

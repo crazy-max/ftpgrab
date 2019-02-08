@@ -13,6 +13,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// Configuration holds configuration details
 type Configuration struct {
 	App      *App      `yaml:"app,omitempty"`
 	Server   *Server   `yaml:"server,omitempty"`
@@ -27,7 +28,7 @@ type App struct {
 	ID       string
 	Name     string
 	Desc     string
-	Url      string
+	URL      string
 	Author   string
 	Version  string
 	Timezone string `yaml:"timezone,omitempty"`
@@ -54,8 +55,8 @@ type Server struct {
 // Download holds download configuration details
 type Download struct {
 	Dest          string    `yaml:"dest,omitempty"`
-	Uid           int       `yaml:"uid,omitempty"`
-	Gid           int       `yaml:"gid,omitempty"`
+	UID           int       `yaml:"uid,omitempty"`
+	GID           int       `yaml:"gid,omitempty"`
 	ChmodFile     int       `yaml:"chmod_file,omitempty"`
 	ChmodDir      int       `yaml:"chmod_dir,omitempty"`
 	Include       []string  `yaml:"include,omitempty"`
@@ -87,7 +88,7 @@ func Load(file string, logFtp bool, version string) (*Configuration, error) {
 	cfg.App.ID = "ftpgrab"
 	cfg.App.Name = "FTPGrab"
 	cfg.App.Desc = "Grab your files from a remote FTP server easily"
-	cfg.App.Url = "https://ftpgrab.github.io"
+	cfg.App.URL = "https://ftpgrab.github.io"
 	cfg.App.Author = "CrazyMax"
 	cfg.App.Version = version
 	cfg.App.LogFtp = logFtp
@@ -108,6 +109,7 @@ func Load(file string, logFtp bool, version string) (*Configuration, error) {
 	return cfg, nil
 }
 
+// Check verifies Configuration values
 func (cfg *Configuration) Check() error {
 	var err error
 

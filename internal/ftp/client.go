@@ -10,10 +10,12 @@ import (
 	"github.com/secsy/goftp"
 )
 
+// Client represents an active ftp object
 type Client struct {
 	*goftp.Client
 }
 
+// New creates new ftp instance
 func New(config *config.Server, logger io.Writer) (*Client, error) {
 	var err error
 	var client *goftp.Client
@@ -56,6 +58,7 @@ func New(config *config.Server, logger io.Writer) (*Client, error) {
 	return &Client{client}, err
 }
 
+// Close closes ftp connection
 func (c *Client) Close() error {
 	return c.Client.Close()
 }

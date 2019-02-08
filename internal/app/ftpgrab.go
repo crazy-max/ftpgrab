@@ -19,6 +19,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// FtpGrab represents an active ftpgrab object
 type FtpGrab struct {
 	cfg     *config.Configuration
 	ftp     *ftp.Client
@@ -37,6 +38,7 @@ const (
 	hashExists  = model.EntryStatus("Hash sum exists")
 )
 
+// New creates new ftpgrab instance
 func New(cfg *config.Configuration) (*FtpGrab, error) {
 	if err := os.MkdirAll(cfg.Download.Dest, os.ModePerm); err != nil {
 		return nil, fmt.Errorf("cannot create destination dir %s, %v", cfg.Download.Dest, err)
@@ -47,6 +49,7 @@ func New(cfg *config.Configuration) (*FtpGrab, error) {
 	}, nil
 }
 
+// Run starts ftpgrab process
 func (fg *FtpGrab) Run() {
 	if !atomic.CompareAndSwapUint32(&fg.locker, 0, 1) {
 		log.Warn().Msg("Already running")
@@ -101,6 +104,7 @@ func (fg *FtpGrab) Run() {
 	}
 }
 
+// Close closes ftpgrab (ftp and db connection)
 func (fg *FtpGrab) Close() {
 	if err := fg.ftp.Close(); err != nil {
 		log.Warn().Err(err).Msg("Cannot close FTP connection")
@@ -182,7 +186,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 
 	err = fg.ftp.Retrieve(srcpath, destfile)
 	if err != nil {
-		retry += 1
+		retry++
 		log.Error().Err(err).Msgf("Error downloading, retry %d/%d", retry, fg.cfg.Download.Retry)
 		if retry == fg.cfg.Download.Retry {
 			log.Error().Err(err).Msg("Cannot download file")
@@ -222,9 +226,8 @@ func (fg *FtpGrab) fileStatus(base string, source string, file os.FileInfo) mode
 	} else if destfile, err := os.Stat(path.Join(fg.cfg.Download.Dest, source, file.Name())); err == nil {
 		if destfile.Size() == file.Size() {
 			return alreadyDl
-		} else {
-			return sizeDiff
 		}
+		return sizeDiff
 	} else if fg.cfg.Download.HashEnabled && fg.db.HasHash(base, source, file) {
 		return hashExists
 	}

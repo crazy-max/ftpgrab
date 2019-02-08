@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// GoftpWriter is a goftp logger
 type GoftpWriter struct {
 	Enabled bool
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// Configure configures logger
 func Configure(nocolor bool, level string, logFile bool) {
 	var err error
 	var w io.Writer
