@@ -6,10 +6,6 @@ env:
   global:
     - GO111MODULE=on
 
-before_install:
-  - go version
-  - go env
-
 install:
   - curl -sL https://git.io/goreleaser | head -n -2 | bash
   - tar -xf /tmp/goreleaser.tar.gz -C $GOPATH/bin
@@ -17,7 +13,7 @@ install:
 
 script:
   - go test ./...
-  - if [[ ! -z "$TRAVIS_TAG" ]]; then goreleaser release --skip-publish; fi
+  - if [ -n "$TRAVIS_TAG" ]; then goreleaser release --skip-publish; fi
 
 deploy:
   provider: releases
