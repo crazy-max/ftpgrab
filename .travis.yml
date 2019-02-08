@@ -9,12 +9,15 @@ env:
 before_install:
   - go version
   - go env
+
+install:
   - curl -sL https://git.io/goreleaser | head -n -2 | bash
   - tar -xf /tmp/goreleaser.tar.gz -C $GOPATH/bin
   - goreleaser -v
 
 script:
-  - test -n "$TRAVIS_TAG" && goreleaser release --skip-publish
+  - go test ./...
+  - if [[ ! -z "$TRAVIS_TAG" ]]; then goreleaser release --skip-publish; fi
 
 deploy:
   provider: releases
