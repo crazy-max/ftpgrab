@@ -3,15 +3,14 @@
 <p align="center">
   <a href="https://github.com/ftpgrab/ftpgrab/releases/latest"><img src="https://img.shields.io/github/release/ftpgrab/ftpgrab.svg?style=flat-square" alt="GitHub release"></a>
   <a href="https://travis-ci.com/ftpgrab/ftpgrab"><img src="https://img.shields.io/travis/com/ftpgrab/ftpgrab/5.0.x.svg?style=flat-square" alt="Build Status"></a>
+  <br /><a href="https://goreportcard.com/report/github.com/ftpgrab/ftpgrab"><img src="https://goreportcard.com/badge/github.com/ftpgrab/ftpgrab?style=flat-square" alt="Go Report"></a>
   <a href="https://www.codacy.com/app/ftpgrab/ftpgrab"><img src="https://img.shields.io/codacy/grade/354bfb181fc5482dac1e8f31e8e29af5/5.0.x.svg?style=flat-square" alt="Code Quality"></a>
   <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7NFD44VBNE3VL"><img src="https://img.shields.io/badge/donate-paypal-7057ff.svg?style=flat-square" alt="Donate Paypal"></a>
 </p>
 
 ## About
 
-**FTPGrab** is a CLI application written in [Go](https://golang.org/) distributed through a single binary to grab your files from a remote FTP server to your NAS, server or computer.
-
-This application can be used on many platforms like Linux, MacOS, Windows, Synology, Qnap, D-Link...
+**FTPGrab** is a CLI application written in [Go](https://golang.org/) distributed through a single binary to grab ⏬ your files from a remote FTP server to your NAS, server or computer. This application can be used on many platforms like Linux, MacOS, Windows, Synology, Qnap, D-Link...
 
 Before reporting an issue, please read the [Troubleshooting page](https://ftpgrab.github.io/doc/troubleshooting).
 
