@@ -21,6 +21,7 @@ type Configuration struct {
 	Flags    model.Flags
 	App      model.App      `yaml:"app,omitempty"`
 	Ftp      model.Ftp      `yaml:"ftp,omitempty"`
+	Db       model.Db       `yaml:"db,omitempty"`
 	Download model.Download `yaml:"download,omitempty"`
 	Mail     model.Mail     `yaml:"mail,omitempty"`
 	File     os.FileInfo
@@ -55,20 +56,23 @@ func Load(fl model.Flags, version string) (*Configuration, error) {
 				"/",
 			},
 		},
+		Db: model.Db{
+			Enable: true,
+			Path:   "ftpgrab.db",
+		},
 		Download: model.Download{
 			UID:           os.Getuid(),
 			GID:           os.Getgid(),
 			ChmodFile:     0644,
 			ChmodDir:      0755,
 			Retry:         3,
-			HashEnabled:   true,
 			HideSkipped:   false,
 			CreateBasedir: false,
 		},
 		Mail: model.Mail{
-			Enabled: false,
-			Host:    "localhost",
-			Port:    25,
+			Enable: false,
+			Host:   "localhost",
+			Port:   25,
 		},
 	}
 
@@ -104,10 +108,20 @@ func (cfg *Configuration) Check() error {
 		return errors.New("at least one source is required")
 	}
 
-	if cfg.Flags.Output == "" {
-		return errors.New("output destination folder is required")
+	if cfg.Flags.Docker {
+		cfg.Db.Path = "/data/ftpgrab.db"
+		cfg.Download.Output = "/data/download"
 	}
-	cfg.Flags.Output = path.Clean(cfg.Flags.Output)
+
+	if cfg.Db.Enable && cfg.Db.Path == "" {
+		return errors.New("path to database path is required if enabled")
+	}
+	cfg.Db.Path = path.Clean(cfg.Db.Path)
+
+	if cfg.Download.Output == "" {
+		return errors.New("output download folder is required")
+	}
+	cfg.Download.Output = path.Clean(cfg.Download.Output)
 
 	for _, include := range cfg.Download.Include {
 		if _, err := regexp.Compile(include); err != nil {
@@ -121,7 +135,7 @@ func (cfg *Configuration) Check() error {
 		}
 	}
 
-	if cfg.Mail.Enabled {
+	if cfg.Mail.Enable {
 		if _, err := mail.ParseAddress(cfg.Mail.From); err != nil {
 			return fmt.Errorf("cannot load timezone, %v", err)
 		}

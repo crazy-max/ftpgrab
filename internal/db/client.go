@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ftpgrab/ftpgrab/internal/config"
+	"github.com/ftpgrab/ftpgrab/internal/model"
 	"github.com/ftpgrab/ftpgrab/internal/utl"
 	"github.com/rs/zerolog/log"
 	bolt "go.etcd.io/bbolt"
@@ -17,7 +17,7 @@ import (
 // Client represents an active db object
 type Client struct {
 	*bolt.DB
-	fg     *config.Configuration
+	cfg    *model.Db
 	bucket string
 }
 
@@ -28,15 +28,18 @@ type entry struct {
 }
 
 // New creates new db instance
-func New(cfg *config.Configuration) (c *Client, err error) {
+func New(cfg *model.Db) (c *Client, err error) {
 	var db *bolt.DB
 	var bucket = "ftpgrab"
 
-	if !cfg.Download.HashEnabled {
-		return c, nil
+	if !cfg.Enable {
+		return &Client{
+			cfg:    cfg,
+			bucket: bucket,
+		}, nil
 	}
 
-	db, err = bolt.Open(fmt.Sprintf("%s.db", utl.Basename(cfg.File.Name())), 0600, &bolt.Options{
+	db, err = bolt.Open(cfg.Path, 0600, &bolt.Options{
 		Timeout: 10 * time.Second,
 	})
 	if err != nil {
@@ -64,7 +67,7 @@ func New(cfg *config.Configuration) (c *Client, err error) {
 
 // Enabled verifies if db is enabled
 func (c *Client) Enabled() bool {
-	return c.fg.Download.HashEnabled
+	return c.cfg.Enable
 }
 
 // Close closes db connection
@@ -77,6 +80,10 @@ func (c *Client) Close() error {
 
 // HasHash checks if hash is present for a file in db
 func (c *Client) HasHash(base string, source string, file os.FileInfo) bool {
+	if !c.Enabled() {
+		return false
+	}
+
 	exists := false
 	filename := strings.TrimPrefix(path.Join(source, file.Name()), base)
 	hash := utl.Hash(filename)
@@ -94,6 +101,10 @@ func (c *Client) HasHash(base string, source string, file os.FileInfo) bool {
 
 // PutHash add hash in db for a given file
 func (c *Client) PutHash(base string, source string, file os.FileInfo) error {
+	if !c.Enabled() {
+		return nil
+	}
+
 	filename := strings.TrimPrefix(path.Join(source, file.Name()), base)
 	hash := utl.Hash(filename)
 

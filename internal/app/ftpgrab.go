@@ -41,8 +41,12 @@ const (
 
 // New creates new ftpgrab instance
 func New(cfg *config.Configuration) (*FtpGrab, error) {
-	if err := os.MkdirAll(cfg.Flags.Output, os.ModePerm); err != nil {
-		return nil, fmt.Errorf("cannot create output destination folder %s, %v", cfg.Flags.Output, err)
+	if err := os.MkdirAll(cfg.Download.Output, os.ModePerm); err != nil {
+		return nil, fmt.Errorf("cannot create output download folder %s, %v", cfg.Download.Output, err)
+	}
+
+	if err := os.MkdirAll(utl.Basename(cfg.Db.Path), os.ModePerm); err != nil {
+		return nil, fmt.Errorf("cannot create database destination folder %s, %v", utl.Basename(cfg.Db.Path), err)
 	}
 
 	return &FtpGrab{
@@ -74,17 +78,16 @@ func (fg *FtpGrab) Run() {
 	}
 
 	// DB client
-	if fg.cfg.Download.HashEnabled {
-		if fg.db, err = db.New(fg.cfg); err != nil {
-			log.Fatal().Err(err).Msg("Cannot open database")
-		}
+	if fg.db, err = db.New(&fg.cfg.Db); err != nil {
+		log.Fatal().Err(err).Msg("Cannot open database")
 	}
 
+	// Iterate sources
 	for _, src := range fg.cfg.Ftp.Sources {
 		log.Info().Msgf("Grabbing from %s", src)
 
 		// Check basedir
-		dest := fg.cfg.Flags.Output
+		dest := fg.cfg.Download.Output
 		if src != "/" && fg.cfg.Download.CreateBasedir {
 			dest = path.Join(dest, src)
 		}
@@ -97,7 +100,8 @@ func (fg *FtpGrab) Run() {
 	fg.journal.Duration = time.Since(start)
 	log.Info().Msg("########")
 
-	if fg.cfg.Mail.Enabled {
+	// Send email report
+	if fg.cfg.Mail.Enable {
 		if err := mail.Send(fg.journal, fg.cfg); err != nil {
 			log.Error().Err(err).Msg("Cannot send email")
 			return
@@ -137,7 +141,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 		return
 	}
 
-	status := fg.fileStatus(base, src, file)
+	status := fg.fileStatus(base, src, dest, file)
 	jnlEntry := model.Entry{
 		File:       srcpath,
 		StatusText: string(status),
@@ -149,7 +153,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 		log.Info().Msg(string(status))
 	}
 
-	if status == alreadyDl && fg.cfg.Download.HashEnabled && !fg.db.HasHash(base, src, file) {
+	if status == alreadyDl && !fg.db.HasHash(base, src, file) {
 		if err := fg.db.PutHash(base, src, file); err != nil {
 			log.Error().Err(err).Msgf("Cannot add hash into db for %s", srcpath)
 		}
@@ -217,19 +221,19 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 	fg.addJnlEntry(jnlEntry)
 }
 
-func (fg *FtpGrab) fileStatus(base string, source string, file os.FileInfo) model.EntryStatus {
+func (fg *FtpGrab) fileStatus(base string, src string, dest string, file os.FileInfo) model.EntryStatus {
 	if !fg.isIncluded(file.Name()) {
 		return notIncluded
 	} else if fg.isExcluded(file.Name()) {
 		return excluded
 	} else if file.ModTime().Before(fg.cfg.Download.Since) {
 		return outdated
-	} else if destfile, err := os.Stat(path.Join(fg.cfg.Flags.Output, source, file.Name())); err == nil {
+	} else if destfile, err := os.Stat(path.Join(dest, file.Name())); err == nil {
 		if destfile.Size() == file.Size() {
 			return alreadyDl
 		}
 		return sizeDiff
-	} else if fg.cfg.Download.HashEnabled && fg.db.HasHash(base, source, file) {
+	} else if fg.db.HasHash(base, src, file) {
 		return hashExists
 	}
 

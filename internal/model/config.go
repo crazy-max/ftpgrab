@@ -33,8 +33,15 @@ type TLS struct {
 	InsecureSkipVerify bool `yaml:"insecure_skip_verify,omitempty"`
 }
 
+// Db holds data necessary for Database configuration
+type Db struct {
+	Enable bool   `yaml:"enable,omitempty"`
+	Path   string `yaml:"path,omitempty"`
+}
+
 // Download holds download configuration details
 type Download struct {
+	Output        string    `yaml:"output,omitempty"`
 	UID           int       `yaml:"uid,omitempty"`
 	GID           int       `yaml:"gid,omitempty"`
 	ChmodFile     int       `yaml:"chmod_file,omitempty"`
@@ -43,14 +50,13 @@ type Download struct {
 	Exclude       []string  `yaml:"exclude,omitempty"`
 	Since         time.Time `yaml:"since,omitempty"`
 	Retry         int       `yaml:"retry,omitempty"`
-	HashEnabled   bool      `yaml:"hash_enabled,omitempty"`
 	HideSkipped   bool      `yaml:"hide_skipped,omitempty"`
 	CreateBasedir bool      `yaml:"create_basedir,omitempty"`
 }
 
 // Mail holds mail notification configuration details
 type Mail struct {
-	Enabled  bool   `yaml:"enabled,omitempty"`
+	Enable   bool   `yaml:"enable,omitempty"`
 	Host     string `yaml:"host,omitempty"`
 	Port     int    `yaml:"port,omitempty"`
 	Username string `yaml:"username,omitempty"`

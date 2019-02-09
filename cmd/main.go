@@ -25,12 +25,12 @@ var (
 func main() {
 	// Parse command line
 	kingpin.Flag("config", "Yaml configuration file.").Envar("CONFIG").Required().StringVar(&flags.Cfgfile)
-	kingpin.Flag("output", "Output destination folder.").Envar("OUTPUT").Required().StringVar(&flags.Output)
 	kingpin.Flag("schedule", "CRON expression format.").Envar("SCHEDULE").StringVar(&flags.Schedule)
 	kingpin.Flag("log-level", "Set log level.").Envar("LOG_LEVEL").Default("info").StringVar(&flags.LogLevel)
 	kingpin.Flag("log-file", "Enable logging to file.").Envar("LOG_FILE").Default("false").BoolVar(&flags.LogFile)
 	kingpin.Flag("log-nocolor", "Disable the colorized output.").Envar("LOG_NOCOLOR").Default("false").BoolVar(&flags.LogNocolor)
 	kingpin.Flag("log-ftp", "Enable FTP log.").Envar("LOG_FTP").Default("false").BoolVar(&flags.LogFtp)
+	kingpin.Flag("docker", "Enable Docker mode.").Envar("DOCKER").Default("false").BoolVar(&flags.Docker)
 	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version(version).Author("CrazyMax")
 	kingpin.CommandLine.Name = "ftpgrab"
 	kingpin.CommandLine.Help = `Grab your files from a remote FTP server easily. More info : https://ftpgrab.github.io`

@@ -16,7 +16,12 @@ ftp:
   sources:
     - /
 
+db:
+  enable: true
+  path: ftpgrab.db
+
 download:
+  output: /download
   uid:
   gid:
   chmod_file: 644
@@ -25,12 +30,11 @@ download:
   exclude:
   since: 0001-01-01T00:00:00Z
   retry: 3
-  hash_enabled: true
   hide_skipped: false
   create_basedir: false
 
 mail:
-  enabled: false
+  enable: false
   host: localhost
   port: 25
   username:
