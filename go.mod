@@ -8,6 +8,7 @@ require (
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
 	github.com/hako/durafmt v0.0.0-20180520121703-7b7ae1e72ead
 	github.com/ilya1st/rotatewriter v0.0.0-20171126183947-3df0c1a3ed6d
+	github.com/imdario/mergo v0.3.7
 	github.com/matcornic/hermes/v2 v2.0.1
 	github.com/rs/zerolog v1.11.0
 	github.com/secsy/goftp v0.0.0-20180816013212-012609e90524

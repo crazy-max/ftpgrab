@@ -54,13 +54,14 @@ func main() {
 	}()
 
 	// Load and check configuration
-	cfg, err := config.Load(&flags, version)
+	cfg, err := config.Load(flags, version)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Cannot load configuration")
 	}
 	if err := cfg.Check(); err != nil {
 		log.Fatal().Err(err).Msg("Improper configuration")
 	}
+	log.Debug().Msg(cfg.String())
 
 	// Init
 	if ftpgrab, err = app.New(cfg); err != nil {

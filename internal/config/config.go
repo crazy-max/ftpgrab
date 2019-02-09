@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -11,32 +12,64 @@ import (
 	"time"
 
 	"github.com/ftpgrab/ftpgrab/internal/model"
+	"github.com/imdario/mergo"
 	"gopkg.in/yaml.v2"
 )
 
 // Configuration holds configuration details
 type Configuration struct {
-	Flags    *model.Flags
-	App      *model.App      `yaml:"app,omitempty"`
-	Server   *model.Server   `yaml:"server,omitempty"`
-	Download *model.Download `yaml:"download,omitempty"`
-	Mail     *model.Mail     `yaml:"mail,omitempty"`
+	Flags    model.Flags
+	App      model.App      `yaml:"app,omitempty"`
+	Server   model.Server   `yaml:"server,omitempty"`
+	Download model.Download `yaml:"download,omitempty"`
+	Mail     model.Mail     `yaml:"mail,omitempty"`
 	File     os.FileInfo
 	Location *time.Location
 }
 
 // Load returns Configuration struct
-func Load(fl *model.Flags, version string) (*Configuration, error) {
+func Load(fl model.Flags, version string) (*Configuration, error) {
 	var err error
-	var cfg = &Configuration{Flags: fl}
-
-	cfg.App = &model.App{
-		ID:      "ftpgrab",
-		Name:    "FTPGrab",
-		Desc:    "Grab your files from a remote FTP server easily",
-		URL:     "https://ftpgrab.github.io",
-		Author:  "CrazyMax",
-		Version: version,
+	var cfg = Configuration{
+		Flags: fl,
+		App: model.App{
+			ID:       "ftpgrab",
+			Name:     "FTPGrab",
+			Desc:     "Grab your files from a remote FTP server easily",
+			URL:      "https://ftpgrab.github.io",
+			Author:   "CrazyMax",
+			Version:  version,
+			Timezone: "UTC",
+		},
+		Server: model.Server{
+			Port:               21,
+			ConnectionsPerHost: 5,
+			Timeout:            5,
+			DisableEPSV:        false,
+			TLS: model.TLS{
+				Enable:             false,
+				Implicit:           true,
+				InsecureSkipVerify: false,
+			},
+			Sources: []string{
+				"/",
+			},
+		},
+		Download: model.Download{
+			UID:           os.Getuid(),
+			GID:           os.Getgid(),
+			ChmodFile:     0644,
+			ChmodDir:      0755,
+			Retry:         3,
+			HashEnabled:   true,
+			HideSkipped:   false,
+			CreateBasedir: false,
+		},
+		Mail: model.Mail{
+			Enabled: false,
+			Host:    "localhost",
+			Port:    25,
+		},
 	}
 
 	if cfg.File, err = os.Lstat(fl.Cfgfile); err != nil {
@@ -48,11 +81,11 @@ func Load(fl *model.Flags, version string) (*Configuration, error) {
 		return nil, fmt.Errorf("unable to read config file, %s", err)
 	}
 
-	if err := yaml.Unmarshal(bytes, cfg); err != nil {
+	if err := yaml.Unmarshal(bytes, &cfg); err != nil {
 		return nil, fmt.Errorf("unable to decode into struct, %v", err)
 	}
 
-	return cfg, nil
+	return &cfg, nil
 }
 
 // Check verifies Configuration values
@@ -99,4 +132,23 @@ func (cfg *Configuration) Check() error {
 	}
 
 	return nil
+}
+
+// String returns configuration in a pretty JSON format
+func (cfg *Configuration) String() string {
+	var out = Configuration{
+		Server: model.Server{
+			Username: "********",
+			Password: "********",
+		},
+		Mail: model.Mail{
+			Username: "********",
+			Password: "********",
+		},
+	}
+	if err := mergo.Merge(&out, cfg); err != nil {
+		panic(err)
+	}
+	b, _ := json.MarshalIndent(out, "", "  ")
+	return string(b)
 }

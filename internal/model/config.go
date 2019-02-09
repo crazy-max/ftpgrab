@@ -15,19 +15,22 @@ type App struct {
 
 // Server holds data necessary for server configuration
 type Server struct {
-	Host               string `yaml:"host,omitempty"`
-	Port               int    `yaml:"port,omitempty"`
-	Username           string `yaml:"username,omitempty"`
-	Password           string `yaml:"password,omitempty"`
-	ConnectionsPerHost int    `yaml:"connections_per_host,omitempty"`
-	Timeout            int    `yaml:"timeout,omitempty"`
-	DisableEPSV        bool   `yaml:"disable_epsv,omitempty"`
-	TLS                struct {
-		Enable             bool `yaml:"enable,omitempty"`
-		Implicit           bool `yaml:"implicit,omitempty"`
-		InsecureSkipVerify bool `yaml:"insecure_skip_verify,omitempty"`
-	} `yaml:"tls,omitempty"`
-	Sources []string `yaml:"sources,omitempty"`
+	Host               string   `yaml:"host,omitempty"`
+	Port               int      `yaml:"port,omitempty"`
+	Username           string   `yaml:"username,omitempty"`
+	Password           string   `yaml:"password,omitempty"`
+	ConnectionsPerHost int      `yaml:"connections_per_host,omitempty"`
+	Timeout            int      `yaml:"timeout,omitempty"`
+	DisableEPSV        bool     `yaml:"disable_epsv,omitempty"`
+	TLS                TLS      `yaml:"tls,omitempty"`
+	Sources            []string `yaml:"sources,omitempty"`
+}
+
+// TLS holds data necessary for TLS server configuration
+type TLS struct {
+	Enable             bool `yaml:"enable,omitempty"`
+	Implicit           bool `yaml:"implicit,omitempty"`
+	InsecureSkipVerify bool `yaml:"insecure_skip_verify,omitempty"`
 }
 
 // Download holds download configuration details

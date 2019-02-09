@@ -24,6 +24,7 @@ Before reporting an issue, please read the [Troubleshooting page](https://ftpgra
 * Date filter
 * Retry on failed download
 * Change file/folder permissions and owner
+* Translate modtimes on downloaded files
 * Beautiful email report
 * Enhanced logging
 * Timezone can be changed
