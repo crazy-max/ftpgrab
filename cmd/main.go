@@ -17,7 +17,7 @@ import (
 
 var (
 	ftpgrab *app.FtpGrab
-	flags   *model.Flags
+	flags   model.Flags
 	c       *cron.Cron
 	version = "dev"
 )
@@ -37,7 +37,7 @@ func main() {
 	kingpin.Parse()
 
 	// Init
-	logging.Configure(flags)
+	logging.Configure(&flags)
 	log.Info().Msgf("Starting FTPGrab %s", version)
 
 	// Handle os signals
@@ -54,7 +54,7 @@ func main() {
 	}()
 
 	// Load and check configuration
-	cfg, err := config.Load(flags, version)
+	cfg, err := config.Load(&flags, version)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Cannot load configuration")
 	}
