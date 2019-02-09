@@ -16,7 +16,7 @@ type Client struct {
 }
 
 // New creates new ftp instance
-func New(config *model.Server, logger io.Writer) (*Client, error) {
+func New(config *model.Ftp, logger io.Writer) (*Client, error) {
 	var err error
 	var client *goftp.Client
 	var tlsConfig *tls.Config

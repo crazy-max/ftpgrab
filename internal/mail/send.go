@@ -81,7 +81,7 @@ func Send(jnl model.Journal, cfg *config.Configuration) error {
 	msg.SetHeader("To", cfg.Mail.To)
 	msg.SetHeader("Subject", fmt.Sprintf("%s report for %s on %s",
 		cfg.App.Name,
-		cfg.Server.Host,
+		cfg.Ftp.Host,
 		hostname,
 	))
 	msg.SetBody("text/plain", textpart)

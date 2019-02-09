@@ -20,7 +20,7 @@ import (
 type Configuration struct {
 	Flags    model.Flags
 	App      model.App      `yaml:"app,omitempty"`
-	Server   model.Server   `yaml:"server,omitempty"`
+	Ftp      model.Ftp      `yaml:"ftp,omitempty"`
 	Download model.Download `yaml:"download,omitempty"`
 	Mail     model.Mail     `yaml:"mail,omitempty"`
 	File     os.FileInfo
@@ -41,7 +41,7 @@ func Load(fl model.Flags, version string) (*Configuration, error) {
 			Version:  version,
 			Timezone: "UTC",
 		},
-		Server: model.Server{
+		Ftp: model.Ftp{
 			Port:               21,
 			ConnectionsPerHost: 5,
 			Timeout:            5,
@@ -96,11 +96,11 @@ func (cfg *Configuration) Check() error {
 		return fmt.Errorf("cannot load timezone, %v", err)
 	}
 
-	if cfg.Server.Host == "" {
+	if cfg.Ftp.Host == "" {
 		return errors.New("host is required")
 	}
 
-	if len(cfg.Server.Sources) == 0 {
+	if len(cfg.Ftp.Sources) == 0 {
 		return errors.New("at least one source is required")
 	}
 
@@ -137,7 +137,7 @@ func (cfg *Configuration) Check() error {
 // String returns configuration in a pretty JSON format
 func (cfg *Configuration) String() string {
 	var out = Configuration{
-		Server: model.Server{
+		Ftp: model.Ftp{
 			Username: "********",
 			Password: "********",
 		},

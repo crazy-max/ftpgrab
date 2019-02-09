@@ -66,11 +66,11 @@ func (fg *FtpGrab) Run() {
 	log.Info().Msg("########")
 
 	// FTP client
-	log.Info().Msgf("Connecting to %s:%d...", fg.cfg.Server.Host, fg.cfg.Server.Port)
-	if fg.ftp, err = ftp.New(&fg.cfg.Server, &logging.GoftpWriter{
+	log.Info().Msgf("Connecting to %s:%d...", fg.cfg.Ftp.Host, fg.cfg.Ftp.Port)
+	if fg.ftp, err = ftp.New(&fg.cfg.Ftp, &logging.GoftpWriter{
 		Enabled: fg.cfg.Flags.LogFtp,
 	}); err != nil {
-		log.Fatal().Err(err).Msgf("Cannot connect to FTP server %s:%d", fg.cfg.Server.Host, fg.cfg.Server.Port)
+		log.Fatal().Err(err).Msgf("Cannot connect to FTP server %s:%d", fg.cfg.Ftp.Host, fg.cfg.Ftp.Port)
 	}
 
 	// DB client
@@ -80,7 +80,7 @@ func (fg *FtpGrab) Run() {
 		}
 	}
 
-	for _, src := range fg.cfg.Server.Sources {
+	for _, src := range fg.cfg.Ftp.Sources {
 		log.Info().Msgf("Grabbing from %s", src)
 
 		// Check basedir

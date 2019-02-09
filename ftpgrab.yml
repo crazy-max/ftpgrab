@@ -1,7 +1,7 @@
 app:
   timezone: UTC
 
-server:
+ftp:
   host:
   port: 21
   username:

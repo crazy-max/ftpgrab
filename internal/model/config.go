@@ -13,8 +13,8 @@ type App struct {
 	Timezone string `yaml:"timezone,omitempty"`
 }
 
-// Server holds data necessary for server configuration
-type Server struct {
+// Ftp holds data necessary for FTP configuration
+type Ftp struct {
 	Host               string   `yaml:"host,omitempty"`
 	Port               int      `yaml:"port,omitempty"`
 	Username           string   `yaml:"username,omitempty"`
@@ -26,7 +26,7 @@ type Server struct {
 	Sources            []string `yaml:"sources,omitempty"`
 }
 
-// TLS holds data necessary for TLS server configuration
+// TLS holds data necessary for TLS FTP configuration
 type TLS struct {
 	Enable             bool `yaml:"enable,omitempty"`
 	Implicit           bool `yaml:"implicit,omitempty"`
