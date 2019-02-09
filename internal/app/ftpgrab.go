@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"runtime"
 	"sync/atomic"
 	"time"
 
@@ -66,7 +67,7 @@ func (fg *FtpGrab) Run() {
 
 	// FTP client
 	log.Info().Msgf("Connecting to %s:%d...", fg.cfg.Server.Host, fg.cfg.Server.Port)
-	if fg.ftp, err = ftp.New(fg.cfg.Server, &logging.GoftpWriter{
+	if fg.ftp, err = ftp.New(&fg.cfg.Server, &logging.GoftpWriter{
 		Enabled: fg.cfg.Flags.LogFtp,
 	}); err != nil {
 		log.Fatal().Err(err).Msgf("Cannot connect to FTP server %s:%d", fg.cfg.Server.Host, fg.cfg.Server.Port)
@@ -173,7 +174,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 		jnlEntry.StatusText = fmt.Sprintf("Cannot create destination dir: %v", err)
 		return
 	}
-	fg.chmod(destfolder)
+	fg.fixPerms(destfolder)
 
 	destfile, err := os.Create(destpath)
 	if err != nil {
@@ -202,7 +203,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 			units.HumanSize(float64(file.Size())),
 			durafmt.ParseShort(time.Since(retrieveStart)).String(),
 		)
-		fg.chmod(destpath)
+		fg.fixPerms(destpath)
 		if err := fg.db.PutHash(base, src, file); err != nil {
 			log.Error().Err(err).Msg("Cannot add hash into db")
 			jnlEntry.StatusType = "warning"
@@ -235,7 +236,11 @@ func (fg *FtpGrab) fileStatus(base string, source string, file os.FileInfo) mode
 	return neverDl
 }
 
-func (fg *FtpGrab) chmod(filepath string) {
+func (fg *FtpGrab) fixPerms(filepath string) {
+	if runtime.GOOS == "windows" {
+		return
+	}
+
 	fileinfo, err := os.Stat(filepath)
 	if err != nil {
 		log.Warn().Err(err).Msgf("Cannot stat %s", filepath)
@@ -248,8 +253,11 @@ func (fg *FtpGrab) chmod(filepath string) {
 	}
 
 	if err := os.Chmod(filepath, chmod); err != nil {
-		log.Warn().Err(err).Msgf("Cannot chmod file %s", filepath)
-		return
+		log.Warn().Err(err).Msgf("Cannot chmod %s", filepath)
+	}
+
+	if err := os.Chown(filepath, fg.cfg.Download.UID, fg.cfg.Download.GID); err != nil {
+		log.Warn().Err(err).Msgf("Cannot chown %s", filepath)
 	}
 }
 
