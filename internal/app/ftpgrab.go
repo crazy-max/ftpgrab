@@ -40,8 +40,8 @@ const (
 
 // New creates new ftpgrab instance
 func New(cfg *config.Configuration) (*FtpGrab, error) {
-	if err := os.MkdirAll(cfg.Download.Dest, os.ModePerm); err != nil {
-		return nil, fmt.Errorf("cannot create destination dir %s, %v", cfg.Download.Dest, err)
+	if err := os.MkdirAll(cfg.Flags.Output, os.ModePerm); err != nil {
+		return nil, fmt.Errorf("cannot create output destination folder %s, %v", cfg.Flags.Output, err)
 	}
 
 	return &FtpGrab{
@@ -67,7 +67,7 @@ func (fg *FtpGrab) Run() {
 	// FTP client
 	log.Info().Msgf("Connecting to %s:%d...", fg.cfg.Server.Host, fg.cfg.Server.Port)
 	if fg.ftp, err = ftp.New(fg.cfg.Server, &logging.GoftpWriter{
-		Enabled: fg.cfg.App.LogFtp,
+		Enabled: fg.cfg.Flags.LogFtp,
 	}); err != nil {
 		log.Fatal().Err(err).Msgf("Cannot connect to FTP server %s:%d", fg.cfg.Server.Host, fg.cfg.Server.Port)
 	}
@@ -83,7 +83,7 @@ func (fg *FtpGrab) Run() {
 		log.Info().Msgf("Grabbing from %s", src)
 
 		// Check basedir
-		dest := fg.cfg.Download.Dest
+		dest := fg.cfg.Flags.Output
 		if src != "/" && fg.cfg.Download.CreateBasedir {
 			dest = path.Join(dest, src)
 		}
@@ -223,7 +223,7 @@ func (fg *FtpGrab) fileStatus(base string, source string, file os.FileInfo) mode
 		return excluded
 	} else if file.ModTime().Before(fg.cfg.Download.Since) {
 		return outdated
-	} else if destfile, err := os.Stat(path.Join(fg.cfg.Download.Dest, source, file.Name())); err == nil {
+	} else if destfile, err := os.Stat(path.Join(fg.cfg.Flags.Output, source, file.Name())); err == nil {
 		if destfile.Size() == file.Size() {
 			return alreadyDl
 		}

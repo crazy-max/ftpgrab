@@ -10,39 +10,34 @@ import (
 	"github.com/ftpgrab/ftpgrab/internal/app"
 	"github.com/ftpgrab/ftpgrab/internal/config"
 	"github.com/ftpgrab/ftpgrab/internal/logging"
+	"github.com/ftpgrab/ftpgrab/internal/model"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
-	fg         *app.FtpGrab
-	c          *cron.Cron
-	cfgfile    string
-	schedule   string
-	timezone   string
-	logLevel   string
-	logNocolor bool
-	logFile    bool
-	logFtp     bool
-	version    = "dev"
+	ftpgrab *app.FtpGrab
+	flags   *model.Flags
+	c       *cron.Cron
+	version = "dev"
 )
 
 func main() {
 	// Parse command line
-	kingpin.Flag("config", "Yaml configuration file.").Envar("CONFIG").Required().StringVar(&cfgfile)
-	kingpin.Flag("schedule", "CRON expression format.").Envar("SCHEDULE").StringVar(&schedule)
-	kingpin.Flag("timezone", "Timezone.").Envar("TZ").Default("UTC").StringVar(&timezone)
-	kingpin.Flag("log-level", "Set log level.").Envar("LOG_LEVEL").Default("info").StringVar(&logLevel)
-	kingpin.Flag("log-file", "Enable logging to file.").Envar("LOG_FILE").Default("false").BoolVar(&logFile)
-	kingpin.Flag("log-nocolor", "Disable the colorized output.").Envar("LOG_NOCOLOR").Default("false").BoolVar(&logNocolor)
-	kingpin.Flag("log-ftp", "Enable FTP log.").Envar("LOG_FTP").Default("false").BoolVar(&logFtp)
+	kingpin.Flag("config", "Yaml configuration file.").Envar("CONFIG").Required().StringVar(&flags.Cfgfile)
+	kingpin.Flag("output", "Output destination folder.").Envar("OUTPUT").Required().StringVar(&flags.Output)
+	kingpin.Flag("schedule", "CRON expression format.").Envar("SCHEDULE").StringVar(&flags.Schedule)
+	kingpin.Flag("log-level", "Set log level.").Envar("LOG_LEVEL").Default("info").StringVar(&flags.LogLevel)
+	kingpin.Flag("log-file", "Enable logging to file.").Envar("LOG_FILE").Default("false").BoolVar(&flags.LogFile)
+	kingpin.Flag("log-nocolor", "Disable the colorized output.").Envar("LOG_NOCOLOR").Default("false").BoolVar(&flags.LogNocolor)
+	kingpin.Flag("log-ftp", "Enable FTP log.").Envar("LOG_FTP").Default("false").BoolVar(&flags.LogFtp)
 	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version(version).Author("CrazyMax")
 	kingpin.CommandLine.Name = "ftpgrab"
 	kingpin.CommandLine.Help = `Grab your files from a remote FTP server easily. More info : https://ftpgrab.github.io`
 	kingpin.Parse()
 
 	// Init
-	logging.Configure(logNocolor, logLevel, logFile)
+	logging.Configure(flags)
 	log.Info().Msgf("Starting FTPGrab %s", version)
 
 	// Handle os signals
@@ -53,13 +48,13 @@ func main() {
 		if c != nil {
 			c.Stop()
 		}
-		fg.Close()
+		ftpgrab.Close()
 		log.Warn().Msgf("Caught signal %v", sig)
 		os.Exit(0)
 	}()
 
 	// Load and check configuration
-	cfg, err := config.Load(cfgfile, logFtp, version)
+	cfg, err := config.Load(flags, version)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Cannot load configuration")
 	}
@@ -68,20 +63,20 @@ func main() {
 	}
 
 	// Init
-	if fg, err = app.New(cfg); err != nil {
+	if ftpgrab, err = app.New(cfg); err != nil {
 		log.Fatal().Err(err).Msg("Cannot initialize FTPGrab")
 	}
 
 	// Run immediately if schedule is not defined
-	if schedule == "" {
-		fg.Run()
+	if flags.Schedule == "" {
+		ftpgrab.Run()
 		return
 	}
 
 	// Start cronjob
 	c = cron.NewWithLocation(cfg.Location)
-	log.Info().Msgf("Add cronjob with schedule %s", schedule)
-	if err := c.AddJob(schedule, fg); err != nil {
+	log.Info().Msgf("Add cronjob with schedule %s", flags.Schedule)
+	if err := c.AddJob(flags.Schedule, ftpgrab); err != nil {
 		log.Fatal().Err(err).Msg("Cannot create cron task")
 	}
 	c.Start()

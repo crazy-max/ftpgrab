@@ -10,94 +10,40 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/ftpgrab/ftpgrab/internal/model"
 	"gopkg.in/yaml.v2"
 )
 
 // Configuration holds configuration details
 type Configuration struct {
-	App      *App      `yaml:"app,omitempty"`
-	Server   *Server   `yaml:"server,omitempty"`
-	Download *Download `yaml:"download,omitempty"`
-	Mail     *Mail     `yaml:"mail,omitempty"`
+	Flags    *model.Flags
+	App      *model.App      `yaml:"app,omitempty"`
+	Server   *model.Server   `yaml:"server,omitempty"`
+	Download *model.Download `yaml:"download,omitempty"`
+	Mail     *model.Mail     `yaml:"mail,omitempty"`
 	File     os.FileInfo
 	Location *time.Location
 }
 
-// App holds application configuration details
-type App struct {
-	ID       string
-	Name     string
-	Desc     string
-	URL      string
-	Author   string
-	Version  string
-	Timezone string `yaml:"timezone,omitempty"`
-	LogFtp   bool
-}
-
-// Server holds data necessary for server configuration
-type Server struct {
-	Host               string `yaml:"host,omitempty"`
-	Port               int    `yaml:"port,omitempty"`
-	Username           string `yaml:"username,omitempty"`
-	Password           string `yaml:"password,omitempty"`
-	ConnectionsPerHost int    `yaml:"connections_per_host,omitempty"`
-	Timeout            int    `yaml:"timeout,omitempty"`
-	DisableEPSV        bool   `yaml:"disable_epsv,omitempty"`
-	TLS                struct {
-		Enable             bool `yaml:"enable,omitempty"`
-		Implicit           bool `yaml:"implicit,omitempty"`
-		InsecureSkipVerify bool `yaml:"insecure_skip_verify,omitempty"`
-	} `yaml:"tls,omitempty"`
-	Sources []string `yaml:"sources,omitempty"`
-}
-
-// Download holds download configuration details
-type Download struct {
-	Dest          string    `yaml:"dest,omitempty"`
-	UID           int       `yaml:"uid,omitempty"`
-	GID           int       `yaml:"gid,omitempty"`
-	ChmodFile     int       `yaml:"chmod_file,omitempty"`
-	ChmodDir      int       `yaml:"chmod_dir,omitempty"`
-	Include       []string  `yaml:"include,omitempty"`
-	Exclude       []string  `yaml:"exclude,omitempty"`
-	Since         time.Time `yaml:"since,omitempty"`
-	Retry         int       `yaml:"retry,omitempty"`
-	HashEnabled   bool      `yaml:"hash_enabled,omitempty"`
-	HideSkipped   bool      `yaml:"hide_skipped,omitempty"`
-	CreateBasedir bool      `yaml:"create_basedir,omitempty"`
-}
-
-// Mail holds mail notification configuration details
-type Mail struct {
-	Enabled  bool   `yaml:"enabled,omitempty"`
-	Host     string `yaml:"host,omitempty"`
-	Port     int    `yaml:"port,omitempty"`
-	Username string `yaml:"username,omitempty"`
-	Password string `yaml:"password,omitempty"`
-	From     string `yaml:"from,omitempty"`
-	To       string `yaml:"to,omitempty"`
-}
-
 // Load returns Configuration struct
-func Load(file string, logFtp bool, version string) (*Configuration, error) {
+func Load(fl *model.Flags, version string) (*Configuration, error) {
 	var err error
-	var cfg = new(Configuration)
+	var cfg = &Configuration{Flags: fl}
 
-	cfg.App = new(App)
-	cfg.App.ID = "ftpgrab"
-	cfg.App.Name = "FTPGrab"
-	cfg.App.Desc = "Grab your files from a remote FTP server easily"
-	cfg.App.URL = "https://ftpgrab.github.io"
-	cfg.App.Author = "CrazyMax"
-	cfg.App.Version = version
-	cfg.App.LogFtp = logFtp
+	cfg.App = &model.App{
+		ID:      "ftpgrab",
+		Name:    "FTPGrab",
+		Desc:    "Grab your files from a remote FTP server easily",
+		URL:     "https://ftpgrab.github.io",
+		Author:  "CrazyMax",
+		Version: version,
+	}
 
-	if cfg.File, err = os.Lstat(file); err != nil {
+	if cfg.File, err = os.Lstat(fl.Cfgfile); err != nil {
 		return nil, fmt.Errorf("unable to open config file, %s", err)
 	}
 
-	bytes, err := ioutil.ReadFile(file)
+	bytes, err := ioutil.ReadFile(fl.Cfgfile)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read config file, %s", err)
 	}
@@ -125,10 +71,10 @@ func (cfg *Configuration) Check() error {
 		return errors.New("at least one source is required")
 	}
 
-	if cfg.Download.Dest == "" {
-		return errors.New("download destination path is required")
+	if cfg.Flags.Output == "" {
+		return errors.New("output destination folder is required")
 	}
-	cfg.Download.Dest = path.Clean(cfg.Download.Dest)
+	cfg.Flags.Output = path.Clean(cfg.Flags.Output)
 
 	for _, include := range cfg.Download.Include {
 		if _, err := regexp.Compile(include); err != nil {

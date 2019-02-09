@@ -6,7 +6,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/ftpgrab/ftpgrab/internal/config"
+	"github.com/ftpgrab/ftpgrab/internal/model"
 	"github.com/secsy/goftp"
 )
 
@@ -16,7 +16,7 @@ type Client struct {
 }
 
 // New creates new ftp instance
-func New(config *config.Server, logger io.Writer) (*Client, error) {
+func New(config *model.Server, logger io.Writer) (*Client, error) {
 	var err error
 	var client *goftp.Client
 	var tlsConfig *tls.Config

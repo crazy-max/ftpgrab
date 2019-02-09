@@ -17,7 +17,6 @@ server:
     - /
 
 download:
-  dest:
   uid: 1000
   gid: 1000
   chmod_file: 644

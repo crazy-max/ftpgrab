@@ -7,23 +7,24 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/ftpgrab/ftpgrab/internal/model"
 	"github.com/ilya1st/rotatewriter"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 // Configure configures logger
-func Configure(nocolor bool, level string, logFile bool) {
+func Configure(fl *model.Flags) {
 	var err error
 	var w io.Writer
 
 	w = zerolog.ConsoleWriter{
 		Out:        os.Stdout,
 		TimeFormat: time.RFC1123,
-		NoColor:    nocolor,
+		NoColor:    fl.LogNocolor,
 	}
 
-	if logFile {
+	if fl.LogFile {
 		if err := os.MkdirAll("./logs", os.ModePerm); err != nil {
 			log.Fatal().Err(err).Msgf("Cannot create log folder")
 		}
@@ -47,7 +48,7 @@ func Configure(nocolor bool, level string, logFile bool) {
 
 	log.Logger = zerolog.New(w).With().Timestamp().Logger()
 
-	logLevel, err := zerolog.ParseLevel(level)
+	logLevel, err := zerolog.ParseLevel(fl.LogLevel)
 	if err != nil {
 		log.Fatal().Err(err).Msgf("Unknown log level")
 	} else {
