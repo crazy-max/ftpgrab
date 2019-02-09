@@ -10,15 +10,15 @@ server:
   timeout: 5
   disable_epsv: false
   tls:
-    enable: true
+    enable: false
     implicit: true
-    insecure_skip_verify: true
+    insecure_skip_verify: false
   sources:
     - /
 
 download:
-  uid: 1000
-  gid: 1000
+  uid:
+  gid:
   chmod_file: 644
   chmod_dir: 755
   include:
