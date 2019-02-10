@@ -24,8 +24,8 @@ download:
   output: /download
   uid:
   gid:
-  chmod_file: 644
-  chmod_dir: 755
+  chmod_file: 0644
+  chmod_dir: 0755
   include:
   exclude:
   since: 0001-01-01T00:00:00Z
