@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"path"
 	"syscall"
 	"time"
 
@@ -14,21 +15,29 @@ import (
 )
 
 // Configure configures logger
-func Configure(fl *model.Flags) {
+func Configure(fl *model.Flags, location *time.Location) {
 	var err error
 	var w io.Writer
 
-	w = zerolog.ConsoleWriter{
-		Out:        os.Stdout,
-		TimeFormat: time.RFC1123,
-		NoColor:    fl.LogNocolor,
+	zerolog.TimestampFunc = func() time.Time {
+		return time.Now().In(location)
 	}
 
-	if fl.LogFile {
-		if err := os.MkdirAll("./logs", os.ModePerm); err != nil {
+	if !fl.LogJson {
+		w = zerolog.ConsoleWriter{
+			Out:        os.Stdout,
+			TimeFormat: time.RFC1123,
+		}
+	} else {
+		w = os.Stdout
+	}
+
+	if fl.LogFile != "" {
+		logFile := path.Clean(fl.LogFile)
+		if err := os.MkdirAll(path.Base(logFile), os.ModePerm); err != nil {
 			log.Fatal().Err(err).Msgf("Cannot create log folder")
 		}
-		rwriter, err := rotatewriter.NewRotateWriter("./logs/ftpgrab.log", 5)
+		rwriter, err := rotatewriter.NewRotateWriter(logFile, 5)
 		if err != nil {
 			log.Fatal().Err(err).Msgf("Cannot create log file writer")
 		}

@@ -2,15 +2,14 @@ package model
 
 import "time"
 
-// App holds application configuration details
+// App holds application details
 type App struct {
-	ID       string
-	Name     string
-	Desc     string
-	URL      string
-	Author   string
-	Version  string
-	Timezone string `yaml:"timezone,omitempty"`
+	ID      string
+	Name    string
+	Desc    string
+	URL     string
+	Author  string
+	Version string
 }
 
 // Ftp holds data necessary for FTP configuration

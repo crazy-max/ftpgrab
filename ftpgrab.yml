@@ -1,6 +1,3 @@
-app:
-  timezone: UTC
-
 ftp:
   host:
   port: 21

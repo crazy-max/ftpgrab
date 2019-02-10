@@ -9,23 +9,22 @@ import (
 	"os"
 	"path"
 	"regexp"
-	"time"
 
 	"github.com/ftpgrab/ftpgrab/internal/model"
 	"github.com/imdario/mergo"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
 )
 
 // Configuration holds configuration details
 type Configuration struct {
 	Flags    model.Flags
-	App      model.App      `yaml:"app,omitempty"`
+	App      model.App
 	Ftp      model.Ftp      `yaml:"ftp,omitempty"`
 	Db       model.Db       `yaml:"db,omitempty"`
 	Download model.Download `yaml:"download,omitempty"`
 	Mail     model.Mail     `yaml:"mail,omitempty"`
 	File     os.FileInfo
-	Location *time.Location
 }
 
 // Load returns Configuration struct
@@ -34,13 +33,12 @@ func Load(fl model.Flags, version string) (*Configuration, error) {
 	var cfg = Configuration{
 		Flags: fl,
 		App: model.App{
-			ID:       "ftpgrab",
-			Name:     "FTPGrab",
-			Desc:     "Grab your files from a remote FTP server easily",
-			URL:      "https://ftpgrab.github.io",
-			Author:   "CrazyMax",
-			Version:  version,
-			Timezone: "UTC",
+			ID:      "ftpgrab",
+			Name:    "FTPGrab",
+			Desc:    "Grab your files from a remote FTP server easily",
+			URL:     "https://ftpgrab.github.io",
+			Author:  "CrazyMax",
+			Version: version,
 		},
 		Ftp: model.Ftp{
 			Port:               21,
@@ -94,12 +92,6 @@ func Load(fl model.Flags, version string) (*Configuration, error) {
 
 // Check verifies Configuration values
 func (cfg *Configuration) Check() error {
-	var err error
-
-	if cfg.Location, err = time.LoadLocation(cfg.App.Timezone); err != nil {
-		return fmt.Errorf("cannot load timezone, %v", err)
-	}
-
 	if cfg.Ftp.Host == "" {
 		return errors.New("host is required")
 	}
@@ -137,19 +129,18 @@ func (cfg *Configuration) Check() error {
 
 	if cfg.Mail.Enable {
 		if _, err := mail.ParseAddress(cfg.Mail.From); err != nil {
-			return fmt.Errorf("cannot load timezone, %v", err)
+			return fmt.Errorf("cannot sender mail address, %v", err)
 		}
-
 		if _, err := mail.ParseAddress(cfg.Mail.To); err != nil {
-			return errors.New("invalid recipient mail address")
+			return fmt.Errorf("cannot recipient mail address, %v", err)
 		}
 	}
 
 	return nil
 }
 
-// String returns configuration in a pretty JSON format
-func (cfg *Configuration) String() string {
+// Display logs configuration in a pretty JSON format
+func (cfg *Configuration) Display() {
 	var out = Configuration{
 		Ftp: model.Ftp{
 			Username: "********",
@@ -161,8 +152,9 @@ func (cfg *Configuration) String() string {
 		},
 	}
 	if err := mergo.Merge(&out, cfg); err != nil {
-		panic(err)
+		log.Error().Err(err).Msg("Cannot merge config")
+		return
 	}
 	b, _ := json.MarshalIndent(out, "", "  ")
-	return string(b)
+	log.Debug().Msg(string(b))
 }
