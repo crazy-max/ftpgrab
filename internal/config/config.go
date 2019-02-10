@@ -109,8 +109,8 @@ func (cfg *Configuration) Check() error {
 	}
 
 	if cfg.Flags.Docker {
-		cfg.Db.Path = "/data/ftpgrab.db"
-		cfg.Download.Output = "/data/download"
+		cfg.Db.Path = "/db/ftpgrab.db"
+		cfg.Download.Output = "/download"
 	}
 
 	if cfg.Db.Enable && cfg.Db.Path == "" {
