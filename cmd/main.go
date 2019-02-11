@@ -25,9 +25,9 @@ var (
 
 func main() {
 	// Parse command line
-	kingpin.Flag("config", "Yaml configuration file.").Envar("CONFIG").Required().StringVar(&flags.Cfgfile)
+	kingpin.Flag("config", "FTPGrab configuration file.").Envar("CONFIG").Required().StringVar(&flags.Cfgfile)
 	kingpin.Flag("schedule", "CRON expression format.").Envar("SCHEDULE").StringVar(&flags.Schedule)
-	kingpin.Flag("timezone", "Timezone assigned to the process.").Envar("TZ").Default("UTC").StringVar(&flags.Timezone)
+	kingpin.Flag("timezone", "Timezone assigned to FTPGrab.").Envar("TZ").Default("UTC").StringVar(&flags.Timezone)
 	kingpin.Flag("log-level", "Set log level.").Envar("LOG_LEVEL").Default("info").StringVar(&flags.LogLevel)
 	kingpin.Flag("log-json", "Enable JSON logging output.").Envar("LOG_JSON").Default("false").BoolVar(&flags.LogJson)
 	kingpin.Flag("log-file", "Add logging to a specific file.").Envar("LOG_FILE").StringVar(&flags.LogFile)
