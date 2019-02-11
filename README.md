@@ -29,39 +29,16 @@ Before reporting an issue, please read the [Troubleshooting page](https://ftpgra
 * Beautiful email report
 * Enhanced logging
 * Timezone can be changed
-* 🐳 Official [Docker image available](https://hub.docker.com/r/ftpgrab/ftpgrab/). Check [this repo](https://github.com/ftpgrab/docker) for more info
+* 🐳 Official [Docker image available](https://github.com/ftpgrab/docker)
 
 ## Documentation
 
-* [Get started](https://ftpgrab.github.io/doc/get-started)
-* [Configuration](https://ftpgrab.github.io/doc/configuration)
-* [Troubleshooting](https://ftpgrab.github.io/doc/troubleshooting)
-* [Changelog](https://ftpgrab.github.io/doc/changelog)
-* [Upgrade notes](https://ftpgrab.github.io/doc/upgrade-notes)
-* [Reporting an issue](https://ftpgrab.github.io/doc/reporting-issue)
-
-## Logs
-
-```console
-Tue, 29 Jan 2019 22:23:58 CET INF Starting FTPGrab 5.0.0
-Tue, 29 Jan 2019 22:23:58 CET INF ########
-Tue, 29 Jan 2019 22:23:58 CET INF Connecting to 198.51.100.0:21...
-Tue, 29 Jan 2019 22:23:58 CET INF Grabbing from /complete/
-Tue, 29 Jan 2019 22:23:59 CET INF --------
-Tue, 29 Jan 2019 22:23:59 CET INF Checking /complete/Burn.Notice.S06E16.VOSTFR.HDTV.XviD.avi
-Tue, 29 Jan 2019 22:23:59 CET INF Never downloaded
-Tue, 29 Jan 2019 22:23:59 CET INF Downloading file (184.18MB) to /tmp/seedbox/Burn.Notice.S06E16.VOSTFR.HDTV.XviD.avi...
-Tue, 29 Jan 2019 22:24:47 CET INF File successfully downloaded!
-Tue, 29 Jan 2019 22:24:47 CET INF Time spent: 48 seconds
-Tue, 29 Jan 2019 22:24:47 CET INF --------
-Tue, 29 Jan 2019 22:24:47 CET INF Checking /complete/Burn.Notice.S06E17.VOSTFR.HDTV.XviD.avi
-Tue, 29 Jan 2019 22:24:47 CET INF Never downloaded
-Tue, 29 Jan 2019 22:24:47 CET INF Downloading file (186.27MB) to /tmp/seedbox/Burn.Notice.S06E17.VOSTFR.HDTV.XviD.avi...
-Tue, 29 Jan 2019 22:25:40 CET INF File successfully downloaded!
-Tue, 29 Jan 2019 22:25:40 CET INF Time spent: 50 seconds
-Tue, 29 Jan 2019 22:25:40 CET INF ########
-Tue, 29 Jan 2019 22:25:41 CET INF Finished, total time spent: 1 minute 49 seconds
-```
+* [Get started](https://ftpgrab.github.io/doc/get-started/)
+* [Configuration](https://ftpgrab.github.io/doc/configuration/)
+* [FAQ](https://ftpgrab.github.io/doc/faq/)
+* [Changelog](https://ftpgrab.github.io/doc/changelog/)
+* [Upgrade notes](https://ftpgrab.github.io/doc/upgrade-notes/)
+* [Reporting an issue](https://ftpgrab.github.io/doc/reporting-issue/)
 
 ## How can I help ?
 
