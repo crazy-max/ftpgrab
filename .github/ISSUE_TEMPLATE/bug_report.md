@@ -27,7 +27,7 @@ about: Create a report to help us improve
 
 ### Logs
 
-> FTPGrab logs (set LOG_LEVEL env var or --log-level flag to debug)
+> FTPGrab logs (set --log-level flag to debug and --log-ftp)
 ```
 
 ```
