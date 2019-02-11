@@ -7,14 +7,14 @@ import (
 	"time"
 
 	"github.com/ftpgrab/ftpgrab/internal/config"
-	"github.com/ftpgrab/ftpgrab/internal/model"
+	"github.com/ftpgrab/ftpgrab/internal/journal"
 	"github.com/go-gomail/gomail"
 	"github.com/hako/durafmt"
 	"github.com/matcornic/hermes/v2"
 )
 
 // Send creates and sends an email with journal entries
-func Send(jnl model.Journal, cfg *config.Configuration) error {
+func Send(jnl *journal.Client, cfg *config.Configuration) error {
 	h := hermes.Hermes{
 		Theme: new(Theme),
 		Product: hermes.Product{

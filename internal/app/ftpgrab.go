@@ -12,6 +12,7 @@ import (
 	"github.com/ftpgrab/ftpgrab/internal/config"
 	"github.com/ftpgrab/ftpgrab/internal/db"
 	"github.com/ftpgrab/ftpgrab/internal/ftp"
+	"github.com/ftpgrab/ftpgrab/internal/journal"
 	"github.com/ftpgrab/ftpgrab/internal/logging"
 	"github.com/ftpgrab/ftpgrab/internal/mail"
 	"github.com/ftpgrab/ftpgrab/internal/model"
@@ -22,11 +23,11 @@ import (
 
 // FtpGrab represents an active ftpgrab object
 type FtpGrab struct {
-	cfg     *config.Configuration
-	ftp     *ftp.Client
-	db      *db.Client
-	journal model.Journal
-	locker  uint32
+	cfg    *config.Configuration
+	ftp    *ftp.Client
+	db     *db.Client
+	jnl    *journal.Client
+	locker uint32
 }
 
 const (
@@ -64,10 +65,12 @@ func (fg *FtpGrab) Run() {
 
 	start := time.Now()
 	var err error
-	fg.journal = model.Journal{}
 
 	defer fg.trackTime(start, "Finished, total time spent: ")
 	log.Info().Msg("########")
+
+	// Journal client
+	fg.jnl = journal.New()
 
 	// FTP client
 	log.Info().Msgf("Connecting to %s:%d...", fg.cfg.Ftp.Host, fg.cfg.Ftp.Port)
@@ -84,6 +87,7 @@ func (fg *FtpGrab) Run() {
 
 	// Iterate sources
 	for _, src := range fg.cfg.Ftp.Sources {
+		log.Info().Msg("########")
 		log.Info().Msgf("Grabbing from %s", src)
 
 		// Check basedir
@@ -97,12 +101,18 @@ func (fg *FtpGrab) Run() {
 	}
 
 	fg.Close()
-	fg.journal.Duration = time.Since(start)
+	fg.jnl.Duration = time.Since(start)
 	log.Info().Msg("########")
+
+	// Check journal before sending report
+	if fg.jnl.IsEmpty() {
+		log.Warn().Msg("Journal empty, skip sending report")
+		return
+	}
 
 	// Send email report
 	if fg.cfg.Mail.Enable {
-		if err := mail.Send(fg.journal, fg.cfg); err != nil {
+		if err := mail.Send(fg.jnl, fg.cfg); err != nil {
 			log.Error().Err(err).Msg("Cannot send email")
 			return
 		}
@@ -162,7 +172,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 		if !fg.cfg.Download.HideSkipped {
 			log.Warn().Msgf("Skipped: %s", jnlEntry.StatusText)
 			jnlEntry.StatusType = "skip"
-			fg.addJnlEntry(jnlEntry)
+			fg.jnl.AddEntry(jnlEntry)
 		}
 		return
 	}
@@ -176,6 +186,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 		log.Error().Err(err).Msg("Cannot create destination dir")
 		jnlEntry.StatusType = "error"
 		jnlEntry.StatusText = fmt.Sprintf("Cannot create destination dir: %v", err)
+		fg.jnl.AddEntry(jnlEntry)
 		return
 	}
 	fg.fixPerms(destfolder)
@@ -185,7 +196,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 		log.Error().Err(err).Msg("Cannot create destination file")
 		jnlEntry.StatusType = "error"
 		jnlEntry.StatusText = fmt.Sprintf("Cannot create destination file: %v", err)
-		fg.addJnlEntry(jnlEntry)
+		fg.jnl.AddEntry(jnlEntry)
 		return
 	}
 
@@ -218,7 +229,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 		}
 	}
 
-	fg.addJnlEntry(jnlEntry)
+	fg.jnl.AddEntry(jnlEntry)
 }
 
 func (fg *FtpGrab) fileStatus(base string, src string, dest string, file os.FileInfo) model.EntryStatus {
@@ -267,17 +278,6 @@ func (fg *FtpGrab) fixPerms(filepath string) {
 
 func (fg *FtpGrab) trackTime(start time.Time, prefix string) {
 	log.Info().Msgf("%s%s", prefix, durafmt.ParseShort(time.Since(start)).String())
-}
-
-func (fg *FtpGrab) addJnlEntry(entry model.Entry) {
-	fg.journal.Entries = append(fg.journal.Entries, entry)
-	if entry.StatusType == "error" {
-		fg.journal.Count.Error++
-	} else if entry.StatusType == "skip" {
-		fg.journal.Count.Skip++
-	} else if entry.StatusType == "success" {
-		fg.journal.Count.Success++
-	}
 }
 
 func (fg *FtpGrab) isIncluded(filename string) bool {
