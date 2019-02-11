@@ -87,15 +87,20 @@ func Send(jnl *journal.Client, cfg *config.Configuration) error {
 	msg.SetBody("text/plain", textpart)
 	msg.AddAlternative("text/html", htmlpart)
 
+	var tlsConfig *tls.Config
+	if cfg.Mail.InsecureSkipVerify {
+		tlsConfig = &tls.Config{
+			InsecureSkipVerify: cfg.Mail.InsecureSkipVerify,
+		}
+	}
+
 	dialer := &gomail.Dialer{
-		Host:     cfg.Mail.Host,
-		Port:     cfg.Mail.Port,
-		Username: cfg.Mail.Username,
-		Password: cfg.Mail.Password,
-		SSL:      cfg.Mail.Port == 465,
-		TLSConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
+		Host:      cfg.Mail.Host,
+		Port:      cfg.Mail.Port,
+		Username:  cfg.Mail.Username,
+		Password:  cfg.Mail.Password,
+		SSL:       cfg.Mail.SSL,
+		TLSConfig: tlsConfig,
 	}
 
 	return dialer.DialAndSend(msg)

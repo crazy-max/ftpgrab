@@ -34,6 +34,8 @@ mail:
   enable: false
   host: localhost
   port: 25
+  ssl: false
+  insecure_skip_verify: false
   username:
   password:
   from:

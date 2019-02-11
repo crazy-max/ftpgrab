@@ -68,9 +68,11 @@ func Load(fl model.Flags, version string) (*Configuration, error) {
 			CreateBasedir: false,
 		},
 		Mail: model.Mail{
-			Enable: false,
-			Host:   "localhost",
-			Port:   25,
+			Enable:             false,
+			Host:               "localhost",
+			Port:               25,
+			SSL:                false,
+			InsecureSkipVerify: false,
 		},
 	}
 
