@@ -40,6 +40,16 @@ Before reporting an issue, please read the [Troubleshooting page](https://ftpgra
 * [Upgrade notes](https://ftpgrab.github.io/doc/upgrade-notes/)
 * [Reporting an issue](https://ftpgrab.github.io/doc/reporting-issue/)
 
+## TODO
+
+* [] Linux service sample
+* [] Windows service sample
+* [] [Chocolatey](https://chocolatey.org/) package
+* [] [Brew](https://brew.sh/) recipe
+* [] [Cloudron](https://cloudron.io/) app
+* [] Sublogger / dictionary for entries
+* [] Build / Install from source doc
+
 ## How can I help ?
 
 All kinds of contributions are welcome :raised_hands:!<br />
