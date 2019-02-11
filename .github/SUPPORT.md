@@ -2,7 +2,7 @@
 
 ## Reporting an issue
 
-Please do a search in [open issues](https://github.com/ftpgrab/ftpgrab/issues?utf8=%E2%9C%93&q=) to see if the issue or feature request has already been filed and read the [Troubleshooting](https://ftpgrab.github.io/doc/troubleshooting/) page first.
+Please do a search in [open issues](https://github.com/ftpgrab/ftpgrab/issues?utf8=%E2%9C%93&q=) to see if the issue or feature request has already been filed and read the [FAQ](https://ftpgrab.github.io/doc/faq/) page first.
 
 If you find your issue already exists, make relevant comments and add your [reaction](https://github.com/blog/2119-add-reactions-to-pull-requests-issues-and-comments). Use a reaction in place of a "+1" comment.
 
