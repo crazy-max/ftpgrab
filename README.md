@@ -42,13 +42,13 @@ Before reporting an issue, please read the [Troubleshooting page](https://ftpgra
 
 ## TODO
 
-* [] Linux service sample
-* [] Windows service sample
-* [] [Chocolatey](https://chocolatey.org/) package
-* [] [Brew](https://brew.sh/) recipe
-* [] [Cloudron](https://cloudron.io/) app
-* [] Sublogger / dictionary for entries
-* [] Build / Install from source doc
+* [ ] Linux service sample
+* [ ] Windows service sample
+* [ ] [Chocolatey](https://chocolatey.org/) package
+* [ ] [Brew](https://brew.sh/) recipe
+* [ ] [Cloudron](https://cloudron.io/) app
+* [ ] Sublogger / dictionary for entries
+* [ ] Build / Install from source doc
 
 ## How can I help ?
 
