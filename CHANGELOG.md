@@ -1,9 +1,13 @@
 # Changelog
 
+## 5.0.1 (2019/02/13)
+
+* Add support for FreeBSD
+
 ## 5.0.0 (2019/02/12)
 
 * BIG rewrite (Issue #36)
-* Multiplatform : Linux, macOS, and Windows, on architectures like amd64, i386, ARM, PowerPC, and others
+* Multiplatform : Linux, macOS and Windows on architectures like amd64, i386, ARM and others
 * Modern CLI interactions
 * Yaml Configuration file
 * Detect and merge configuration

@@ -11,6 +11,7 @@ builds:
     goos:
       - darwin
       - linux
+      - freebsd
       - windows
     goarch:
       - 386
@@ -20,6 +21,11 @@ builds:
     goarm:
       - 6
       - 7
+    ignore:
+      - goos: freebsd
+        goarch: arm
+      - goos: freebsd
+        goarch: arm64
 archive:
   replacements:
     386: i386
