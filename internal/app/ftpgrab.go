@@ -177,7 +177,9 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 		return
 	}
 
-	defer fg.trackTime(time.Now(), "Time spent: ")
+	if retry == 0 {
+		defer fg.trackTime(time.Now(), "Time spent: ")
+	}
 	retrieveStart := time.Now()
 	log.Info().Msgf("Downloading file (%s) to %s...", units.HumanSize(float64(file.Size())), destpath)
 
@@ -210,6 +212,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 			jnlEntry.StatusText = fmt.Sprintf("Cannot download file: %v", err)
 		} else {
 			fg.retrieve(base, src, dest, file, retry)
+			return
 		}
 	} else {
 		log.Info().Msg("File successfully downloaded!")
