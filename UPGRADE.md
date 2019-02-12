@@ -1,6 +1,6 @@
 ## > 5.0.0
 
-⚠ This release breaks the mechanism of previous release and is not intended to be upgraded to this one. But you can easily translate your old configuration file with the new format.
+⚠ This release breaks the mechanism of previous releases and is not intended to be upgraded to this one. But you can easily translate your old configuration file with the new format.  Also, Docker image has been moved to a dedicated organization on [Docker Hub](https://hub.docker.com/u/ftpgrab) and [Quay](https://quay.io/organization/ftpgrab).
 
 ## 4.1 > 4.2.0
 

@@ -19,7 +19,7 @@ Before reporting an issue, please read the [Troubleshooting page](https://ftpgra
 
 * Multiple sources
 * Prevent re-download through a hash
-* Efficient key/value store database to store hash
+* Efficient key/value store database to audit files already downloaded
 * Internal cron implementation through go routines
 * Include and exclude filters with regular expression
 * Date filter

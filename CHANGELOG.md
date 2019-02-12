@@ -1,5 +1,28 @@
 # Changelog
 
+## 5.0.0 (2019/02/12)
+
+* BIG rewrite (Issue #36)
+* Multiplatform : Linux, macOS, and Windows, on architectures like amd64, i386, ARM, PowerPC, and others
+* Modern CLI interactions
+* Yaml Configuration file
+* Detect and merge configuration
+* Handle defaults
+* Add [Goreleaser](https://goreleaser.com/)
+* [Bolt](https://github.com/etcd-io/bbolt) db to audit files already downloaded
+* Native FTP client
+* Logging with [zerolog](https://github.com/rs/zerolog)
+* Send reports through email
+* Generate responsive and beautiful email reports through [hermes](https://github.com/matcornic/hermes/)
+* Lightweight Docker image (~6MB)
+* Docker image moved to a dedicated organization on [Docker Hub](https://hub.docker.com/u/ftpgrab) and [Quay](https://quay.io/organization/ftpgrab).
+* [Embedded cron](https://github.com/crazy-max/cron) using go routines
+* Manage base dir
+* Set original modtime
+* Include/exclude based on regexp
+* Ignore files by date (Issue #39)
+* Handle mutex
+
 ## 4.3.5 (2019/02/04)
 
 * Switch to Travis CI (com)
