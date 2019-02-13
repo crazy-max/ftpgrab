@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 	"os/signal"
-	"runtime"
 	"syscall"
 	"time"
 
@@ -90,7 +89,5 @@ func main() {
 	}
 	c.Start()
 
-	for {
-		runtime.Gosched()
-	}
+	select {}
 }
