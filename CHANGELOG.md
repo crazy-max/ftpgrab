@@ -2,6 +2,7 @@
 
 ## 5.0.1 (2019/02/13)
 
+* Fix high CPU load on schedule
 * Add support for FreeBSD
 
 ## 5.0.0 (2019/02/12)
