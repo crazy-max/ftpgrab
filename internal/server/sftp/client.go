@@ -51,7 +51,7 @@ func New(config *model.SFTP) (*server.Client, error) {
 		return nil, fmt.Errorf("cannot open ssh connection, %v", err)
 	}
 
-	if client.sftp, err = sftp.NewClient(client.ssh); err != nil {
+	if client.sftp, err = sftp.NewClient(client.ssh, sftp.MaxPacket(config.MaxPacketSize)); err != nil {
 		return nil, err
 	}
 
