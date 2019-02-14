@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1.0 (2019/02/14)
+
+* Add SFTP support (Issue #42)
+
 ## 5.0.1 (2019/02/13)
 
 * Fix high CPU load on schedule
