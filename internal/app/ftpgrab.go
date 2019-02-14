@@ -11,11 +11,12 @@ import (
 	"github.com/docker/go-units"
 	"github.com/ftpgrab/ftpgrab/internal/config"
 	"github.com/ftpgrab/ftpgrab/internal/db"
-	"github.com/ftpgrab/ftpgrab/internal/ftp"
 	"github.com/ftpgrab/ftpgrab/internal/journal"
-	"github.com/ftpgrab/ftpgrab/internal/logging"
 	"github.com/ftpgrab/ftpgrab/internal/mail"
 	"github.com/ftpgrab/ftpgrab/internal/model"
+	"github.com/ftpgrab/ftpgrab/internal/server"
+	"github.com/ftpgrab/ftpgrab/internal/server/ftp"
+	"github.com/ftpgrab/ftpgrab/internal/server/sftp"
 	"github.com/ftpgrab/ftpgrab/internal/utl"
 	"github.com/hako/durafmt"
 	"github.com/rs/zerolog/log"
@@ -24,7 +25,7 @@ import (
 // FtpGrab represents an active ftpgrab object
 type FtpGrab struct {
 	cfg    *config.Configuration
-	ftp    *ftp.Client
+	srv    *server.Client
 	db     *db.Client
 	jnl    *journal.Client
 	locker uint32
@@ -72,12 +73,17 @@ func (fg *FtpGrab) Run() {
 	// Journal client
 	fg.jnl = journal.New()
 
-	// FTP client
-	log.Info().Msgf("Connecting to %s:%d...", fg.cfg.Ftp.Host, fg.cfg.Ftp.Port)
-	if fg.ftp, err = ftp.New(&fg.cfg.Ftp, &logging.GoftpWriter{
-		Enabled: fg.cfg.Flags.LogFtp,
-	}); err != nil {
-		log.Fatal().Err(err).Msgf("Cannot connect to FTP server %s:%d", fg.cfg.Ftp.Host, fg.cfg.Ftp.Port)
+	// Server client
+	switch fg.cfg.Server.Type {
+	case model.ServerTypeFTP:
+		fg.srv, err = ftp.New(&fg.cfg.Server.FTP)
+	case model.ServerTypeSFTP:
+		fg.srv, err = sftp.New(&fg.cfg.Server.SFTP)
+	default:
+		log.Fatal().Err(err).Msgf("Unknown server type %s", fg.cfg.Server.Type)
+	}
+	if err != nil {
+		log.Fatal().Err(err).Msg("Cannot connect to server")
 	}
 
 	// DB client
@@ -86,7 +92,7 @@ func (fg *FtpGrab) Run() {
 	}
 
 	// Iterate sources
-	for _, src := range fg.cfg.Ftp.Sources {
+	for _, src := range fg.srv.Common().Sources {
 		log.Info().Msg("########")
 		log.Info().Msgf("Grabbing from %s", src)
 
@@ -112,7 +118,7 @@ func (fg *FtpGrab) Run() {
 
 	// Send email report
 	if fg.cfg.Mail.Enable {
-		if err := mail.Send(fg.jnl, fg.cfg); err != nil {
+		if err := mail.Send(fg.jnl, fg.cfg.App, fg.srv.Common(), fg.cfg.Mail); err != nil {
 			log.Error().Err(err).Msg("Cannot send email")
 			return
 		}
@@ -121,8 +127,8 @@ func (fg *FtpGrab) Run() {
 
 // Close closes ftpgrab (ftp and db connection)
 func (fg *FtpGrab) Close() {
-	if err := fg.ftp.Close(); err != nil {
-		log.Warn().Err(err).Msg("Cannot close FTP connection")
+	if err := fg.srv.Close(); err != nil {
+		log.Warn().Err(err).Msg("Cannot close server connection")
 	}
 	if err := fg.db.Close(); err != nil {
 		log.Warn().Err(err).Msg("Cannot close database")
@@ -131,7 +137,7 @@ func (fg *FtpGrab) Close() {
 
 func (fg *FtpGrab) retrieveRecursive(base string, source string, dest string) {
 	// Check source dir exists
-	files, err := fg.ftp.ReadDir(source)
+	files, err := fg.srv.ReadDir(source)
 	if err != nil {
 		log.Error().Err(err).Msgf("Cannot read directory %s", source)
 		return
@@ -202,7 +208,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 		return
 	}
 
-	err = fg.ftp.Retrieve(srcpath, destfile)
+	err = fg.srv.Retrieve(srcpath, destfile)
 	if err != nil {
 		retry++
 		log.Error().Err(err).Msgf("Error downloading, retry %d/%d", retry, fg.cfg.Download.Retry)

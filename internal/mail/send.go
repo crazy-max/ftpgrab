@@ -6,26 +6,26 @@ import (
 	"os"
 	"time"
 
-	"github.com/ftpgrab/ftpgrab/internal/config"
 	"github.com/ftpgrab/ftpgrab/internal/journal"
+	"github.com/ftpgrab/ftpgrab/internal/model"
 	"github.com/go-gomail/gomail"
 	"github.com/hako/durafmt"
 	"github.com/matcornic/hermes/v2"
 )
 
 // Send creates and sends an email with journal entries
-func Send(jnl *journal.Client, cfg *config.Configuration) error {
+func Send(jnl *journal.Client, app model.App, cmn model.Common, mail model.Mail) error {
 	h := hermes.Hermes{
 		Theme: new(Theme),
 		Product: hermes.Product{
-			Name: cfg.App.Name,
+			Name: app.Name,
 			Link: "https://ftpgrab.github.io",
 			Logo: "https://ftpgrab.github.io/img/logo.png",
 			Copyright: fmt.Sprintf("%s © 2014 - %d %s %s",
-				cfg.App.Author,
+				app.Author,
 				time.Now().Year(),
-				cfg.App.Name,
-				cfg.App.Version),
+				app.Name,
+				app.Version),
 		},
 	}
 
@@ -40,7 +40,7 @@ func Send(jnl *journal.Client, cfg *config.Configuration) error {
 
 	email := hermes.Email{
 		Body: hermes.Body{
-			Title: fmt.Sprintf("%s report", cfg.App.Name),
+			Title: fmt.Sprintf("%s report", app.Name),
 			FreeMarkdown: hermes.Markdown(fmt.Sprintf(
 				`**%d** files have been download successfully, **%d** have been skipped and **%d** errors occurred in %s.`,
 				jnl.Count.Success,
@@ -77,29 +77,29 @@ func Send(jnl *journal.Client, cfg *config.Configuration) error {
 
 	hostname, _ := os.Hostname()
 	msg := gomail.NewMessage()
-	msg.SetHeader("From", fmt.Sprintf("%s <%s>", cfg.App.Name, cfg.Mail.From))
-	msg.SetHeader("To", cfg.Mail.To)
+	msg.SetHeader("From", fmt.Sprintf("%s <%s>", app.Name, mail.From))
+	msg.SetHeader("To", mail.To)
 	msg.SetHeader("Subject", fmt.Sprintf("%s report for %s on %s",
-		cfg.App.Name,
-		cfg.Ftp.Host,
+		app.Name,
+		cmn.Host,
 		hostname,
 	))
 	msg.SetBody("text/plain", textpart)
 	msg.AddAlternative("text/html", htmlpart)
 
 	var tlsConfig *tls.Config
-	if cfg.Mail.InsecureSkipVerify {
+	if mail.InsecureSkipVerify {
 		tlsConfig = &tls.Config{
-			InsecureSkipVerify: cfg.Mail.InsecureSkipVerify,
+			InsecureSkipVerify: mail.InsecureSkipVerify,
 		}
 	}
 
 	dialer := &gomail.Dialer{
-		Host:      cfg.Mail.Host,
-		Port:      cfg.Mail.Port,
-		Username:  cfg.Mail.Username,
-		Password:  cfg.Mail.Password,
-		SSL:       cfg.Mail.SSL,
+		Host:      mail.Host,
+		Port:      mail.Port,
+		Username:  mail.Username,
+		Password:  mail.Password,
+		SSL:       mail.SSL,
 		TLSConfig: tlsConfig,
 	}
 

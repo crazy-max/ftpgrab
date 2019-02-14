@@ -1,17 +1,17 @@
-ftp:
-  host:
-  port: 21
-  username:
-  password:
-  connections_per_host: 5
-  timeout: 5
-  disable_epsv: false
-  tls:
-    enable: false
-    implicit: true
-    insecure_skip_verify: false
-  sources:
-    - /
+server:
+  ftp:
+    host:
+    port: 21
+    username:
+    password:
+    sources:
+    connections_per_host: 5
+    timeout: 5
+    disable_epsv: false
+    tls:
+      enable: false
+      implicit: true
+      insecure_skip_verify: false
 
 db:
   enable: true

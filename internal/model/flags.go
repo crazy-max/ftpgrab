@@ -8,6 +8,5 @@ type Flags struct {
 	LogLevel string
 	LogJson  bool
 	LogFile  string
-	LogFtp   bool
 	Docker   bool
 }

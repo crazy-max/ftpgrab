@@ -18,6 +18,7 @@ Because FTPGrab is distributed :package: as an independent binary, it is ideal f
 ## Features
 
 * Multiple sources
+* SFTP support
 * Prevent re-download through a hash
 * Efficient key/value store database to audit files already downloaded
 * Internal cron implementation through go routines
