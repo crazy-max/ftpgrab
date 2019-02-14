@@ -97,22 +97,14 @@ func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 
 // Retrieve file "path" from server and write bytes to "dest".
 func (c *Client) Retrieve(path string, dest io.Writer) error {
-	remoteFile, err := c.sftp.Open(path)
+	reader, err := c.sftp.Open(path)
 	if err != nil {
 		return err
 	}
-	defer remoteFile.Close()
+	defer reader.Close()
 
-	b := make([]byte, 1024)
-	for {
-		n, err := remoteFile.Read(b)
-		dest.Write(b[:n])
-		if err != nil {
-			if err != io.EOF {
-				return err
-			}
-			break
-		}
+	if _, err := io.Copy(dest, reader); err != nil {
+		return err
 	}
 
 	return nil
