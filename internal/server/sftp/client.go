@@ -3,6 +3,7 @@ package sftp
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 
 	"github.com/ftpgrab/ftpgrab/internal/model"
@@ -23,18 +24,23 @@ type Client struct {
 func New(config *model.SFTP) (*server.Client, error) {
 	var err error
 	var client = &Client{cfg: config}
+	var sshConf *ssh.ClientConfig
+	var sshAuth []ssh.AuthMethod
 
-	var hostKeyCallback ssh.HostKeyCallback
-	if config.InsecureSkipVerify {
-		hostKeyCallback = ssh.InsecureIgnoreHostKey()
-	}
-
-	sshConf := &ssh.ClientConfig{
-		User:            config.Username,
-		HostKeyCallback: hostKeyCallback,
-		Auth: []ssh.AuthMethod{
+	// SSH Auth
+	if config.Key != "" {
+		if sshAuth, err = client.readPublicKey(config.Key, config.Password); err != nil {
+			return nil, fmt.Errorf("unable to read SFTP public key, %v", err)
+		}
+	} else {
+		sshAuth = []ssh.AuthMethod{
 			ssh.Password(config.Password),
-		},
+		}
+	}
+	sshConf = &ssh.ClientConfig{
+		User:            config.Username,
+		Auth:            sshAuth,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
 	sshConf.SetDefaults()
@@ -48,6 +54,27 @@ func New(config *model.SFTP) (*server.Client, error) {
 	}
 
 	return &server.Client{Handler: client}, err
+}
+
+func (c *Client) readPublicKey(key string, password string) ([]ssh.AuthMethod, error) {
+	var signer ssh.Signer
+	var err error
+
+	buffer, err := ioutil.ReadFile(key)
+	if err != nil {
+		return nil, err
+	}
+
+	if password != "" {
+		signer, err = ssh.ParsePrivateKeyWithPassphrase(buffer, []byte(password))
+	} else {
+		signer, err = ssh.ParsePrivateKey(buffer)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
 }
 
 // Common return common configuration

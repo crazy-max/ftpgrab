@@ -191,6 +191,7 @@ func (cfg *Configuration) Display() {
 			SFTP: model.SFTP{
 				Username: "********",
 				Password: "********",
+				Key:      "********",
 			},
 		},
 		Mail: model.Mail{

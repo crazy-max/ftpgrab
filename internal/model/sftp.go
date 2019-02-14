@@ -6,6 +6,7 @@ type SFTP struct {
 	Port               int      `yaml:"port,omitempty"`
 	Username           string   `yaml:"username,omitempty"`
 	Password           string   `yaml:"password,omitempty"`
+	Key                string   `yaml:"key,omitempty"`
 	Sources            []string `yaml:"sources,omitempty"`
 	MaxPacketSize      int      `yaml:"max_packet_size,omitempty"`
 	InsecureSkipVerify bool     `yaml:"insecure_skip_verify,omitempty"`
