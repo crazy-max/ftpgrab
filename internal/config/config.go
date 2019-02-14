@@ -53,6 +53,7 @@ func Load(fl model.Flags, version string) (*Configuration, error) {
 					Implicit:           true,
 					InsecureSkipVerify: false,
 				},
+				LogTrace: false,
 			},
 			SFTP: model.SFTP{
 				Port:               22,
