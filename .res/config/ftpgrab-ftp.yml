@@ -13,6 +13,7 @@ server:
       enable: false
       implicit: true
       insecure_skip_verify: false
+    log_trace: false
 
 db:
   enable: true
