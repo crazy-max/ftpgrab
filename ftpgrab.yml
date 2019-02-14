@@ -1,4 +1,5 @@
 server:
+  type: ftp
   ftp:
     host:
     port: 21
