@@ -33,7 +33,7 @@ func main() {
 	kingpin.Flag("docker", "Enable Docker mode.").Envar("DOCKER").Default("false").BoolVar(&flags.Docker)
 	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version(version).Author("CrazyMax")
 	kingpin.CommandLine.Name = "ftpgrab"
-	kingpin.CommandLine.Help = `Grab your files periodically from a remote FTP server easily. More info on https://ftpgrab.github.io`
+	kingpin.CommandLine.Help = `Grab your files periodically from a remote FTP or SFTP server easily. More info on https://ftpgrab.github.io`
 	kingpin.Parse()
 
 	// Load timezone location

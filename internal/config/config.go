@@ -35,7 +35,7 @@ func Load(fl model.Flags, version string) (*Configuration, error) {
 		App: model.App{
 			ID:      "ftpgrab",
 			Name:    "FTPGrab",
-			Desc:    "Grab your files periodically from a remote FTP server easily",
+			Desc:    "Grab your files periodically from a remote FTP or SFTP server easily",
 			URL:     "https://ftpgrab.github.io",
 			Author:  "CrazyMax",
 			Version: version,
