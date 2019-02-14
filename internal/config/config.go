@@ -56,10 +56,10 @@ func Load(fl model.Flags, version string) (*Configuration, error) {
 				LogTrace: false,
 			},
 			SFTP: model.SFTP{
-				Port:               22,
-				Sources:            []string{},
-				InsecureSkipVerify: false,
-				MaxPacketSize:      32768,
+				Port:          22,
+				Sources:       []string{},
+				Timeout:       30,
+				MaxPacketSize: 32768,
 			},
 		},
 		Db: model.Db{

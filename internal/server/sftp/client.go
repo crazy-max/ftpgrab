@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"time"
 
 	"github.com/ftpgrab/ftpgrab/internal/model"
 	"github.com/ftpgrab/ftpgrab/internal/server"
@@ -41,6 +42,7 @@ func New(config *model.SFTP) (*server.Client, error) {
 		User:            config.Username,
 		Auth:            sshAuth,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout:         config.Timeout * time.Second,
 	}
 
 	sshConf.SetDefaults()
