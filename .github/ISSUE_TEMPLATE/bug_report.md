@@ -23,7 +23,7 @@ about: Create a report to help us improve
 
 * FTPGrab version (5.0.0) : 
 * Platform (windows/linux/freebsd/macos) : 
-* Remote FTP server (Pure-FTPd) : 
+* Remote FTP (Pure-FTPd) or SFTP (OpenSSH) server: 
 
 ### Logs
 

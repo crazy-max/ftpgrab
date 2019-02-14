@@ -30,11 +30,10 @@ func main() {
 	kingpin.Flag("log-level", "Set log level.").Envar("LOG_LEVEL").Default("info").StringVar(&flags.LogLevel)
 	kingpin.Flag("log-json", "Enable JSON logging output.").Envar("LOG_JSON").Default("false").BoolVar(&flags.LogJson)
 	kingpin.Flag("log-file", "Add logging to a specific file.").Envar("LOG_FILE").StringVar(&flags.LogFile)
-	kingpin.Flag("log-ftp", "Enable low-level FTP log.").Envar("LOG_FTP").Default("false").BoolVar(&flags.LogFtp)
 	kingpin.Flag("docker", "Enable Docker mode.").Envar("DOCKER").Default("false").BoolVar(&flags.Docker)
 	kingpin.UsageTemplate(kingpin.CompactUsageTemplate).Version(version).Author("CrazyMax")
 	kingpin.CommandLine.Name = "ftpgrab"
-	kingpin.CommandLine.Help = `Grab your files periodically from a remote FTP server easily. More info on https://ftpgrab.github.io`
+	kingpin.CommandLine.Help = `Grab your files periodically from a remote FTP or SFTP server easily. More info on https://ftpgrab.github.io`
 	kingpin.Parse()
 
 	// Load timezone location
@@ -66,6 +65,7 @@ func main() {
 		log.Fatal().Err(err).Msg("Cannot load configuration")
 	}
 	if err := cfg.Check(); err != nil {
+		cfg.Display()
 		log.Fatal().Err(err).Msg("Improper configuration")
 	}
 	cfg.Display()

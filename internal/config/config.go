@@ -20,7 +20,7 @@ import (
 type Configuration struct {
 	Flags    model.Flags
 	App      model.App
-	Ftp      model.Ftp      `yaml:"ftp,omitempty"`
+	Server   model.Server   `yaml:"server,omitempty"`
 	Db       model.Db       `yaml:"db,omitempty"`
 	Download model.Download `yaml:"download,omitempty"`
 	Mail     model.Mail     `yaml:"mail,omitempty"`
@@ -35,23 +35,31 @@ func Load(fl model.Flags, version string) (*Configuration, error) {
 		App: model.App{
 			ID:      "ftpgrab",
 			Name:    "FTPGrab",
-			Desc:    "Grab your files periodically from a remote FTP server easily",
+			Desc:    "Grab your files periodically from a remote FTP or SFTP server easily",
 			URL:     "https://ftpgrab.github.io",
 			Author:  "CrazyMax",
 			Version: version,
 		},
-		Ftp: model.Ftp{
-			Port:               21,
-			ConnectionsPerHost: 5,
-			Timeout:            5,
-			DisableEPSV:        false,
-			TLS: model.TLS{
-				Enable:             false,
-				Implicit:           true,
-				InsecureSkipVerify: false,
+		Server: model.Server{
+			Type: model.ServerTypeFTP,
+			FTP: model.FTP{
+				Port:               21,
+				Sources:            []string{},
+				ConnectionsPerHost: 5,
+				Timeout:            5,
+				DisableEPSV:        false,
+				TLS: model.TLS{
+					Enable:             false,
+					Implicit:           true,
+					InsecureSkipVerify: false,
+				},
+				LogTrace: false,
 			},
-			Sources: []string{
-				"/",
+			SFTP: model.SFTP{
+				Port:          22,
+				Sources:       []string{},
+				Timeout:       30,
+				MaxPacketSize: 32768,
 			},
 		},
 		Db: model.Db{
@@ -94,12 +102,8 @@ func Load(fl model.Flags, version string) (*Configuration, error) {
 
 // Check verifies Configuration values
 func (cfg *Configuration) Check() error {
-	if cfg.Ftp.Host == "" {
-		return errors.New("host is required")
-	}
-
-	if len(cfg.Ftp.Sources) == 0 {
-		return errors.New("at least one source is required")
+	if err := checkServer(&cfg.Server); err != nil {
+		return err
 	}
 
 	if cfg.Flags.Docker {
@@ -141,12 +145,54 @@ func (cfg *Configuration) Check() error {
 	return nil
 }
 
+func checkServer(cfg *model.Server) error {
+	switch cfg.Type {
+	case model.ServerTypeFTP:
+		return checkServerFtp(cfg.FTP)
+	case model.ServerTypeSFTP:
+		return checkServerSftp(cfg.SFTP)
+	default:
+		return fmt.Errorf("unknown server type %s", cfg.Type)
+	}
+}
+
+func checkServerFtp(cfg model.FTP) error {
+	if cfg.Host == "" {
+		return errors.New("FTP host is required")
+	}
+
+	if len(cfg.Sources) == 0 {
+		return errors.New("at least one FTP source is required")
+	}
+
+	return nil
+}
+
+func checkServerSftp(cfg model.SFTP) error {
+	if cfg.Host == "" {
+		return errors.New("SFTP host is required")
+	}
+
+	if len(cfg.Sources) == 0 {
+		return errors.New("at least one SFTP source is required")
+	}
+
+	return nil
+}
+
 // Display logs configuration in a pretty JSON format
 func (cfg *Configuration) Display() {
 	var out = Configuration{
-		Ftp: model.Ftp{
-			Username: "********",
-			Password: "********",
+		Server: model.Server{
+			FTP: model.FTP{
+				Username: "********",
+				Password: "********",
+			},
+			SFTP: model.SFTP{
+				Username: "********",
+				Password: "********",
+				Key:      "********",
+			},
 		},
 		Mail: model.Mail{
 			Username: "********",

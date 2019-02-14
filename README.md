@@ -11,13 +11,14 @@
 
 ## About
 
-**FTPGrab** :zap: is a CLI application written in [Go](https://golang.org/) to grab :inbox_tray: your files from a remote FTP server to your NAS, server or computer :computer:. With Go, this app can be used across many platforms :game_die: and architectures. This support includes Linux, FreeBSD, macOS and Windows on architectures like amd64, i386, ARM and others.
+**FTPGrab** :zap: is a CLI application written in [Go](https://golang.org/) to grab :inbox_tray: your files from a remote FTP or SFTP server to your NAS, server or computer :computer:. With Go, this app can be used across many platforms :game_die: and architectures. This support includes Linux, FreeBSD, macOS and Windows on architectures like amd64, i386, ARM and others.
 
 Because FTPGrab is distributed :package: as an independent binary, it is ideal for those with a seedbox :checkered_flag: to grab your files periodically :calendar: to your Synology, Qnap, D-Link and others NAS.
 
 ## Features
 
 * Multiple sources
+* SFTP support
 * Prevent re-download through a hash
 * Efficient key/value store database to audit files already downloaded
 * Internal cron implementation through go routines
@@ -47,6 +48,7 @@ Because FTPGrab is distributed :package: as an independent binary, it is ideal f
 * [ ] [Chocolatey](https://chocolatey.org/) package
 * [ ] [Brew](https://brew.sh/) recipe
 * [ ] [Cloudron](https://cloudron.io/) app
+* [ ] Add webhook notification method
 * [ ] Sublogger / dictionary for entries
 * [ ] Build / Install from source doc
 

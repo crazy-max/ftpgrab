@@ -1,6 +1,10 @@
+## 5.0.0 > 5.1.0
+
+This release changes the configuration layout as it introduces SFTP support. Please read the [Configuration](/doc/configuration/) page before upgrading.
+
 ## > 5.0.0
 
-This release breaks the mechanism of previous releases and is not intended to be upgraded to this one. But you can easily translate your old configuration file with the new format.  Also, Docker image has been moved to a dedicated organization on [Docker Hub](https://hub.docker.com/u/ftpgrab) and [Quay](https://quay.io/organization/ftpgrab).
+This release breaks the mechanism of previous releases and is not intended to be upgraded to this one. But you can easily translate your old configuration file with the new format. Also, Docker image has been moved to a dedicated organization on [Docker Hub](https://hub.docker.com/u/ftpgrab) and [Quay](https://quay.io/organization/ftpgrab).
 
 ## 4.1 > 4.2.0
 

@@ -1,17 +1,14 @@
-ftp:
-  host:
-  port: 21
-  username:
-  password:
-  connections_per_host: 5
-  timeout: 5
-  disable_epsv: false
-  tls:
-    enable: false
-    implicit: true
-    insecure_skip_verify: false
-  sources:
-    - /
+server:
+  type: sftp
+  sftp:
+    host:
+    port: 22
+    username:
+    password:
+    key:
+    sources:
+    timeout: 30
+    max_packet_size: 32768
 
 db:
   enable: true
