@@ -1,0 +1,39 @@
+server:
+  type: sftp
+  sftp:
+    host:
+    port: 22
+    username:
+    password:
+    key:
+    sources:
+    timeout: 30
+    max_packet_size: 32768
+
+db:
+  enable: true
+  path: ftpgrab.db
+
+download:
+  output: /download
+  uid:
+  gid:
+  chmod_file: 0644
+  chmod_dir: 0755
+  include:
+  exclude:
+  since: 0001-01-01T00:00:00Z
+  retry: 3
+  hide_skipped: false
+  create_basedir: false
+
+mail:
+  enable: false
+  host: localhost
+  port: 25
+  ssl: false
+  insecure_skip_verify: false
+  username:
+  password:
+  from:
+  to:
