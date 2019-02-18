@@ -7,6 +7,7 @@ server:
     password:
     key:
     sources:
+      - /
     timeout: 30
     max_packet_size: 32768
 
