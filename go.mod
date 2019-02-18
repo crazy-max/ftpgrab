@@ -10,7 +10,7 @@ require (
 	github.com/ilya1st/rotatewriter v0.0.0-20171126183947-3df0c1a3ed6d
 	github.com/imdario/mergo v0.3.7
 	github.com/kr/fs v0.1.0 // indirect
-	github.com/matcornic/hermes/v2 v2.0.1
+	github.com/matcornic/hermes/v2 v2.0.2
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/pkg/sftp v1.10.0
 	github.com/rs/zerolog v1.11.0
@@ -23,5 +23,3 @@ require (
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )
-
-replace gopkg.in/russross/blackfriday.v2 v2.0.1 => github.com/russross/blackfriday/v2 v2.0.1
