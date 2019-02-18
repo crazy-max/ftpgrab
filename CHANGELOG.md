@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1.1 (2019/02/18)
+
+* Blackfriday module fixed through hermes v2.0.2 (matcornic/hermes#51)
+
 ## 5.1.0 (2019/02/14)
 
 * Add SFTP support (Issue #42)
