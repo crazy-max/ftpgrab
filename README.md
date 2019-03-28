@@ -28,6 +28,7 @@ Because FTPGrab is distributed :package: as an independent binary, it is ideal f
 * Change file/folder permissions and owner
 * Translate modtimes on downloaded files
 * Beautiful email report
+* Webhook notification
 * Enhanced logging
 * Timezone can be changed
 * 🐳 Official [Docker image available](https://github.com/ftpgrab/docker)
@@ -48,7 +49,6 @@ Because FTPGrab is distributed :package: as an independent binary, it is ideal f
 * [ ] [Chocolatey](https://chocolatey.org/) package
 * [ ] [Brew](https://brew.sh/) recipe
 * [ ] [Cloudron](https://cloudron.io/) app
-* [ ] Add webhook notification method
 * [ ] Sublogger / dictionary for entries
 * [ ] Build / Install from source doc
 
