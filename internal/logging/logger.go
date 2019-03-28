@@ -34,7 +34,7 @@ func Configure(fl *model.Flags, location *time.Location) {
 
 	if fl.LogFile != "" {
 		logFile := path.Clean(fl.LogFile)
-		if err := os.MkdirAll(path.Base(logFile), os.ModePerm); err != nil {
+		if err := os.MkdirAll(path.Dir(logFile), os.ModePerm); err != nil {
 			log.Fatal().Err(err).Msgf("Cannot create log folder")
 		}
 		rwriter, err := rotatewriter.NewRotateWriter(logFile, 5)
