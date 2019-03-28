@@ -12,8 +12,8 @@ import (
 	"github.com/ftpgrab/ftpgrab/internal/config"
 	"github.com/ftpgrab/ftpgrab/internal/db"
 	"github.com/ftpgrab/ftpgrab/internal/journal"
-	"github.com/ftpgrab/ftpgrab/internal/mail"
 	"github.com/ftpgrab/ftpgrab/internal/model"
+	"github.com/ftpgrab/ftpgrab/internal/notif"
 	"github.com/ftpgrab/ftpgrab/internal/server"
 	"github.com/ftpgrab/ftpgrab/internal/server/ftp"
 	"github.com/ftpgrab/ftpgrab/internal/server/sftp"
@@ -27,6 +27,7 @@ type FtpGrab struct {
 	cfg    *config.Configuration
 	srv    *server.Client
 	db     *db.Client
+	notif  *notif.Client
 	jnl    *journal.Client
 	locker uint32
 }
@@ -91,6 +92,11 @@ func (fg *FtpGrab) Run() {
 		log.Fatal().Err(err).Msg("Cannot open database")
 	}
 
+	// Notification client
+	if fg.notif, err = notif.New(fg.cfg.Notif, fg.cfg.App, fg.srv.Common()); err != nil {
+		log.Fatal().Err(err).Msg("Cannot create notifiers")
+	}
+
 	// Iterate sources
 	for _, src := range fg.srv.Common().Sources {
 		log.Info().Msg("########")
@@ -116,13 +122,8 @@ func (fg *FtpGrab) Run() {
 		return
 	}
 
-	// Send email report
-	if fg.cfg.Mail.Enable {
-		if err := mail.Send(fg.jnl, fg.cfg.App, fg.srv.Common(), fg.cfg.Mail); err != nil {
-			log.Error().Err(err).Msg("Cannot send email")
-			return
-		}
-	}
+	// Send notifications
+	fg.notif.Send(*fg.jnl)
 }
 
 // Close closes ftpgrab (ftp and db connection)

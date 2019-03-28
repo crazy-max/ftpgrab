@@ -8,24 +8,49 @@ import (
 
 	"github.com/ftpgrab/ftpgrab/internal/journal"
 	"github.com/ftpgrab/ftpgrab/internal/model"
+	"github.com/ftpgrab/ftpgrab/internal/notif/notifier"
 	"github.com/go-gomail/gomail"
 	"github.com/hako/durafmt"
 	"github.com/matcornic/hermes/v2"
 )
 
-// Send creates and sends an email with journal entries
-func Send(jnl *journal.Client, app model.App, cmn model.Common, mail model.Mail) error {
+// Client represents an active mail notification object
+type Client struct {
+	*notifier.Notifier
+	cfg model.Mail
+	app model.App
+	cmn model.Common
+}
+
+// New creates a new mail notification instance
+func New(config model.Mail, app model.App, cmn model.Common) notifier.Notifier {
+	return notifier.Notifier{
+		Handler: &Client{
+			cfg: config,
+			app: app,
+			cmn: cmn,
+		},
+	}
+}
+
+// Name returns notifier's name
+func (c *Client) Name() string {
+	return "mail"
+}
+
+// Send creates and sends an email notification with journal entries
+func (c *Client) Send(jnl journal.Client) error {
 	h := hermes.Hermes{
 		Theme: new(Theme),
 		Product: hermes.Product{
-			Name: app.Name,
+			Name: c.app.Name,
 			Link: "https://ftpgrab.github.io",
 			Logo: "https://ftpgrab.github.io/img/logo.png",
 			Copyright: fmt.Sprintf("%s © 2014 - %d %s %s",
-				app.Author,
+				c.app.Author,
 				time.Now().Year(),
-				app.Name,
-				app.Version),
+				c.app.Name,
+				c.app.Version),
 		},
 	}
 
@@ -40,13 +65,13 @@ func Send(jnl *journal.Client, app model.App, cmn model.Common, mail model.Mail)
 
 	email := hermes.Email{
 		Body: hermes.Body{
-			Title: fmt.Sprintf("%s report", app.Name),
+			Title: fmt.Sprintf("%s report", c.app.Name),
 			FreeMarkdown: hermes.Markdown(fmt.Sprintf(
 				`**%d** files have been download successfully, **%d** have been skipped and **%d** errors occurred in %s.`,
 				jnl.Count.Success,
 				jnl.Count.Skip,
 				jnl.Count.Error,
-				durafmt.ParseShort(jnl.Duration).String())),
+				durafmt.ParseShort(time.Duration(jnl.Duration)).String())),
 			Table: hermes.Table{
 				Data: entriesData,
 				Columns: hermes.Columns{
@@ -59,7 +84,7 @@ func Send(jnl *journal.Client, app model.App, cmn model.Common, mail model.Mail)
 					},
 				},
 			},
-			Signature: "Thanks for your support,",
+			Signature: "Thanks for your support",
 		},
 	}
 
@@ -77,29 +102,29 @@ func Send(jnl *journal.Client, app model.App, cmn model.Common, mail model.Mail)
 
 	hostname, _ := os.Hostname()
 	msg := gomail.NewMessage()
-	msg.SetHeader("From", fmt.Sprintf("%s <%s>", app.Name, mail.From))
-	msg.SetHeader("To", mail.To)
+	msg.SetHeader("From", fmt.Sprintf("%s <%s>", c.app.Name, c.cfg.From))
+	msg.SetHeader("To", c.cfg.To)
 	msg.SetHeader("Subject", fmt.Sprintf("%s report for %s on %s",
-		app.Name,
-		cmn.Host,
+		c.app.Name,
+		c.cmn.Host,
 		hostname,
 	))
 	msg.SetBody("text/plain", textpart)
 	msg.AddAlternative("text/html", htmlpart)
 
 	var tlsConfig *tls.Config
-	if mail.InsecureSkipVerify {
+	if c.cfg.InsecureSkipVerify {
 		tlsConfig = &tls.Config{
-			InsecureSkipVerify: mail.InsecureSkipVerify,
+			InsecureSkipVerify: c.cfg.InsecureSkipVerify,
 		}
 	}
 
 	dialer := &gomail.Dialer{
-		Host:      mail.Host,
-		Port:      mail.Port,
-		Username:  mail.Username,
-		Password:  mail.Password,
-		SSL:       mail.SSL,
+		Host:      c.cfg.Host,
+		Port:      c.cfg.Port,
+		Username:  c.cfg.Username,
+		Password:  c.cfg.Password,
+		SSL:       c.cfg.SSL,
 		TLSConfig: tlsConfig,
 	}
 

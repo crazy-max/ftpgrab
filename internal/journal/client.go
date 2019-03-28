@@ -6,12 +6,12 @@ import (
 
 // Client represents an active journal object
 type Client struct {
-	*model.Journal
+	model.Journal
 }
 
 // New creates new journal instance
 func New() *Client {
-	return &Client{&model.Journal{}}
+	return &Client{model.Journal{}}
 }
 
 // AddEntry adds an entry in the journal

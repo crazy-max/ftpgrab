@@ -23,7 +23,7 @@ type Configuration struct {
 	Server   model.Server   `yaml:"server,omitempty"`
 	Db       model.Db       `yaml:"db,omitempty"`
 	Download model.Download `yaml:"download,omitempty"`
-	Mail     model.Mail     `yaml:"mail,omitempty"`
+	Notif    model.Notif    `yaml:"notif,omitempty"`
 	File     os.FileInfo
 }
 
@@ -75,12 +75,19 @@ func Load(fl model.Flags, version string) (*Configuration, error) {
 			HideSkipped:   false,
 			CreateBasedir: false,
 		},
-		Mail: model.Mail{
-			Enable:             false,
-			Host:               "localhost",
-			Port:               25,
-			SSL:                false,
-			InsecureSkipVerify: false,
+		Notif: model.Notif{
+			Mail: model.Mail{
+				Enable:             false,
+				Host:               "localhost",
+				Port:               25,
+				SSL:                false,
+				InsecureSkipVerify: false,
+			},
+			Webhook: model.Webhook{
+				Enable:  false,
+				Method:  "GET",
+				Timeout: 10,
+			},
 		},
 	}
 
@@ -133,11 +140,11 @@ func (cfg *Configuration) Check() error {
 		}
 	}
 
-	if cfg.Mail.Enable {
-		if _, err := mail.ParseAddress(cfg.Mail.From); err != nil {
+	if cfg.Notif.Mail.Enable {
+		if _, err := mail.ParseAddress(cfg.Notif.Mail.From); err != nil {
 			return fmt.Errorf("cannot sender mail address, %v", err)
 		}
-		if _, err := mail.ParseAddress(cfg.Mail.To); err != nil {
+		if _, err := mail.ParseAddress(cfg.Notif.Mail.To); err != nil {
 			return fmt.Errorf("cannot recipient mail address, %v", err)
 		}
 	}
@@ -194,9 +201,11 @@ func (cfg *Configuration) Display() {
 				Key:      "********",
 			},
 		},
-		Mail: model.Mail{
-			Username: "********",
-			Password: "********",
+		Notif: model.Notif{
+			Mail: model.Mail{
+				Username: "********",
+				Password: "********",
+			},
 		},
 	}
 	if err := mergo.Merge(&out, cfg); err != nil {
