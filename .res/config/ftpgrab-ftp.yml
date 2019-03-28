@@ -33,13 +33,20 @@ download:
   hide_skipped: false
   create_basedir: false
 
-mail:
-  enable: false
-  host: localhost
-  port: 25
-  ssl: false
-  insecure_skip_verify: false
-  username:
-  password:
-  from:
-  to:
+notif:
+  mail:
+    enable: false
+    host: localhost
+    port: 25
+    ssl: false
+    insecure_skip_verify: false
+    username:
+    password:
+    from:
+    to:
+  webhook:
+    enable: false
+    endpoint:
+    method: GET
+    headers: {}
+    timeout: 10
