@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.2.0 (2019/03/29)
+
+* Add webhook notification method
+* Remove unnecessary `connections_per_host` field (Issue #48)
+* Fix log folder creation
+
 ## 5.1.1 (2019/02/18)
 
 * Blackfriday module fixed through hermes v2.0.2 (matcornic/hermes#51)
