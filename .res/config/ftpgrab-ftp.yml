@@ -7,7 +7,6 @@ server:
     password:
     sources:
       - /
-    connections_per_host: 5
     timeout: 5
     disable_epsv: false
     tls:

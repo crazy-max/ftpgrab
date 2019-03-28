@@ -43,11 +43,10 @@ func Load(fl model.Flags, version string) (*Configuration, error) {
 		Server: model.Server{
 			Type: model.ServerTypeFTP,
 			FTP: model.FTP{
-				Port:               21,
-				Sources:            []string{},
-				ConnectionsPerHost: 5,
-				Timeout:            5,
-				DisableEPSV:        false,
+				Port:        21,
+				Sources:     []string{},
+				Timeout:     5,
+				DisableEPSV: false,
 				TLS: model.TLS{
 					Enable:             false,
 					Implicit:           true,

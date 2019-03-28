@@ -37,10 +37,9 @@ func New(config *model.FTP) (*server.Client, error) {
 	}
 
 	if client.ftp, err = goftp.DialConfig(goftp.Config{
-		User:               config.Username,
-		Password:           config.Password,
-		ConnectionsPerHost: config.ConnectionsPerHost,
-		Timeout:            time.Duration(config.Timeout) * time.Second,
+		User:     config.Username,
+		Password: config.Password,
+		Timeout:  time.Duration(config.Timeout) * time.Second,
 		Logger: &logging.GoftpWriter{
 			Enabled: config.LogTrace,
 		},
