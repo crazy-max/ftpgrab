@@ -1,3 +1,7 @@
+## 5.1.x > 5.2.0
+
+This release changes the configuration layout as it introduces Webhook notification support. Please read the [Configuration](/doc/configuration/) page before upgrading.
+
 ## 5.0.0 > 5.1.0
 
 This release changes the configuration layout as it introduces SFTP support. Please read the [Configuration](/doc/configuration/) page before upgrading.
