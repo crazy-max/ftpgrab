@@ -1,9 +1,11 @@
 module github.com/ftpgrab/ftpgrab
 
+go 1.12
+
 require (
 	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc // indirect
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
-	github.com/crazy-max/cron v1.2.1
+	github.com/crazy-max/cron v1.2.2
 	github.com/docker/go-units v0.3.3
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
 	github.com/hako/durafmt v0.0.0-20180520121703-7b7ae1e72ead
@@ -13,7 +15,7 @@ require (
 	github.com/matcornic/hermes/v2 v2.0.2
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/pkg/sftp v1.10.0
-	github.com/rs/zerolog v1.11.0
+	github.com/rs/zerolog v1.13.0
 	github.com/secsy/goftp v0.0.0-20180816013212-012609e90524
 	go.etcd.io/bbolt v1.3.2
 	golang.org/x/crypto v0.0.0-20190211182817-74369b46fc67
