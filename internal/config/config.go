@@ -24,7 +24,6 @@ type Configuration struct {
 	Db       model.Db       `yaml:"db,omitempty"`
 	Download model.Download `yaml:"download,omitempty"`
 	Notif    model.Notif    `yaml:"notif,omitempty"`
-	File     os.FileInfo
 }
 
 // Load returns Configuration struct
@@ -90,7 +89,7 @@ func Load(fl model.Flags, version string) (*Configuration, error) {
 		},
 	}
 
-	if cfg.File, err = os.Lstat(fl.Cfgfile); err != nil {
+	if _, err = os.Lstat(fl.Cfgfile); err != nil {
 		return nil, fmt.Errorf("unable to open config file, %s", err)
 	}
 
