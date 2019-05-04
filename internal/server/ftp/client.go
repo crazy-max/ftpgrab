@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/ftpgrab/ftpgrab/internal/logging"
@@ -77,7 +78,7 @@ func (c *Client) Common() model.Common {
 
 // ReadDir fetches the contents of a directory, returning a list of os.FileInfo's
 func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
-	return c.ftp.ReadDir(path)
+	return c.ftp.ReadDir(regexp.QuoteMeta(path))
 }
 
 // Retrieve file "path" from server and write bytes to "dest".
