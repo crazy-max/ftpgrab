@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.3.0 (2019/05/04)
+
+* Escape all regexp metacharacters on read dir (Issue #49)
+* Remove unused field
+* Go 1.12
+* Update deps
+
 ## 5.2.0 (2019/03/29)
 
 * Add webhook notification method
