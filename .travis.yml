@@ -33,3 +33,10 @@ deploy:
   draft: true
   on:
     tags: true
+
+notifications:
+  email:
+    recipients:
+      - travisci@crazymax.dev
+    on_success: always
+    on_failure: always
