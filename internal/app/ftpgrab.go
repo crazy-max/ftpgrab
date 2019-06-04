@@ -160,7 +160,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 
 	srcpath := utl.Encoding(fg.cfg.Server.Encoding, rawSrcpath)
 	destpath := utl.Encoding(fg.cfg.Server.Encoding, rawDestpath)
-	log.Info().Msgf("SrcPath: %s, DestPath: %s", srcpath, destpath)
+	//log.Info().Msgf("SrcPath: %s, DestPath: %s", srcpath, destpath)
 
 	status := fg.fileStatus(base, src, dest, file)
 	jnlEntry := model.Entry{
@@ -213,7 +213,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 		return
 	}
 
-	err = fg.srv.Retrieve(srcpath, destfile)
+	err = fg.srv.Retrieve(rawSrcpath, destfile)
 	if err != nil {
 		retry++
 		log.Error().Err(err).Msgf("Error downloading, retry %d/%d", retry, fg.cfg.Download.Retry)
