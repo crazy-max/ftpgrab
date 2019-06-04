@@ -18,6 +18,7 @@ require (
 	github.com/secsy/goftp v0.0.0-20180816013212-012609e90524
 	go.etcd.io/bbolt v1.3.2
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
+	golang.org/x/text v0.3.2
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect

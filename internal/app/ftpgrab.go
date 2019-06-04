@@ -150,13 +150,17 @@ func (fg *FtpGrab) retrieveRecursive(base string, source string, dest string) {
 }
 
 func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileInfo, retry int) {
-	srcpath := path.Join(src, file.Name())
-	destpath := path.Join(dest, file.Name())
+	rawSrcpath := path.Join(src, file.Name())
+	rawDestpath := path.Join(dest, file.Name())
 
 	if file.IsDir() {
-		fg.retrieveRecursive(base, srcpath, destpath)
+		fg.retrieveRecursive(base, rawSrcpath, rawDestpath)
 		return
 	}
+
+	srcpath := utl.Encoding(fg.cfg.Server.Encoding, rawSrcpath)
+	destpath := utl.Encoding(fg.cfg.Server.Encoding, rawDestpath)
+	log.Info().Msgf("SrcPath: %s, DestPath: %s", srcpath, destpath)
 
 	status := fg.fileStatus(base, src, dest, file)
 	jnlEntry := model.Entry{
