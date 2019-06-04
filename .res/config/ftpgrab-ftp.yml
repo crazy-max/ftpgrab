@@ -14,6 +14,7 @@ server:
       implicit: true
       insecure_skip_verify: false
     log_trace: false
+  encoding:
 
 db:
   enable: true
