@@ -1,5 +1,13 @@
 # Changelog
 
+## 5.4.0 (2019/07/18)
+
+* Improve logging
+* Display next execution time
+* Use v3 robfig/cron
+* Always run on startup
+* Go 1.12.4
+
 ## 5.3.0 (2019/05/04)
 
 * Escape all regexp metacharacters on read dir (Issue #49)
