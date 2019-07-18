@@ -49,7 +49,6 @@ Because FTPGrab is distributed :package: as an independent binary, it is ideal f
 * [ ] [Chocolatey](https://chocolatey.org/) package
 * [ ] [Brew](https://brew.sh/) recipe
 * [ ] [Cloudron](https://cloudron.io/) app
-* [ ] Sublogger / dictionary for entries
 * [ ] Build / Install from source doc
 
 ## How can I help ?

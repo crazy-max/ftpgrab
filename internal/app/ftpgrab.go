@@ -102,7 +102,6 @@ func (fg *FtpGrab) Run() {
 
 	start := time.Now()
 	var err error
-	log.Info().Msg("########")
 
 	// Journal client
 	fg.jnl = journal.New()
@@ -132,8 +131,7 @@ func (fg *FtpGrab) Run() {
 
 	// Iterate sources
 	for _, src := range fg.srv.Common().Sources {
-		log.Info().Msg("########")
-		log.Info().Msgf("Grabbing from %s", src)
+		log.Info().Str("source", src).Msg("Grabbing")
 
 		// Check basedir
 		dest := fg.cfg.Download.Output
@@ -147,7 +145,10 @@ func (fg *FtpGrab) Run() {
 
 	fg.Close()
 	fg.jnl.Duration = time.Since(start)
-	log.Info().Msg("########")
+
+	log.Info().
+		Str("duration", durafmt.ParseShort(time.Since(start)).String()).
+		Msg("Finished")
 
 	// Check journal before sending report
 	if fg.jnl.IsEmpty() {
@@ -176,106 +177,109 @@ func (fg *FtpGrab) retrieveRecursive(base string, source string, dest string) {
 	// Check source dir exists
 	files, err := fg.srv.ReadDir(source)
 	if err != nil {
-		log.Error().Err(err).Msgf("Cannot read directory %s", source)
+		log.Error().Err(err).Str("source", base).
+			Msgf("Cannot read directory %s", source)
 		return
 	}
 
 	for _, file := range files {
-		fg.retrieve(base, source, dest, file, 0)
+		if jnlEntry := fg.retrieve(base, source, dest, file, 0); jnlEntry != nil {
+			fg.jnl.AddEntry(*jnlEntry)
+		}
 	}
 }
 
-func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileInfo, retry int) {
+func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileInfo, retry int) *model.Entry {
 	srcpath := path.Join(src, file.Name())
 	destpath := path.Join(dest, file.Name())
 
 	if file.IsDir() {
 		fg.retrieveRecursive(base, srcpath, destpath)
-		return
+		return nil
 	}
 
 	status := fg.fileStatus(base, src, dest, file)
-	jnlEntry := model.Entry{
+	jnlEntry := &model.Entry{
 		File:       srcpath,
 		StatusText: string(status),
 	}
 
-	if !fg.isSkipped(status) || (fg.isSkipped(status) && !fg.cfg.Download.HideSkipped) {
-		log.Info().Msg("--------")
-		log.Info().Msgf("Checking %s", srcpath)
-		log.Info().Msg(string(status))
-	}
+	sublogger := log.With().
+		Str("file", jnlEntry.File).
+		Str("size", units.HumanSize(float64(file.Size()))).
+		Logger()
 
 	if status == alreadyDl && !fg.db.HasHash(base, src, file) {
 		if err := fg.db.PutHash(base, src, file); err != nil {
-			log.Error().Err(err).Msgf("Cannot add hash into db for %s", srcpath)
+			sublogger.Error().Err(err).Msg("Cannot add hash into db")
 		}
 	}
 	if fg.isSkipped(status) {
 		if !fg.cfg.Download.HideSkipped {
-			log.Warn().Msgf("Skipped: %s", jnlEntry.StatusText)
+			sublogger.Warn().Msg("Skipped")
 			jnlEntry.StatusType = "skip"
-			fg.jnl.AddEntry(jnlEntry)
+			return jnlEntry
 		}
-		return
+		return nil
 	}
 
-	if retry == 0 {
-		defer fg.trackTime(time.Now())
-	}
 	retrieveStart := time.Now()
-	log.Info().Msgf("Downloading file (%s) to %s...", units.HumanSize(float64(file.Size())), destpath)
+	sublogger.Info().Str("dest", destpath).Msg("Downloading...")
 
 	destfolder := path.Dir(destpath)
 	if err := os.MkdirAll(destfolder, os.ModePerm); err != nil {
-		log.Error().Err(err).Msg("Cannot create destination dir")
+		sublogger.Error().Err(err).Msg("Cannot create destination dir")
 		jnlEntry.StatusType = "error"
 		jnlEntry.StatusText = fmt.Sprintf("Cannot create destination dir: %v", err)
-		fg.jnl.AddEntry(jnlEntry)
-		return
+		return jnlEntry
 	}
-	fg.fixPerms(destfolder)
+	if err := fg.fixPerms(destfolder); err != nil {
+		sublogger.Warn().Err(err).Msg("Cannot fix parent folder permissions")
+	}
 
 	destfile, err := os.Create(destpath)
 	if err != nil {
-		log.Error().Err(err).Msg("Cannot create destination file")
+		sublogger.Error().Err(err).Msg("Cannot create destination file")
 		jnlEntry.StatusType = "error"
 		jnlEntry.StatusText = fmt.Sprintf("Cannot create destination file: %v", err)
-		fg.jnl.AddEntry(jnlEntry)
-		return
+		return jnlEntry
 	}
 
 	err = fg.srv.Retrieve(srcpath, destfile)
 	if err != nil {
 		retry++
-		log.Error().Err(err).Msgf("Error downloading, retry %d/%d", retry, fg.cfg.Download.Retry)
+		sublogger.Error().Err(err).Msgf("Error downloading, retry %d/%d", retry, fg.cfg.Download.Retry)
 		if retry == fg.cfg.Download.Retry {
-			log.Error().Err(err).Msg("Cannot download file")
+			sublogger.Error().Err(err).Msg("Cannot download file")
 			jnlEntry.StatusType = "error"
 			jnlEntry.StatusText = fmt.Sprintf("Cannot download file: %v", err)
 		} else {
 			fg.retrieve(base, src, dest, file, retry)
-			return
+			return nil
 		}
 	} else {
-		log.Info().Msg("File successfully downloaded!")
+		sublogger.Info().
+			Str("duration", durafmt.ParseShort(time.Since(retrieveStart)).String()).
+			Msg("File successfully downloaded")
 		jnlEntry.StatusType = "success"
 		jnlEntry.StatusText = fmt.Sprintf("%s successfully downloaded in %s",
 			units.HumanSize(float64(file.Size())),
 			durafmt.ParseShort(time.Since(retrieveStart)).String(),
 		)
-		fg.fixPerms(destpath)
+		if err := fg.fixPerms(destpath); err != nil {
+			sublogger.Warn().Err(err).Msg("Cannot fix file permissions")
+		}
 		if err := fg.db.PutHash(base, src, file); err != nil {
-			log.Error().Err(err).Msg("Cannot add hash into db")
+			sublogger.Error().Err(err).Msg("Cannot add hash into db")
 			jnlEntry.StatusType = "warning"
 			jnlEntry.StatusText = fmt.Sprintf("Successfully downloaded but cannot add hash into db: %v", err)
 		}
 		if err = os.Chtimes(destpath, file.ModTime(), file.ModTime()); err != nil {
-			log.Warn().Err(err).Msg("Cannot change modtime of destination file")
+			sublogger.Warn().Err(err).Msg("Cannot change modtime of destination file")
 		}
 	}
 
-	fg.jnl.AddEntry(jnlEntry)
+	return jnlEntry
 }
 
 func (fg *FtpGrab) fileStatus(base string, src string, dest string, file os.FileInfo) model.EntryStatus {
@@ -297,15 +301,14 @@ func (fg *FtpGrab) fileStatus(base string, src string, dest string, file os.File
 	return neverDl
 }
 
-func (fg *FtpGrab) fixPerms(filepath string) {
+func (fg *FtpGrab) fixPerms(filepath string) error {
 	if runtime.GOOS == "windows" {
-		return
+		return nil
 	}
 
 	fileinfo, err := os.Stat(filepath)
 	if err != nil {
-		log.Warn().Err(err).Msgf("Cannot stat %s", filepath)
-		return
+		return err
 	}
 
 	chmod := os.FileMode(fg.cfg.Download.ChmodFile)
@@ -314,12 +317,14 @@ func (fg *FtpGrab) fixPerms(filepath string) {
 	}
 
 	if err := os.Chmod(filepath, chmod); err != nil {
-		log.Warn().Err(err).Msgf("Cannot chmod %s", filepath)
+		return err
 	}
 
 	if err := os.Chown(filepath, fg.cfg.Download.UID, fg.cfg.Download.GID); err != nil {
-		log.Warn().Err(err).Msgf("Cannot chown %s", filepath)
+		return err
 	}
+
+	return nil
 }
 
 func (fg *FtpGrab) trackTime(start time.Time) {
