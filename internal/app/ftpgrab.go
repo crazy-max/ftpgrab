@@ -147,7 +147,7 @@ func (fg *FtpGrab) Run() {
 	fg.jnl.Duration = time.Since(start)
 
 	log.Info().
-		Str("duration", durafmt.ParseShort(time.Since(start)).String()).
+		Str("duration", utl.DurationSince(start)).
 		Msg("Finished")
 
 	// Check journal before sending report
@@ -259,12 +259,12 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 		}
 	} else {
 		sublogger.Info().
-			Str("duration", durafmt.ParseShort(time.Since(retrieveStart)).String()).
+			Str("duration", utl.DurationSince(retrieveStart)).
 			Msg("File successfully downloaded")
 		jnlEntry.StatusType = "success"
 		jnlEntry.StatusText = fmt.Sprintf("%s successfully downloaded in %s",
 			units.HumanSize(float64(file.Size())),
-			durafmt.ParseShort(time.Since(retrieveStart)).String(),
+			utl.DurationSince(retrieveStart),
 		)
 		if err := fg.fixPerms(destpath); err != nil {
 			sublogger.Warn().Err(err).Msg("Cannot fix file permissions")
@@ -325,10 +325,6 @@ func (fg *FtpGrab) fixPerms(filepath string) error {
 	}
 
 	return nil
-}
-
-func (fg *FtpGrab) trackTime(start time.Time) {
-	log.Info().Msgf("Time spent: %s", durafmt.ParseShort(time.Since(start)).String())
 }
 
 func (fg *FtpGrab) isIncluded(filename string) bool {

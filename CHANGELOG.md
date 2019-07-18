@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.4.1 (2019/07/18)
+
+* Fix durafmt runtime error
+
 ## 5.4.0 (2019/07/18)
 
 * Improve logging

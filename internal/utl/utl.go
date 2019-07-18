@@ -6,6 +6,9 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"time"
+
+	"github.com/hako/durafmt"
 )
 
 // GetEnv retrieves the value of the environment variable named by the key
@@ -49,4 +52,13 @@ func MatchString(exp string, s string) bool {
 		return false
 	}
 	return re.MatchString(s)
+}
+
+// DurationSince formats time.Duration into a human readable format.
+func DurationSince(start time.Time) string {
+	duration := time.Since(start)
+	if duration > 0 {
+		return durafmt.ParseShort(duration).String()
+	}
+	return "0 millisecond"
 }
