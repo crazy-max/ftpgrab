@@ -6,7 +6,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/crazy-max/cron"
 	"github.com/ftpgrab/ftpgrab/internal/app"
 	"github.com/ftpgrab/ftpgrab/internal/config"
 	"github.com/ftpgrab/ftpgrab/internal/logging"
@@ -18,7 +17,6 @@ import (
 var (
 	ftpgrab *app.FtpGrab
 	flags   model.Flags
-	c       *cron.Cron
 	version = "dev"
 )
 
@@ -51,9 +49,6 @@ func main() {
 	signal.Notify(channel, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		sig := <-channel
-		if c != nil {
-			c.Stop()
-		}
 		ftpgrab.Close()
 		log.Warn().Msgf("Caught signal %v", sig)
 		os.Exit(0)
@@ -71,23 +66,12 @@ func main() {
 	cfg.Display()
 
 	// Init
-	if ftpgrab, err = app.New(cfg); err != nil {
+	if ftpgrab, err = app.New(cfg, location); err != nil {
 		log.Fatal().Err(err).Msg("Cannot initialize FTPGrab")
 	}
 
-	// Run immediately if schedule is not defined
-	if flags.Schedule == "" {
-		ftpgrab.Run()
-		return
+	// Start
+	if err = ftpgrab.Start(); err != nil {
+		log.Fatal().Err(err).Msg("Cannot start FTPGrab")
 	}
-
-	// Start cronjob
-	c = cron.NewWithLocation(location)
-	log.Info().Msgf("Add cronjob with schedule %s", flags.Schedule)
-	if err := c.AddJob(flags.Schedule, ftpgrab); err != nil {
-		log.Fatal().Err(err).Msg("Cannot create cron task")
-	}
-	c.Start()
-
-	select {}
 }

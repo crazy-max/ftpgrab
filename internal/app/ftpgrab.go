@@ -19,16 +19,19 @@ import (
 	"github.com/ftpgrab/ftpgrab/internal/server/sftp"
 	"github.com/ftpgrab/ftpgrab/internal/utl"
 	"github.com/hako/durafmt"
+	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
 )
 
 // FtpGrab represents an active ftpgrab object
 type FtpGrab struct {
 	cfg    *config.Configuration
+	cron   *cron.Cron
 	srv    *server.Client
 	db     *db.Client
 	notif  *notif.Client
 	jnl    *journal.Client
+	jobID  cron.EntryID
 	locker uint32
 }
 
@@ -43,7 +46,7 @@ const (
 )
 
 // New creates new ftpgrab instance
-func New(cfg *config.Configuration) (*FtpGrab, error) {
+func New(cfg *config.Configuration, location *time.Location) (*FtpGrab, error) {
 	if err := os.MkdirAll(cfg.Download.Output, os.ModePerm); err != nil {
 		return nil, fmt.Errorf("cannot create output download folder %s, %v", cfg.Download.Output, err)
 	}
@@ -53,22 +56,49 @@ func New(cfg *config.Configuration) (*FtpGrab, error) {
 	}
 
 	return &FtpGrab{
-		cfg: cfg,
+		cfg:  cfg,
+		cron: cron.New(cron.WithLocation(location), cron.WithSeconds()),
 	}, nil
 }
 
-// Run starts ftpgrab process
+// Start starts ftpgrab
+func (fg *FtpGrab) Start() error {
+	var err error
+
+	// Init scheduler if defined
+	if fg.cfg.Flags.Schedule == "" {
+		return nil
+	}
+	fg.jobID, err = fg.cron.AddJob(fg.cfg.Flags.Schedule, fg)
+	if err != nil {
+		return err
+	}
+	log.Info().Msgf("Cron initialized with schedule %s", fg.cfg.Flags.Schedule)
+
+	// Start scheduler
+	fg.cron.Start()
+	log.Info().Msgf("Next run in %s (%s)",
+		durafmt.ParseShort(fg.cron.Entry(fg.jobID).Next.Sub(time.Now())).String(),
+		fg.cron.Entry(fg.jobID).Next)
+
+	select {}
+}
+
+// Run runs ftpgrab process
 func (fg *FtpGrab) Run() {
 	if !atomic.CompareAndSwapUint32(&fg.locker, 0, 1) {
 		log.Warn().Msg("Already running")
 		return
 	}
 	defer atomic.StoreUint32(&fg.locker, 0)
+	if fg.jobID > 0 {
+		defer log.Info().Msgf("Next run in %s (%s)",
+			durafmt.ParseShort(fg.cron.Entry(fg.jobID).Next.Sub(time.Now())).String(),
+			fg.cron.Entry(fg.jobID).Next)
+	}
 
 	start := time.Now()
 	var err error
-
-	defer fg.trackTime(start, "Finished, total time spent: ")
 	log.Info().Msg("########")
 
 	// Journal client
@@ -134,6 +164,9 @@ func (fg *FtpGrab) Close() {
 	if err := fg.db.Close(); err != nil {
 		log.Warn().Err(err).Msg("Cannot close database")
 	}
+	if fg.cron != nil {
+		fg.cron.Stop()
+	}
 }
 
 func (fg *FtpGrab) retrieveRecursive(base string, source string, dest string) {
@@ -185,7 +218,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 	}
 
 	if retry == 0 {
-		defer fg.trackTime(time.Now(), "Time spent: ")
+		defer fg.trackTime(time.Now())
 	}
 	retrieveStart := time.Now()
 	log.Info().Msgf("Downloading file (%s) to %s...", units.HumanSize(float64(file.Size())), destpath)
@@ -286,8 +319,8 @@ func (fg *FtpGrab) fixPerms(filepath string) {
 	}
 }
 
-func (fg *FtpGrab) trackTime(start time.Time, prefix string) {
-	log.Info().Msgf("%s%s", prefix, durafmt.ParseShort(time.Since(start)).String())
+func (fg *FtpGrab) trackTime(start time.Time) {
+	log.Info().Msgf("Time spent: %s", durafmt.ParseShort(time.Since(start)).String())
 }
 
 func (fg *FtpGrab) isIncluded(filename string) bool {
