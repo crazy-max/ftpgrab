@@ -147,7 +147,7 @@ func (fg *FtpGrab) Run() {
 	fg.jnl.Duration = time.Since(start)
 
 	log.Info().
-		Str("duration", utl.DurationSince(start)).
+		Str("duration", time.Since(start).Round(time.Millisecond).String()).
 		Msg("Finished")
 
 	// Check journal before sending report
@@ -259,12 +259,12 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 		}
 	} else {
 		sublogger.Info().
-			Str("duration", utl.DurationSince(retrieveStart)).
+			Str("duration", time.Since(retrieveStart).Round(time.Millisecond).String()).
 			Msg("File successfully downloaded")
 		jnlEntry.StatusType = "success"
 		jnlEntry.StatusText = fmt.Sprintf("%s successfully downloaded in %s",
 			units.HumanSize(float64(file.Size())),
-			utl.DurationSince(retrieveStart),
+			time.Since(retrieveStart).Round(time.Millisecond).String(),
 		)
 		if err := fg.fixPerms(destpath); err != nil {
 			sublogger.Warn().Err(err).Msg("Cannot fix file permissions")
