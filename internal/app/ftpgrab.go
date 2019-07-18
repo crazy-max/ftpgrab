@@ -65,6 +65,9 @@ func New(cfg *config.Configuration, location *time.Location) (*FtpGrab, error) {
 func (fg *FtpGrab) Start() error {
 	var err error
 
+	// Run on startup
+	fg.Run()
+
 	// Init scheduler if defined
 	if fg.cfg.Flags.Schedule == "" {
 		return nil
