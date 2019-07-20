@@ -8,10 +8,10 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/crazy-max/goftp"
 	"github.com/ftpgrab/ftpgrab/internal/logging"
 	"github.com/ftpgrab/ftpgrab/internal/model"
 	"github.com/ftpgrab/ftpgrab/internal/server"
-	"github.com/secsy/goftp"
 )
 
 // Client represents an active ftp object
@@ -47,6 +47,7 @@ func New(config *model.FTP) (*server.Client, error) {
 		DisableEPSV: config.DisableEPSV,
 		TLSConfig:   tlsConfig,
 		TLSMode:     tlsMode,
+		ClientName:  "FTPGrab",
 	}, fmt.Sprintf("%s:%d", config.Host, config.Port)); err != nil {
 		return nil, err
 	}
