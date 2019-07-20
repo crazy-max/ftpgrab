@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.5.0 (2019/07/20)
+
+* Switch to [crazy-max/goftp](https://github.com/crazy-max/goftp) (Issue #55)
+
 ## 5.4.1 (2019/07/18)
 
 * Fix durafmt runtime error
