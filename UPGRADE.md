@@ -1,3 +1,33 @@
+## 5.2.0 > 6.0.0
+
+This release changes the configuration layout of TLS config for FTP:
+
+```yml
+server:
+  type: ftp
+  ftp:
+    #...
+    tls:
+      enable: true
+      implicit: false
+      insecure_skip_verify: true
+    #...
+```
+
+to
+
+```yml
+server:
+  type: ftp
+  ftp:
+    #...
+    tls: false
+    insecure_skip_verify: false
+    #...
+```
+
+Please read the [Configuration](/doc/configuration/) page before upgrading.
+
 ## 5.1.x > 5.2.0
 
 This release changes the configuration layout as it introduces Webhook notification support. Please read the [Configuration](/doc/configuration/) page before upgrading.
