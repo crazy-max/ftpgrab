@@ -1,5 +1,12 @@
 # Changelog
 
+## 6.0.0 (2019/07/21)
+
+* Add ServerName field if using FTP TLS config
+* Switch to [jlaffaye/ftp](https://github.com/jlaffaye/ftp) module
+  * Fix race condition
+  * Performance improvement
+
 ## 5.5.0 (2019/07/20)
 
 * Switch to [crazy-max/goftp](https://github.com/crazy-max/goftp) (Issue #55)

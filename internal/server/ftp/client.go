@@ -38,6 +38,7 @@ func New(config *model.FTP) (*server.Client, error) {
 
 	if config.TLS {
 		tlsConfig = &tls.Config{
+			ServerName:         config.Host,
 			InsecureSkipVerify: config.InsecureSkipVerify,
 		}
 		ftpConfig = append(ftpConfig, ftp.DialWithTLS(tlsConfig))
