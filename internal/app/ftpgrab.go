@@ -216,7 +216,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 	}
 	if fg.isSkipped(status) {
 		if !fg.cfg.Download.HideSkipped {
-			sublogger.Warn().Msg("Skipped")
+			sublogger.Warn().Str(".status", jnlEntry.StatusText).Msg("Skipped")
 			jnlEntry.StatusType = "skip"
 			return jnlEntry
 		}

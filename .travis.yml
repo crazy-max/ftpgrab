@@ -12,7 +12,7 @@ install:
   - goreleaser -v
 
 script:
-  - go test ./...
+  - go test -race -v ./...
   - |
     if [ -n "$TRAVIS_TAG" ]; then
       goreleaser release --skip-publish

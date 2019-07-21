@@ -9,10 +9,8 @@ server:
       - /
     timeout: 5
     disable_epsv: false
-    tls:
-      enable: false
-      implicit: true
-      insecure_skip_verify: false
+    tls: false
+    insecure_skip_verify: false
     log_trace: false
 
 db:

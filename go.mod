@@ -5,12 +5,12 @@ go 1.12
 require (
 	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc // indirect
 	github.com/alecthomas/units v0.0.0-20151022065526-2efee857e7cf // indirect
-	github.com/crazy-max/goftp v0.0.0-20190720023334-19b95fb46f01
 	github.com/docker/go-units v0.4.0
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
 	github.com/hako/durafmt v0.0.0-20180520121703-7b7ae1e72ead
 	github.com/ilya1st/rotatewriter v0.0.0-20171126183947-3df0c1a3ed6d
 	github.com/imdario/mergo v0.3.7
+	github.com/jlaffaye/ftp v0.0.0-20190718191616-9bf9e0098a39
 	github.com/kr/fs v0.1.0 // indirect
 	github.com/matcornic/hermes/v2 v2.0.2
 	github.com/pkg/sftp v1.10.0
