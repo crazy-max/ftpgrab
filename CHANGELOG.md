@@ -2,7 +2,8 @@
 
 ## 6.0.0 (2019/07/21)
 
-* Add ServerName field if using FTP TLS config
+* Log skip status
+* Set ServerName field if implicit TLS
 * Switch to [jlaffaye/ftp](https://github.com/jlaffaye/ftp) module
   * Fix race condition
   * Performance improvement
