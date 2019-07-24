@@ -143,7 +143,12 @@ func (fg *FtpGrab) Run() {
 		fg.retrieveRecursive(src, src, dest)
 	}
 
-	fg.Close()
+	if err := fg.srv.Close(); err != nil {
+		log.Warn().Err(err).Msg("Cannot close server connection")
+	}
+	if err := fg.db.Close(); err != nil {
+		log.Warn().Err(err).Msg("Cannot close database")
+	}
 	fg.jnl.Duration = time.Since(start)
 
 	log.Info().
@@ -160,7 +165,7 @@ func (fg *FtpGrab) Run() {
 	fg.notif.Send(*fg.jnl)
 }
 
-// Close closes ftpgrab (ftp and db connection)
+// Close closes ftpgrab
 func (fg *FtpGrab) Close() {
 	if err := fg.srv.Close(); err != nil {
 		log.Warn().Err(err).Msg("Cannot close server connection")

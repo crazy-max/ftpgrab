@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.0.1 (2019/07/24)
+
+* Fix cron stopped after first trigger
+
 ## 6.0.0 (2019/07/21)
 
 * Log skip status
