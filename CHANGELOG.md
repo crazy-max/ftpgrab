@@ -1,5 +1,9 @@
 # Changelog
 
+## 6.0.2 (2019/07/27)
+
+* Use `io.Copy` to avoid crash due to insufficient memory
+
 ## 6.0.1 (2019/07/24)
 
 * Fix cron stopped after first trigger

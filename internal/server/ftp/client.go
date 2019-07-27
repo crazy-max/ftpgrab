@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"time"
@@ -108,12 +107,7 @@ func (c *Client) Retrieve(path string, dest io.Writer) error {
 	}
 	defer resp.Close()
 
-	buf, err := ioutil.ReadAll(resp)
-	if err != nil {
-		return err
-	}
-
-	_, err = dest.Write(buf)
+	_, err = io.Copy(dest, resp)
 	return err
 }
 
