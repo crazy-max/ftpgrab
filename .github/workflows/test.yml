@@ -34,7 +34,7 @@ jobs:
             -e "FTP_USER_PASS=bar" \
             -e "FTP_USER_HOME=/home/foo" \
             -e "PUBLICHOST=pureftpd" \
-            -v "/tmp:/home/foo:ro" \
+            -v "${HOME}:/home/foo:ro" \
             stilliard/pure-ftpd:hardened
       -
         name: Start container
