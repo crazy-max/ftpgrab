@@ -51,7 +51,10 @@ COPY --from=builder /app/ftpgrab /usr/local/bin/ftpgrab
 COPY --from=builder /usr/local/go/lib/time/zoneinfo.zip /usr/local/go/lib/time/zoneinfo.zip
 RUN ftpgrab --version
 
+ENV FTPGRAB_DB="/db/ftpgrab.db" \
+  FTPGRAB_DOWNLOAD_OUTPUT="/download"
+
 VOLUME [ "/db", "/download" ]
 
 ENTRYPOINT [ "/usr/local/bin/ftpgrab" ]
-CMD [ "--config", "/ftpgrab.yml", "--docker" ]
+CMD [ "--config", "/ftpgrab.yml" ]

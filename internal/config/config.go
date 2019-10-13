@@ -109,14 +109,9 @@ func (cfg *Configuration) Check() error {
 		return err
 	}
 
-	if cfg.Flags.Docker {
-		cfg.Db.Path = "/db/ftpgrab.db"
-		cfg.Download.Output = "/download"
-	}
-
 	cfg.Db.Path = utl.GetEnv("FTPGRAB_DB", cfg.Db.Path)
 	if cfg.Db.Enable && cfg.Db.Path == "" {
-		return errors.New("path to database path is required if enabled")
+		return errors.New("path to database is required if enabled")
 	}
 	cfg.Db.Path = path.Clean(cfg.Db.Path)
 
