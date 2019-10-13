@@ -34,12 +34,13 @@ jobs:
             -e "FTP_USER_PASS=bar" \
             -e "FTP_USER_HOME=/home/foo" \
             -e "PUBLICHOST=pureftpd" \
-            -v "${HOME}/factory:/home/foo:ro" \
+            -v "${HOME}/warmup:/home/foo:ro" \
             stilliard/pure-ftpd:hardened
       -
         name: Start container
         run: |
           docker run -d --link pureftpd --name ${{ steps.prepare.outputs.container_name }} \
+            -e "SCHEDULE=0 */30 * * * *" \
             -e "LOG_LEVEL=debug" \
             -e "LOG_NOCOLOR=true" \
             -v "$(pwd)/.res/ftpgrab.test.yml:/ftpgrab.yml:ro" \
