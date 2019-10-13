@@ -29,13 +29,12 @@ jobs:
       -
         name: Start Pure-FTPd container
         run: |
-          ls -al ${HOME}
           docker run -d --name pureftpd --hostname pureftpd \
             -e "FTP_USER_NAME=foo" \
             -e "FTP_USER_PASS=bar" \
             -e "FTP_USER_HOME=/home/foo" \
             -e "PUBLICHOST=pureftpd" \
-            -v "${HOME}:/home/foo:ro" \
+            -v "${HOME}/factory:/home/foo:ro" \
             stilliard/pure-ftpd:hardened
       -
         name: Start container
