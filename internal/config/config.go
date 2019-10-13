@@ -11,6 +11,7 @@ import (
 	"regexp"
 
 	"github.com/ftpgrab/ftpgrab/internal/model"
+	"github.com/ftpgrab/ftpgrab/internal/utl"
 	"github.com/imdario/mergo"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
@@ -113,11 +114,13 @@ func (cfg *Configuration) Check() error {
 		cfg.Download.Output = "/download"
 	}
 
+	cfg.Db.Path = utl.GetEnv("FTPGRAB_DB", cfg.Db.Path)
 	if cfg.Db.Enable && cfg.Db.Path == "" {
 		return errors.New("path to database path is required if enabled")
 	}
 	cfg.Db.Path = path.Clean(cfg.Db.Path)
 
+	cfg.Download.Output = utl.GetEnv("FTPGRAB_DOWNLOAD_OUTPUT", cfg.Download.Output)
 	if cfg.Download.Output == "" {
 		return errors.New("output download folder is required")
 	}
