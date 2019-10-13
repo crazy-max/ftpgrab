@@ -3,10 +3,10 @@
 ## 6.1.0 (2019/10/13)
 
 * Multi-platform Docker image
-* :warning: Move [ftpgrab/docker](https://github.com/ftpgrab/docker) repo here
+* Move [ftpgrab/docker](https://github.com/ftpgrab/docker) repo here
 * Go 1.12.10
 * Use GOPROXY
-* :warning: Stop publishing Docker image on Quay
+* Stop publishing Docker image on Quay
 * Switch to GitHub Actions
 * Add instructions to create a Linux service
 * Remove `--docker` flag
