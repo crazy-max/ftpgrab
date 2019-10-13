@@ -1,5 +1,18 @@
 # Changelog
 
+## 6.1.0 (2019/10/13)
+
+* Multi-platform Docker image
+* :warning: Move [ftpgrab/docker](https://github.com/ftpgrab/docker) repo here
+* Go 1.12.10
+* Use GOPROXY
+* :warning: Stop publishing Docker image on Quay
+* Switch to GitHub Actions
+* Add instructions to create a Linux service
+* Remove `--docker` flag
+* Allow to override database path through `FTPGRAB_DB` env var
+* Allow to override download output path through `FTPGRAB_DOWNLOAD_OUTPUT` env var
+
 ## 6.0.2 (2019/07/27)
 
 * Use `io.Copy` to avoid crash due to insufficient memory
