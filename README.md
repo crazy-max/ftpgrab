@@ -3,10 +3,12 @@
 <p align="center">
   <a href="https://github.com/ftpgrab/ftpgrab/releases/latest"><img src="https://img.shields.io/github/release/ftpgrab/ftpgrab.svg?style=flat-square" alt="GitHub release"></a>
   <a href="https://github.com/ftpgrab/ftpgrab/releases/latest"><img src="https://img.shields.io/github/downloads/ftpgrab/ftpgrab/total.svg?style=flat-square" alt="Total downloads"></a>
-  <a href="https://travis-ci.com/ftpgrab/ftpgrab"><img src="https://img.shields.io/travis/com/ftpgrab/ftpgrab/master.svg?style=flat-square" alt="Build Status"></a>
-  <a href="https://goreportcard.com/report/github.com/ftpgrab/ftpgrab"><img src="https://goreportcard.com/badge/github.com/ftpgrab/ftpgrab?style=flat-square" alt="Go Report"></a>
-  <a href="https://www.codacy.com/app/ftpgrab/ftpgrab"><img src="https://img.shields.io/codacy/grade/354bfb181fc5482dac1e8f31e8e29af5/master.svg?style=flat-square" alt="Code Quality"></a>
-  <br /><a href="https://www.patreon.com/crazymax"><img src="https://img.shields.io/badge/donate-patreon-f96854.svg?logo=patreon&style=flat-square" alt="Support me on Patreon"></a>
+  <a href="https://github.com/ftpgrab/ftpgrab/actions"><img src="https://github.com/ftpgrab/ftpgrab/workflows/build/badge.svg" alt="Build Status"></a>
+  <a href="https://hub.docker.com/r/ftpgrab/ftpgrab/"><img src="https://img.shields.io/docker/stars/ftpgrab/ftpgrab.svg?style=flat-square" alt="Docker Stars"></a>
+  <a href="https://hub.docker.com/r/ftpgrab/ftpgrab/"><img src="https://img.shields.io/docker/pulls/ftpgrab/ftpgrab.svg?style=flat-square" alt="Docker Pulls"></a>
+  <br /><a href="https://goreportcard.com/report/github.com/ftpgrab/ftpgrab"><img src="https://goreportcard.com/badge/github.com/ftpgrab/ftpgrab?style=flat-square" alt="Go Report"></a>
+  <a href="https://www.codacy.com/app/ftpgrab/ftpgrab"><img src="https://img.shields.io/codacy/grade/354bfb181fc5482dac1e8f31e8e29af5.svg?style=flat-square" alt="Code Quality"></a>
+  <a href="https://www.patreon.com/crazymax"><img src="https://img.shields.io/badge/donate-patreon-f96854.svg?logo=patreon&style=flat-square" alt="Support me on Patreon"></a>
   <a href="https://www.paypal.me/crazyws"><img src="https://img.shields.io/badge/donate-paypal-00457c.svg?logo=paypal&style=flat-square" alt="Donate Paypal"></a>
 </p>
 
@@ -32,25 +34,20 @@ Because FTPGrab is distributed :package: as an independent binary, it is ideal f
 * Webhook notification
 * Enhanced logging
 * Timezone can be changed
-* 🐳 Official [Docker image available](https://github.com/ftpgrab/docker)
+* 🐳 Official Docker image
 
 ## Documentation
 
 * [Get started](https://ftpgrab.github.io/doc/get-started/)
+* Installation
+  * [With Docker](https://ftpgrab.github.io/doc/install-with-docker/)
+  * [From binary](https://ftpgrab.github.io/doc/install-from-binary/)
+  * [Linux service](https://ftpgrab.github.io/doc/linux-service/)
 * [Configuration](https://ftpgrab.github.io/doc/configuration/)
 * [FAQ](https://ftpgrab.github.io/doc/faq/)
 * [Changelog](https://ftpgrab.github.io/doc/changelog/)
 * [Upgrade notes](https://ftpgrab.github.io/doc/upgrade-notes/)
 * [Reporting an issue](https://ftpgrab.github.io/doc/reporting-issue/)
-
-## TODO
-
-* [ ] Linux service sample
-* [ ] Windows service sample
-* [ ] [Chocolatey](https://chocolatey.org/) package
-* [ ] [Brew](https://brew.sh/) recipe
-* [ ] [Cloudron](https://cloudron.io/) app
-* [ ] Build / Install from source doc
 
 ## How can I help ?
 
