@@ -96,14 +96,14 @@ jobs:
             --file Dockerfile .
       -
         name: Docker Login
-        if: success() && startsWith(github.ref, 'refs/tags/v')
+        if: success() && startsWith(github.ref, 'refs/tags/')
         env:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
           echo "${DOCKER_PASSWORD}" | docker login --username "${{ steps.prepare.outputs.docker_username }}" --password-stdin
       -
         name: Docker Buildx (push)
-        if: success() && startsWith(github.ref, 'refs/tags/v')
+        if: success() && startsWith(github.ref, 'refs/tags/')
         run: |
           docker buildx build --platform ${{ steps.prepare.outputs.docker_platforms }} \
             --output "type=image,push=true" \
@@ -116,11 +116,11 @@ jobs:
             --file Dockerfile .
       -
         name: Docker Check Manifest
-        if: always() && startsWith(github.ref, 'refs/tags/v')
+        if: always() && startsWith(github.ref, 'refs/tags/')
         run: |
           docker run --rm mplatform/mquery ${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.version }}
       -
         name: Clear
-        if: always() && startsWith(github.ref, 'refs/tags/v')
+        if: always() && startsWith(github.ref, 'refs/tags/')
         run: |
           rm -f ${HOME}/.docker/config.json
