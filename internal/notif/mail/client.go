@@ -9,9 +9,9 @@ import (
 	"github.com/ftpgrab/ftpgrab/internal/journal"
 	"github.com/ftpgrab/ftpgrab/internal/model"
 	"github.com/ftpgrab/ftpgrab/internal/notif/notifier"
-	"github.com/go-gomail/gomail"
 	"github.com/hako/durafmt"
 	"github.com/matcornic/hermes/v2"
+	"gopkg.in/mail.v2"
 )
 
 // Client represents an active mail notification object
@@ -101,7 +101,7 @@ func (c *Client) Send(jnl journal.Client) error {
 	}
 
 	hostname, _ := os.Hostname()
-	msg := gomail.NewMessage()
+	msg := mail.NewMessage()
 	msg.SetHeader("From", fmt.Sprintf("%s <%s>", c.app.Name, c.cfg.From))
 	msg.SetHeader("To", c.cfg.To)
 	msg.SetHeader("Subject", fmt.Sprintf("%s report for %s on %s",
@@ -119,7 +119,7 @@ func (c *Client) Send(jnl journal.Client) error {
 		}
 	}
 
-	dialer := &gomail.Dialer{
+	dialer := &mail.Dialer{
 		Host:      c.cfg.Host,
 		Port:      c.cfg.Port,
 		Username:  c.cfg.Username,

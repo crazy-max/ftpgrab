@@ -6,12 +6,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/alecthomas/kingpin"
 	"github.com/ftpgrab/ftpgrab/internal/app"
 	"github.com/ftpgrab/ftpgrab/internal/config"
 	"github.com/ftpgrab/ftpgrab/internal/logging"
 	"github.com/ftpgrab/ftpgrab/internal/model"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (

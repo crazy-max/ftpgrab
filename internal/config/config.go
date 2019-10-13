@@ -13,7 +13,7 @@ import (
 	"github.com/ftpgrab/ftpgrab/internal/model"
 	"github.com/imdario/mergo"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // Configuration holds configuration details
