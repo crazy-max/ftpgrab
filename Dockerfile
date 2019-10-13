@@ -38,7 +38,7 @@ LABEL maintainer="CrazyMax" \
   org.label-schema.name="ftpgrab" \
   org.label-schema.description="Grab your files periodically from a remote FTP or SFTP server easily" \
   org.label-schema.url="https://ftpgrab.github.io" \
-  org.label-schema.vcs-url="https://github.com/ftpgrab/docker" \
+  org.label-schema.vcs-url="https://github.com/ftpgrab/ftpgrab" \
   org.label-schema.vendor="FTPGrab" \
   org.label-schema.schema-version="1.0"
 
