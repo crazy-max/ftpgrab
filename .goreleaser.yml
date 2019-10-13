@@ -1,6 +1,11 @@
+env:
+  - GO111MODULE=on
+  - GOPROXY=https://goproxy.io
+
 before:
   hooks:
     - go mod download
+
 builds:
   -
     main: ./cmd/main.go
@@ -26,16 +31,19 @@ builds:
         goarch: arm
       - goos: freebsd
         goarch: arm64
-archive:
-  replacements:
-    386: i386
-    amd64: x86_64
-  format_overrides:
-    - goos: windows
-      format: zip
-  files:
-    - LICENSE
-    - README.md
-    - CHANGELOG.md
+
+archives:
+  -
+    replacements:
+      386: i386
+      amd64: x86_64
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+
 checksum:
   name_template: 'checksums.txt'
