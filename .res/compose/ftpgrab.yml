@@ -1,0 +1,49 @@
+server:
+  type: ftp
+  ftp:
+    host: test.rebex.net
+    port: 21
+    username: demo
+    password: password
+    sources:
+      - /
+    timeout: 5
+    disable_epsv: false
+    tls: false
+    insecure_skip_verify: false
+    log_trace: false
+
+db:
+  enable: true
+
+download:
+  uid: 0
+  gid: 0
+  chmod_file: 0644
+  chmod_dir: 0755
+  include:
+  exclude:
+  since: 0001-01-01T00:00:00Z
+  retry: 3
+  hide_skipped: false
+  create_basedir: false
+
+notif:
+  mail:
+    enable: false
+    host: smtp.example.com
+    port: 587
+    ssl: false
+    insecure_skip_verify: false
+    username: webmaster@example.com
+    password: apassword
+    from: ftpgrab@example.com
+    to: webmaster@example.com
+  webhook:
+    enable: false
+    endpoint: http://webhook.foo.com/sd54qad89azd5a
+    method: GET
+    headers:
+      Content-Type: application/json
+      Authorization: Token123456
+    timeout: 10

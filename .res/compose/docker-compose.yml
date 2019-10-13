@@ -1,0 +1,16 @@
+version: "3.2"
+
+services:
+  ftpgrab:
+    image: ftpgrab/ftpgrab:latest
+    container_name: ftpgrab
+    volumes:
+      - "./db:/db:rw"
+      - "./download:/download:rw"
+      - "./ftpgrab.yml:/ftpgrab.yml:ro"
+    environment:
+      - "TZ=Europe/Paris"
+      - "SCHEDULE=0 */30 * * * *"
+      - "LOG_LEVEL=info"
+      - "LOG_JSON=false"
+    restart: always
