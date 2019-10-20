@@ -1,6 +1,10 @@
 # syntax=docker/dockerfile:experimental
 FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.12.10-alpine as builder
 
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 RUN printf "I am running on ${BUILDPLATFORM:-linux/amd64}, building for ${TARGETPLATFORM:-linux/amd64}\n$(uname -a)\n"
@@ -34,10 +38,17 @@ RUN env $(cat /tmp/.env | xargs) go build -ldflags "-w -s -X 'main.version=${VER
 
 FROM --platform=${TARGETPLATFORM:-linux/amd64} alpine:latest
 
+ARG BUILD_DATE
+ARG VCS_REF
+ARG VERSION
+
 LABEL maintainer="CrazyMax" \
+  org.label-schema.build-date=$BUILD_DATE \
   org.label-schema.name="ftpgrab" \
   org.label-schema.description="Grab your files periodically from a remote FTP or SFTP server easily" \
+  org.label-schema.version=$VERSION \
   org.label-schema.url="https://ftpgrab.github.io" \
+  org.label-schema.vcs-ref=$VCS_REF \
   org.label-schema.vcs-url="https://github.com/ftpgrab/ftpgrab" \
   org.label-schema.vendor="FTPGrab" \
   org.label-schema.schema-version="1.0"
