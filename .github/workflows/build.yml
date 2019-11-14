@@ -1,11 +1,17 @@
 name: build
 
 on:
-  pull_request:
-    branches: 'master'
   push:
     branches: 'master'
     tags: '*.*.*'
+    paths:
+      - '.github/workflows/build.yml'
+      - 'cmd/**'
+      - 'internal/**'
+      - '.goreleaser.yml'
+      - 'Dockerfile'
+      - 'go.mod'
+      - 'go.sum'
 
 jobs:
   go:

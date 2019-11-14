@@ -3,8 +3,24 @@ name: test
 on:
   pull_request:
     branches: 'master'
+    paths:
+      - '.github/workflows/test.yml'
+      - 'cmd/**'
+      - 'internal/**'
+      - '.goreleaser.yml'
+      - 'Dockerfile'
+      - 'go.mod'
+      - 'go.sum'
   push:
     branches: 'master'
+    paths:
+      - '.github/workflows/test.yml'
+      - 'cmd/**'
+      - 'internal/**'
+      - '.goreleaser.yml'
+      - 'Dockerfile'
+      - 'go.mod'
+      - 'go.sum'
 
 jobs:
   test:
@@ -27,9 +43,14 @@ jobs:
         run: |
           docker build --tag ${{ steps.prepare.outputs.build_tag }} --file Dockerfile .
       -
+        name: Create network
+        run: |
+          docker network create -d bridge ${{ steps.prepare.outputs.container_name }}
+      -
         name: Start Pure-FTPd container
         run: |
           docker run -d --name pureftpd --hostname pureftpd \
+            --network ${{ steps.prepare.outputs.container_name }} \
             -e "FTP_USER_NAME=foo" \
             -e "FTP_USER_PASS=bar" \
             -e "FTP_USER_HOME=/home/foo" \
@@ -39,7 +60,9 @@ jobs:
       -
         name: Start container
         run: |
-          docker run -d --link pureftpd --name ${{ steps.prepare.outputs.container_name }} \
+          docker run -d --name ${{ steps.prepare.outputs.container_name }} \
+            --link pureftpd \
+            --network ${{ steps.prepare.outputs.container_name }} \
             -e "SCHEDULE=0 */30 * * * *" \
             -e "LOG_LEVEL=debug" \
             -e "LOG_NOCOLOR=true" \
