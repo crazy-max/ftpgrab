@@ -8,7 +8,7 @@
   <a href="https://hub.docker.com/r/ftpgrab/ftpgrab/"><img src="https://img.shields.io/docker/pulls/ftpgrab/ftpgrab.svg?style=flat-square" alt="Docker Pulls"></a>
   <br /><a href="https://goreportcard.com/report/github.com/ftpgrab/ftpgrab"><img src="https://goreportcard.com/badge/github.com/ftpgrab/ftpgrab?style=flat-square" alt="Go Report"></a>
   <a href="https://www.codacy.com/app/ftpgrab/ftpgrab"><img src="https://img.shields.io/codacy/grade/354bfb181fc5482dac1e8f31e8e29af5.svg?style=flat-square" alt="Code Quality"></a>
-  <a href="https://www.patreon.com/crazymax"><img src="https://img.shields.io/badge/donate-patreon-f96854.svg?logo=patreon&style=flat-square" alt="Support me on Patreon"></a>
+  <a href="https://github.com/sponsors/crazy-max"><img src="https://img.shields.io/badge/sponsor-crazy--max-181717.svg?logo=github&style=flat-square" alt="Become a sponsor"></a>
   <a href="https://www.paypal.me/crazyws"><img src="https://img.shields.io/badge/donate-paypal-00457c.svg?logo=paypal&style=flat-square" alt="Donate Paypal"></a>
 </p>
 
@@ -51,12 +51,9 @@ Because FTPGrab is distributed :package: as an independent binary, it is ideal f
 
 ## How can I help ?
 
-All kinds of contributions are welcome :raised_hands:!<br />
-The most basic way to show your support is to star :star2: the project, or to raise issues :speech_balloon:<br />
-But we're not gonna lie to each other, I'd rather you buy me a beer or two :beers:!
+All kinds of contributions are welcome :raised_hands:! The most basic way to show your support is to star :star2: the project, or to raise issues :speech_balloon: You can also support this project by [**becoming a sponsor on GitHub**](https://github.com/sponsors/crazy-max) :clap: or by making a [Paypal donation](https://www.paypal.me/crazyws) to ensure this journey continues indefinitely! :rocket:
 
-[![Support me on Patreon](https://ftpgrab.github.io/img/donate/patreon.png)](https://www.patreon.com/crazymax) 
-[![Paypal Donate](https://ftpgrab.github.io/img/donate/paypal.png)](https://www.paypal.me/crazyws)
+Thanks again for your support, it is much appreciated! :pray:
 
 ## License
 
