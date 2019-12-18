@@ -56,8 +56,10 @@ func New(cfg *config.Configuration, location *time.Location) (*FtpGrab, error) {
 	}
 
 	return &FtpGrab{
-		cfg:  cfg,
-		cron: cron.New(cron.WithLocation(location), cron.WithSeconds()),
+		cfg: cfg,
+		cron: cron.New(cron.WithLocation(location), cron.WithParser(cron.NewParser(
+			cron.SecondOptional|cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow|cron.Descriptor),
+		)),
 	}, nil
 }
 

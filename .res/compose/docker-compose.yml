@@ -10,7 +10,7 @@ services:
       - "./ftpgrab.yml:/ftpgrab.yml:ro"
     environment:
       - "TZ=Europe/Paris"
-      - "SCHEDULE=0 */30 * * * *"
+      - "SCHEDULE=*/30 * * * *"
       - "LOG_LEVEL=info"
       - "LOG_JSON=false"
     restart: always
