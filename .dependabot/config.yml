@@ -4,5 +4,5 @@ update_configs:
     directory: "/"
     update_schedule: "daily"
     default_labels:
-      - ":game_die: dependencies"
+      - ":game_die: dependencies" 
       - ":robot: bot"
