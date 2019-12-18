@@ -11,7 +11,6 @@
   name: ":game_die: dependencies"
   color: "0366d6"
   description: ""
-  from_name: "dependencies"
 - # documentation
   name: ":memo: documentation"
   color: "c5def5"
