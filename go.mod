@@ -13,7 +13,7 @@ require (
 	github.com/pkg/sftp v1.10.1
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/rs/zerolog v1.15.0
-	go.etcd.io/bbolt v1.3.2
+	go.etcd.io/bbolt v1.3.3
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/mail.v2 v2.3.1
