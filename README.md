@@ -32,6 +32,7 @@ Because FTPGrab is distributed :package: as an independent binary, it is ideal f
 * Translate modtimes on downloaded files
 * Beautiful email report
 * Webhook notification
+* Slack incoming webhook notification
 * Enhanced logging
 * Timezone can be changed
 * 🐳 Official Docker image

@@ -1,5 +1,12 @@
 # Changelog
 
+## 6.2.0 (2019/12/19)
+
+* Add Slack notifier
+* Update libs
+* Go 1.13.5
+* Seconds field optional for schedule
+
 ## 6.1.0 (2019/10/13)
 
 * Multi-platform Docker image
