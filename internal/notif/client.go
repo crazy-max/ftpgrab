@@ -5,6 +5,7 @@ import (
 	"github.com/ftpgrab/ftpgrab/internal/model"
 	"github.com/ftpgrab/ftpgrab/internal/notif/mail"
 	"github.com/ftpgrab/ftpgrab/internal/notif/notifier"
+	"github.com/ftpgrab/ftpgrab/internal/notif/slack"
 	"github.com/ftpgrab/ftpgrab/internal/notif/webhook"
 	"github.com/rs/zerolog/log"
 )
@@ -29,6 +30,9 @@ func New(config model.Notif, app model.App, cmn model.Common) (*Client, error) {
 	// Add notifiers
 	if config.Mail.Enable {
 		c.notifiers = append(c.notifiers, mail.New(config.Mail, app, cmn))
+	}
+	if config.Slack.Enable {
+		c.notifiers = append(c.notifiers, slack.New(config.Slack, app, cmn))
 	}
 	if config.Webhook.Enable {
 		c.notifiers = append(c.notifiers, webhook.New(config.Webhook, app, cmn))

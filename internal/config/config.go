@@ -72,14 +72,17 @@ func Load(fl model.Flags, version string) (*Configuration, error) {
 			CreateBasedir: false,
 		},
 		Notif: model.Notif{
-			Mail: model.Mail{
+			Mail: model.NotifMail{
 				Enable:             false,
 				Host:               "localhost",
 				Port:               25,
 				SSL:                false,
 				InsecureSkipVerify: false,
 			},
-			Webhook: model.Webhook{
+			Slack: model.NotifSlack{
+				Enable: false,
+			},
+			Webhook: model.NotifWebhook{
 				Enable:  false,
 				Method:  "GET",
 				Timeout: 10,
@@ -195,7 +198,7 @@ func (cfg *Configuration) Display() {
 			},
 		},
 		Notif: model.Notif{
-			Mail: model.Mail{
+			Mail: model.NotifMail{
 				Username: "********",
 				Password: "********",
 			},

@@ -16,13 +16,13 @@ import (
 // Client represents an active webhook notification object
 type Client struct {
 	*notifier.Notifier
-	cfg model.Webhook
+	cfg model.NotifWebhook
 	app model.App
 	cmn model.Common
 }
 
 // New creates a new webhook notification instance
-func New(config model.Webhook, app model.App, cmn model.Common) notifier.Notifier {
+func New(config model.NotifWebhook, app model.App, cmn model.Common) notifier.Notifier {
 	return notifier.Notifier{
 		Handler: &Client{
 			cfg: config,

@@ -17,13 +17,13 @@ import (
 // Client represents an active mail notification object
 type Client struct {
 	*notifier.Notifier
-	cfg model.Mail
+	cfg model.NotifMail
 	app model.App
 	cmn model.Common
 }
 
 // New creates a new mail notification instance
-func New(config model.Mail, app model.App, cmn model.Common) notifier.Notifier {
+func New(config model.NotifMail, app model.App, cmn model.Common) notifier.Notifier {
 	return notifier.Notifier{
 		Handler: &Client{
 			cfg: config,

@@ -10,6 +10,8 @@ require (
 	github.com/imdario/mergo v0.3.8
 	github.com/jlaffaye/ftp v0.0.0-20190828173736-6aaa91c7796e
 	github.com/matcornic/hermes/v2 v2.0.2
+	github.com/nlopes/slack v0.6.0
+	github.com/pkg/errors v0.8.1
 	github.com/pkg/sftp v1.10.1
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/rs/zerolog v1.17.2
