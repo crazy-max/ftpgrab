@@ -18,6 +18,8 @@
 
 Because FTPGrab is distributed :package: as an independent binary, it is ideal for those with a seedbox :checkered_flag: to grab your files periodically :calendar: to your Synology, Qnap, D-Link and others NAS.
 
+![](https://ftpgrab.github.io/img/faq/ftpgrab-report-slack.png)
+
 ## Features
 
 * Multiple sources
