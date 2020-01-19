@@ -7,7 +7,7 @@ server:
     password:
     sources:
       - /
-    timeout: 5
+    timeout: 5s
     disable_epsv: false
     tls: false
     insecure_skip_verify: false
@@ -46,4 +46,4 @@ notif:
     endpoint:
     method: GET
     headers: {}
-    timeout: 10
+    timeout: 10s
