@@ -8,7 +8,7 @@ server:
     key:
     sources:
       - /
-    timeout: 30
+    timeout: 30s
     max_packet_size: 32768
 
 db:
@@ -44,4 +44,4 @@ notif:
     endpoint:
     method: GET
     headers: {}
-    timeout: 10
+    timeout: 10s

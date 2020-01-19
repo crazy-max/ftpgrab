@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 // Notif holds data necessary for notification configuration
 type Notif struct {
 	Mail    NotifMail    `yaml:"mail,omitempty"`
@@ -32,5 +34,5 @@ type NotifWebhook struct {
 	Endpoint string            `yaml:"endpoint,omitempty"`
 	Method   string            `yaml:"method,omitempty"`
 	Headers  map[string]string `yaml:"headers,omitempty"`
-	Timeout  int               `yaml:"timeout,omitempty"`
+	Timeout  time.Duration     `yaml:"timeout,omitempty"`
 }

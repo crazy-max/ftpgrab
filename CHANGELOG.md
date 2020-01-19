@@ -1,5 +1,10 @@
 # Changelog
 
+## 6.3.0 (2020/01/19)
+
+* Only accept duration as timeout value for FTP, SFTP and Webhook notif config (#69)
+* Update [pkg/sftp](https://github.com/pkg/sftp) module
+
 ## 6.2.0 (2019/12/19)
 
 * Add Slack notifier

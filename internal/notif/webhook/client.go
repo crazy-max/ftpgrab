@@ -40,7 +40,7 @@ func (c *Client) Name() string {
 // Send creates and sends a webhook notification with journal entries
 func (c *Client) Send(jnl journal.Client) error {
 	hc := http.Client{
-		Timeout: time.Duration(c.cfg.Timeout) * time.Second,
+		Timeout: c.cfg.Timeout * time.Second,
 	}
 
 	hostname, _ := os.Hostname()

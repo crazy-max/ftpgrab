@@ -28,7 +28,7 @@ func New(config *model.FTP) (*server.Client, error) {
 	var client = &Client{cfg: config}
 
 	ftpConfig := []ftp.DialOption{
-		ftp.DialWithTimeout(time.Duration(config.Timeout) * time.Second),
+		ftp.DialWithTimeout(config.Timeout * time.Second),
 		ftp.DialWithDisabledEPSV(config.DisableEPSV),
 		ftp.DialWithDebugOutput(&logging.FtpWriter{
 			Enabled: config.LogTrace,
