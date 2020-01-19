@@ -5,6 +5,7 @@ on:
     branches: 'master'
     paths:
       - '.github/workflows/test.yml'
+      - '.res/ftpgrab.test.yml'
       - 'cmd/**'
       - 'internal/**'
       - '.goreleaser.yml'
@@ -15,6 +16,7 @@ on:
     branches: 'master'
     paths:
       - '.github/workflows/test.yml'
+      - '.res/ftpgrab.test.yml'
       - 'cmd/**'
       - 'internal/**'
       - '.goreleaser.yml'
