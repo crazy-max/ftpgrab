@@ -7,7 +7,7 @@ require (
 	github.com/docker/go-units v0.4.0
 	github.com/hako/durafmt v0.0.0-20191009132224-3f39dc1ed9f4
 	github.com/ilya1st/rotatewriter v0.0.0-20171126183947-3df0c1a3ed6d
-	github.com/imdario/mergo v0.3.8
+	github.com/imdario/mergo v0.3.9
 	github.com/jlaffaye/ftp v0.0.0-20190828173736-6aaa91c7796e
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/nlopes/slack v0.6.0
