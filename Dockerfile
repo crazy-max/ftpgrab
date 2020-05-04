@@ -46,15 +46,15 @@ ARG VCS_REF
 ARG VERSION
 
 LABEL maintainer="CrazyMax" \
-  org.label-schema.build-date=$BUILD_DATE \
-  org.label-schema.name="ftpgrab" \
-  org.label-schema.description="Grab your files periodically from a remote FTP or SFTP server easily" \
-  org.label-schema.version=$VERSION \
-  org.label-schema.url="https://ftpgrab.github.io" \
-  org.label-schema.vcs-ref=$VCS_REF \
-  org.label-schema.vcs-url="https://github.com/ftpgrab/ftpgrab" \
-  org.label-schema.vendor="FTPGrab" \
-  org.label-schema.schema-version="1.0"
+  org.opencontainers.image.created=$BUILD_DATE \
+  org.opencontainers.image.url="https://ftpgrab.github.io" \
+  org.opencontainers.image.source="https://github.com/ftpgrab/ftpgrab" \
+  org.opencontainers.image.version=$VERSION \
+  org.opencontainers.image.revision=$VCS_REF \
+  org.opencontainers.image.vendor="CrazyMax" \
+  org.opencontainers.image.title="FTPGrab" \
+  org.opencontainers.image.description="Grab your files periodically from a remote FTP or SFTP server easily" \
+  org.opencontainers.image.licenses="MIT"
 
 RUN apk --update --no-cache add \
     ca-certificates \
