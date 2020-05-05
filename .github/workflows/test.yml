@@ -56,7 +56,7 @@ jobs:
             -e "AUTH_METHOD=puredb" \
             -e "SECURE_MODE=true" \
             -v "${HOME}/warmup:/home/foo" \
-            crazymax/pure-ftpd:latest
+            crazymax/pure-ftpd:1.0.47
           sleep 5
           (echo bar; echo bar) | docker exec -i pureftpd pure-pw useradd foo -u $(id -u) -g $(id -g) -d /home/foo -m
       -
