@@ -71,14 +71,14 @@ func (fg *FtpGrab) Start() error {
 	fg.Run()
 
 	// Init scheduler if defined
-	if fg.cfg.Flags.Schedule == "" {
+	if fg.cfg.Cli.Schedule == "" {
 		return nil
 	}
-	fg.jobID, err = fg.cron.AddJob(fg.cfg.Flags.Schedule, fg)
+	fg.jobID, err = fg.cron.AddJob(fg.cfg.Cli.Schedule, fg)
 	if err != nil {
 		return err
 	}
-	log.Info().Msgf("Cron initialized with schedule %s", fg.cfg.Flags.Schedule)
+	log.Info().Msgf("Cron initialized with schedule %s", fg.cfg.Cli.Schedule)
 
 	// Start scheduler
 	fg.cron.Start()

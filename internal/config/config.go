@@ -19,7 +19,7 @@ import (
 
 // Configuration holds configuration details
 type Configuration struct {
-	Flags    model.Flags
+	Cli      model.Cli
 	App      model.App
 	Server   model.Server   `yaml:"server,omitempty"`
 	Db       model.Db       `yaml:"db,omitempty"`
@@ -28,10 +28,10 @@ type Configuration struct {
 }
 
 // Load returns Configuration struct
-func Load(fl model.Flags, version string) (*Configuration, error) {
+func Load(cli model.Cli, version string) (*Configuration, error) {
 	var err error
 	var cfg = Configuration{
-		Flags: fl,
+		Cli: cli,
 		App: model.App{
 			ID:      "ftpgrab",
 			Name:    "FTPGrab",
@@ -90,11 +90,11 @@ func Load(fl model.Flags, version string) (*Configuration, error) {
 		},
 	}
 
-	if _, err = os.Lstat(fl.Cfgfile); err != nil {
+	if _, err = os.Lstat(cli.Cfgfile); err != nil {
 		return nil, fmt.Errorf("unable to open config file, %s", err)
 	}
 
-	bytes, err := ioutil.ReadFile(fl.Cfgfile)
+	bytes, err := ioutil.ReadFile(cli.Cfgfile)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read config file, %s", err)
 	}
