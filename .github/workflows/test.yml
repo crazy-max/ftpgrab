@@ -53,12 +53,11 @@ jobs:
         run: |
           docker run -d --name pureftpd --hostname pureftpd \
             --network ${{ steps.prepare.outputs.container_name }} \
-            -e "FTP_USER_NAME=foo" \
-            -e "FTP_USER_PASS=bar" \
-            -e "FTP_USER_HOME=/home/foo" \
-            -e "PUBLICHOST=pureftpd" \
-            -v "${HOME}/warmup:/home/foo:ro" \
-            stilliard/pure-ftpd:hardened
+            -e "AUTH_METHOD=puredb" \
+            -e "SECURE_MODE=true" \
+            -v "${HOME}/warmup:/home/foo" \
+            crazymax/pure-ftpd:latest
+          (echo bar; echo bar) | docker exec -i pureftpd pure-pw useradd foo -u 1000 -g 1000 -d /home/foo -m
       -
         name: Start container
         run: |

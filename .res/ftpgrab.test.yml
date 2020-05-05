@@ -1,7 +1,7 @@
 server:
   ftp:
     host: pureftpd
-    port: 21
+    port: 2100
     username: foo
     password: bar
     sources:
