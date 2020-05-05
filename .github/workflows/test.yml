@@ -57,6 +57,7 @@ jobs:
             -e "SECURE_MODE=true" \
             -v "${HOME}/warmup:/home/foo" \
             crazymax/pure-ftpd:latest
+          sleep 5
           (echo bar; echo bar) | docker exec -i pureftpd pure-pw useradd foo -u 1000 -g 1000 -d /home/foo -m
       -
         name: Start container
