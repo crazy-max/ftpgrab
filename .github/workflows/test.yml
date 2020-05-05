@@ -58,7 +58,7 @@ jobs:
             -v "${HOME}/warmup:/home/foo" \
             crazymax/pure-ftpd:latest
           sleep 5
-          (echo bar; echo bar) | docker exec -i pureftpd pure-pw useradd foo -u 1000 -g 1000 -d /home/foo -m
+          (echo bar; echo bar) | docker exec -i pureftpd pure-pw useradd foo -u $(id -u) -g $(id -g) -d /home/foo -m
       -
         name: Start container
         run: |
