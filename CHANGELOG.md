@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.4.0 (2020/05/17)
+
+* Use kong command-line parser
+* Switch to Open Container Specification labels as label-schema.org ones are deprecated
+* Update deps
+
 ## 6.3.0 (2020/01/19)
 
 * Only accept duration as timeout value for FTP, SFTP and Webhook notif config (#69)
@@ -8,7 +14,7 @@
 ## 6.2.0 (2019/12/19)
 
 * Add Slack notifier
-* Update libs
+* Update deps
 * Go 1.13.5
 * Seconds field optional for schedule
 
