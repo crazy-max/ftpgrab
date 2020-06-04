@@ -89,6 +89,8 @@ jobs:
       -
         name: Set up Docker Buildx
         uses: crazy-max/ghaction-docker-buildx@v2.0.1
+        with:
+          skip-cache: true
       -
         name: Docker Buildx (build)
         run: |
