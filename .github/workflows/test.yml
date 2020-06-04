@@ -1,28 +1,18 @@
 name: test
 
 on:
-  pull_request:
-    branches: 'master'
-    paths:
-      - '.github/workflows/test.yml'
-      - '.res/ftpgrab.test.yml'
-      - 'cmd/**'
-      - 'internal/**'
-      - '.goreleaser.yml'
-      - 'Dockerfile'
-      - 'go.mod'
-      - 'go.sum'
   push:
-    branches: 'master'
-    paths:
-      - '.github/workflows/test.yml'
-      - '.res/ftpgrab.test.yml'
-      - 'cmd/**'
-      - 'internal/**'
-      - '.goreleaser.yml'
-      - 'Dockerfile'
-      - 'go.mod'
-      - 'go.sum'
+    branches:
+      - 'master'
+      - 'v*'
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches:
+      - 'master'
+      - 'v*'
+    paths-ignore:
+      - '**.md'
 
 jobs:
   test:
