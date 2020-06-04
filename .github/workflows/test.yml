@@ -40,15 +40,21 @@ jobs:
       -
         name: Start Pure-FTPd container
         run: |
+          echo "foo:\$2a\$08\$H2v8vXFqPddF1jHU1tN2vurj./NBDmReoNEl7iY.WgEGzF/NCTBjK:$(id -u):$(id -g)::/home/foo/./::::::::::::" > /tmp/pureftpd.passwd
+          echo "-d -d" > /tmp/pureftpd.flags
+          cat /tmp/pureftpd.passwd
+
           docker run -d --name pureftpd --hostname pureftpd \
             --network ${{ steps.prepare.outputs.container_name }} \
             -e "AUTH_METHOD=puredb" \
             -e "SECURE_MODE=false" \
             -v "${HOME}/warmup:/home/foo" \
-            -v "$(pwd)/.res/pureftpd.test.flags:/data/pureftpd.flags" \
+            -v "/tmp/pureftpd.passwd:/data/pureftpd.passwd" \
+            -v "/tmp/pureftpd.flags:/data/pureftpd.flags" \
             crazymax/pure-ftpd:1.0.47
-          sleep 10
-          (echo bar; echo bar) | docker exec -i pureftpd pure-pw useradd foo -u $(id -u) -g $(id -g) -d /home/foo -m
+
+          sleep 5
+          docker exec -i pureftpd pure-pw show foo
       -
         name: Start container
         run: |
