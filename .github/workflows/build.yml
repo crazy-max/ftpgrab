@@ -61,6 +61,9 @@ jobs:
     needs: go
     steps:
       -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
         name: Prepare
         id: prepare
         run: |
@@ -89,8 +92,6 @@ jobs:
       -
         name: Set up Docker Buildx
         uses: crazy-max/ghaction-docker-buildx@v2.0.1
-        with:
-          skip-cache: true
       -
         name: Docker Buildx (build)
         run: |
