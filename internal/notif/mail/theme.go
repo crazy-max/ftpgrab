@@ -164,7 +164,7 @@ func (t *Theme) HTMLTemplate() string {
     }
     cite {
       display: block;
-      font-size: 0.925rem; 
+      font-size: 0.925rem;
     }
     cite:before {
       content: "\2014 \0020";
@@ -296,7 +296,7 @@ func (t *Theme) HTMLTemplate() string {
                       {{ .Email.Body.FreeMarkdown.ToHTML }}
                     {{ end }}
 
-                      {{ with .Email.Body.Dictionary }} 
+                      {{ with .Email.Body.Dictionary }}
                         {{ if gt (len .) 0 }}
                           <dl class="body-dictionary">
                             {{ range $entry := . }}
@@ -347,7 +347,7 @@ func (t *Theme) HTMLTemplate() string {
                                           {{ end }}
                                         >
                                           {{ if (eq $cell.Key "Status") }}
-                                            <img alt="{{ $cell.Value }}" src="https://ftpgrab.github.io/img/status/{{ $cell.Value }}.png" />
+                                            <img alt="{{ $cell.Value }}" src="https://raw.githubusercontent.com/ftpgrab/ftpgrab/master/.res/status_{{ $cell.Value }}.png" />
                                           {{ else }}
                                             {{ $cell.Value }}
                                           {{ end }}
@@ -382,7 +382,7 @@ func (t *Theme) HTMLTemplate() string {
                         {{ end }}
                       {{ end }}
 
-                    {{ with .Email.Body.Outros }} 
+                    {{ with .Email.Body.Outros }}
                         {{ if gt (len .) 0 }}
                           {{ range $line := . }}
                             <p>{{ $line }}</p>
@@ -397,7 +397,7 @@ func (t *Theme) HTMLTemplate() string {
                     </p>
 
                     {{ if (eq .Email.Body.FreeMarkdown "") }}
-                      {{ with .Email.Body.Actions }} 
+                      {{ with .Email.Body.Actions }}
                         <table class="body-sub">
                           <tbody>
                               {{ range $action := . }}
@@ -480,13 +480,13 @@ func (t *Theme) PlainTextTemplate() string {
       </table>
     {{ end }}
   {{ end }}
-  {{ with .Email.Body.Actions }} 
+  {{ with .Email.Body.Actions }}
     {{ range $action := . }}
-      <p>{{ $action.Instructions }} {{ $action.Button.Link }}</p> 
+      <p>{{ $action.Instructions }} {{ $action.Button.Link }}</p>
     {{ end }}
   {{ end }}
 {{ end }}
-{{ with .Email.Body.Outros }} 
+{{ with .Email.Body.Outros }}
   {{ range $line := . }}
     <p>{{ $line }}<p>
   {{ end }}

@@ -25,7 +25,7 @@ func main() {
 	// Parse command line
 	_ = kong.Parse(&cli,
 		kong.Name("ftpgrab"),
-		kong.Description(`Grab your files periodically from a remote FTP or SFTP server easily. More info: https://ftpgrab.github.io`),
+		kong.Description(`Grab your files periodically from a remote FTP or SFTP server easily. More info: https://github.com/ftpgrab/ftpgrab`),
 		kong.UsageOnError(),
 		kong.Vars{
 			"version": fmt.Sprintf("%s", version),

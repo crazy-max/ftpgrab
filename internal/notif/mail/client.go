@@ -44,8 +44,8 @@ func (c *Client) Send(jnl journal.Client) error {
 		Theme: new(Theme),
 		Product: hermes.Product{
 			Name: c.app.Name,
-			Link: "https://ftpgrab.github.io",
-			Logo: "https://ftpgrab.github.io/img/logo.png",
+			Link: "https://github.com/ftpgrab/ftpgrab",
+			Logo: "https://raw.githubusercontent.com/ftpgrab/ftpgrab/master/.res/ftpgrab.png",
 			Copyright: fmt.Sprintf("%s © 2014 - %d %s %s",
 				c.app.Author,
 				time.Now().Year(),

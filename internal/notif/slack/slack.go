@@ -71,9 +71,9 @@ func (c *Client) Send(jnl journal.Client) error {
 		Attachments: []slack.Attachment{slack.Attachment{
 			Color:         color,
 			AuthorName:    "FTPGrab",
-			AuthorSubname: "ftpgrab.github.io",
-			AuthorLink:    "https://ftpgrab.github.io",
-			AuthorIcon:    "https://ftpgrab.github.io/img/logo.png",
+			AuthorSubname: "github.com/ftpgrab/ftpgrab",
+			AuthorLink:    "https://github.com/ftpgrab/ftpgrab",
+			AuthorIcon:    "https://raw.githubusercontent.com/ftpgrab/ftpgrab/master/.res/ftpgrab.png",
 			Text:          fmt.Sprintf("%s %s", "<!channel>", textBuf.String()),
 			Footer:        fmt.Sprintf("%s © %d %s %s", c.app.Author, time.Now().Year(), c.app.Name, c.app.Version),
 			Fields: []slack.AttachmentField{

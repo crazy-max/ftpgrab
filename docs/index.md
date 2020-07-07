@@ -1,4 +1,4 @@
-<p align="center"><a href="https://github.com/ftpgrab/ftpgrab" target="_blank"><img height="128" src="https://raw.githubusercontent.com/ftpgrab/ftpgrab/master/.res/ftpgrab.png"></a></p>
+<img src="assets/logo.png" alt="FTPGrab" width="128px" style="display: block; margin-left: auto; margin-right: auto"/>
 
 <p align="center">
   <a href="https://github.com/ftpgrab/ftpgrab/releases/latest"><img src="https://img.shields.io/github/release/ftpgrab/ftpgrab.svg?style=flat-square" alt="GitHub release"></a>
@@ -12,29 +12,38 @@
   <a href="https://www.paypal.me/crazyws"><img src="https://img.shields.io/badge/donate-paypal-00457c.svg?logo=paypal&style=flat-square" alt="Donate Paypal"></a>
 </p>
 
-## About
+---
 
-**FTPGrab** is a CLI application written in [Go](https://golang.org/) and delivered as a
-[single executable](https://github.com/ftpgrab/ftpgrab/releases/latest) (and a
-[Docker image](https://hub.docker.com/r/ftpgrab/ftpgrab/)) to grab your files from a remote FTP or SFTP server
-to your NAS, server or computer.
+## What is FTPGrab?
 
-![](.res/screenshot.png)
+**FTPGrab** :zap: is a CLI application written in [Go](https://golang.org/) and delivered as a
+[single executable]({{ config.repo_url }}releases/latest) (and a [Docker image](install/docker.md))
+to grab your files from a remote FTP or SFTP server to your NAS, server or computer.
 
-## Documentation
+With Go, this can be done with an independent binary distribution across all platforms and architectures that Go supports.
+This support includes Linux, macOS, and Windows, on architectures like amd64, i386, ARM, PowerPC, and others.
 
-Documentation can be found on https://ftpgrab.github.io/
+Because FTPGrab is distributed as an independent binary, it is ideal for those with a seedbox to grab your files
+periodically to your Synology, Qnap, D-Link and others NAS.
 
-## How can I help?
+## Features
 
-All kinds of contributions are welcome :raised_hands:! The most basic way to show your support is to star :star2: the
-project, or to raise issues :speech_balloon: You can also support this project by
-[**becoming a sponsor on GitHub**](https://github.com/sponsors/crazy-max) :clap: or by making a
-[Paypal donation](https://www.paypal.me/crazyws) to ensure this journey continues indefinitely! :rocket:
-
-Thanks again for your support, it is much appreciated! :pray:
+* Multiple sources
+* SFTP support
+* Prevent re-download through a hash
+* Efficient key/value store database to audit files already downloaded
+* Internal cron implementation through go routines
+* Include and exclude filters with regular expression
+* Date filter
+* Retry on failed download
+* Change file/folder permissions and owner
+* Translate modtimes on downloaded files
+* Beautiful email report
+* Webhook notification
+* Slack incoming webhook notification
+* Enhanced logging
+* Timezone can be changed
 
 ## License
 
-MIT. See `LICENSE` for more details.<br />
-Icon credit to [Nick Roach](http://www.elegantthemes.com/).
+This project is licensed under the terms of the MIT license.

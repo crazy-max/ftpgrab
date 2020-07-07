@@ -1,8 +1,10 @@
 # Support [![](https://isitmaintained.com/badge/resolution/ftpgrab/ftpgrab.svg)](https://isitmaintained.com/project/ftpgrab/ftpgrab)
 
+First, [be a good guy](https://github.com/kossnocorp/etiquette/blob/master/README.md).
+
 ## Reporting an issue
 
-Please do a search in [open issues](https://github.com/ftpgrab/ftpgrab/issues?utf8=%E2%9C%93&q=) to see if the issue or feature request has already been filed and read the [FAQ](https://ftpgrab.github.io/doc/faq/) page first.
+Please do a search in [open issues](https://github.com/ftpgrab/ftpgrab/issues?utf8=%E2%9C%93&q=) to see if the issue or feature request has already been filed.
 
 If you find your issue already exists, make relevant comments and add your [reaction](https://github.com/blog/2119-add-reactions-to-pull-requests-issues-and-comments). Use a reaction in place of a "+1" comment.
 

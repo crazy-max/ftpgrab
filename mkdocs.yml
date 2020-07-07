@@ -1,0 +1,107 @@
+site_name: FTPGrab
+site_description: Grab your files periodically from a remote FTP or SFTP server easily
+site_author: CrazyMax
+site_url: https://ftpgrab.github.io/
+edit_uri: edit/master/docs/
+docs_dir: docs
+
+repo_name: ftpgrab/ftpgrab
+repo_url: https://github.com/ftpgrab/ftpgrab
+
+extra:
+  seo:
+    google: zczpYiFTLpd1jgOb3K5zGqERX2gZrkm7aRjtDqxP0a4
+    bing: D188E0BEC1AB6E7C1E0194BFC35D0033
+  #alexa:
+  #yandex:
+  social:
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/ftpgrab/ftpgrab
+
+theme:
+    name: material
+    custom_dir: docs/overrides
+    language: en
+    palette:
+      scheme: default
+      primary: red
+      accent: red
+    font:
+      text: Roboto
+      code: Roboto Mono
+    i18n:
+      prev: Previous
+      next: Next
+    logo: assets/logo.png
+    favicon: assets/favicon.ico
+    include_search_page: false
+    search_index_only: true
+
+extra_css:
+  - css/extra.css
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - markdown_include.include:
+      base_path: docs
+  - meta
+  - pymdownx.details
+  - pymdownx.tabbed
+  - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - toc:
+      permalink: true
+
+plugins:
+  - exclude:
+      glob:
+        - "Dockerfile"
+  - git-revision-date-localized:
+      type: iso_datetime
+  - macros
+  - search:
+      prebuild_index: python
+      lang:
+        - en
+
+google_analytics:
+  - UA-12516800-3
+  - auto
+
+nav:
+  - Home: index.md
+  - Installation:
+    - With Docker: install/docker.md
+    - From binary: install/binary.md
+    - Linux service: install/linux-service.md
+  - Usage:
+    - Command line: usage/cli.md
+    - Basic example: usage/basic-example.md
+  - Configuration:
+    - Overview: config/index.md
+    - .server:
+      - .ftp: config/server/ftp.md
+      - .sftp: config/server/sftp.md
+    - .db: config/db.md
+    - .download: config/download.md
+    - .notif:
+      - .mail: config/notif/mail.md
+      - .slack: config/notif/slack.md
+      - .webhook: config/notif/webhook.md
+  - FAQ: faq.md
+  - Changelog: changelog.md
+  - Migration:
+    - FTPGrab v5.2 to v6.0: migration/v5.2-to-v6.0.md
+    - FTPGrab v5.1 to v5.2: migration/v5.1-to-v5.2.md
+    - FTPGrab v5.0 to v5.1: migration/v5.0-to-v5.1.md
+    - FTPGrab v5.0: migration/v5.0.md
+    - FTPGrab v4.1 to v4.2: migration/v4.1-to-v4.2.md
+    - FTPGrab v4.0 to v4.1: migration/v4.0-to-v4.1.md
+    - FTPGrab v3 to v4: migration/v3-to-v4.md
+  - Reporting an issue: reporting-issue.md
+  - Contributing: contributing.md
+  - Donate: donate.md

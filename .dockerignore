@@ -7,10 +7,10 @@
 /.res
 /bin
 /dist
+/docs
 /.editorconfig
 /.gitignore
 /.goreleaser.yml
 /CHANGELOG.md
 /LICENSE
 /README.md
-/UPGRADE.md

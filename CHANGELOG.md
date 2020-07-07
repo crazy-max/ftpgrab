@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.5.0 (2020/07/07)
+
+* Docs website with mkdocs
+* Move documentation to main repository
+* Update deps
+
 ## 6.4.0 (2020/05/17)
 
 * Use kong command-line parser
@@ -41,6 +47,8 @@
 
 ## 6.0.0 (2019/07/21)
 
+:warning: See **Migration notes** in the documentation for breaking changes.
+
 * Log skip status
 * Set ServerName field if implicit TLS
 * Switch to [jlaffaye/ftp](https://github.com/jlaffaye/ftp) module
@@ -72,6 +80,8 @@
 
 ## 5.2.0 (2019/03/29)
 
+:warning: See **Migration notes** in the documentation for breaking changes.
+
 * Add webhook notification method
 * Remove unnecessary `connections_per_host` field (Issue #48)
 * Fix log folder creation
@@ -82,6 +92,8 @@
 
 ## 5.1.0 (2019/02/14)
 
+:warning: See **Migration notes** in the documentation for breaking changes.
+
 * Add SFTP support (Issue #42)
 
 ## 5.0.1 (2019/02/13)
@@ -90,6 +102,8 @@
 * Add support for FreeBSD
 
 ## 5.0.0 (2019/02/12)
+
+:warning: See **Migration notes** in the documentation for breaking changes.
 
 * BIG rewrite (Issue #36)
 * Multiplatform : Linux, macOS and Windows on architectures like amd64, i386, ARM and others
@@ -134,7 +148,7 @@
 
 ## 4.3.0 (2017/12/26)
 
-* Add an exclude filter for files through [DL_EXCLUDE_REGEX](https://ftpgrab.github.io/doc/configuration/#dl_exclude_regex) (Issue #27)
+* Add an exclude filter for files through `DL_EXCLUDE_REGEX` (Issue #27)
 
 ## 4.2.4 (2017/11/01)
 
@@ -155,6 +169,8 @@
 
 ## 4.2.0 (2017/10/15)
 
+:warning: See **Migration notes** in the documentation for breaking changes.
+
 * Add Docker image (more info on [docker repository](https://github.com/ftpgrab/docker))
 * Remove init script
 * Fix issue while resuming downloads
@@ -172,9 +188,13 @@
 
 ## 4.1 (2017/03/15)
 
+:warning: See **Migration notes** in the documentation for breaking changes.
+
 * Rename the project ftpgrab ! (Issue #28)
 
 ## 4.0 (2017/03/14)
+
+:warning: See **Migration notes** in the documentation for breaking changes.
 
 * Shuffle file/folder listing (Issue #25)
 * Allow multiple instances (Issue #22)

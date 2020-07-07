@@ -4,17 +4,21 @@ on:
   push:
     branches:
       - 'master'
-      - 'v*'
     tags:
-      - 'v*'
+      - '*.*.*'
     paths-ignore:
       - '**.md'
+      - '.github/workflows/docs.yml'
+      - 'docs/**'
+      - 'mkdocs.yml'
   pull_request:
     branches:
       - 'master'
-      - 'v*'
     paths-ignore:
       - '**.md'
+      - '.github/workflows/docs.yml'
+      - 'docs/**'
+      - 'mkdocs.yml'
 
 jobs:
 
@@ -73,7 +77,7 @@ jobs:
           VERSION=edge
 
           if [[ $GITHUB_REF == refs/tags/* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/v}
+            VERSION=${GITHUB_REF#refs/tags/}
           fi
 
           TAGS="--tag ${DOCKER_IMAGE}:${VERSION}"

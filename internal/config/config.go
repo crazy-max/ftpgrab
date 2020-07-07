@@ -36,7 +36,7 @@ func Load(cli model.Cli, version string) (*Configuration, error) {
 			ID:      "ftpgrab",
 			Name:    "FTPGrab",
 			Desc:    "Grab your files periodically from a remote FTP or SFTP server easily",
-			URL:     "https://ftpgrab.github.io",
+			URL:     "https://github.com/ftpgrab/ftpgrab",
 			Author:  "CrazyMax",
 			Version: version,
 		},
