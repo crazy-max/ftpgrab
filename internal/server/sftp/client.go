@@ -5,7 +5,6 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"time"
 
 	"github.com/ftpgrab/ftpgrab/internal/model"
 	"github.com/ftpgrab/ftpgrab/internal/server"
@@ -16,15 +15,15 @@ import (
 // Client represents an active sftp object
 type Client struct {
 	*server.Client
-	sftp *sftp.Client
-	ssh  *ssh.Client
-	cfg  *model.SFTP
+	config *model.ServerSFTP
+	sftp   *sftp.Client
+	ssh    *ssh.Client
 }
 
 // New creates new ftp instance
-func New(config *model.SFTP) (*server.Client, error) {
+func New(config *model.ServerSFTP) (*server.Client, error) {
 	var err error
-	var client = &Client{cfg: config}
+	var client = &Client{config: config}
 	var sshConf *ssh.ClientConfig
 	var sshAuth []ssh.AuthMethod
 
@@ -42,7 +41,7 @@ func New(config *model.SFTP) (*server.Client, error) {
 		User:            config.Username,
 		Auth:            sshAuth,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Timeout:         config.Timeout * time.Second,
+		Timeout:         *config.Timeout,
 	}
 
 	sshConf.SetDefaults()
@@ -56,6 +55,15 @@ func New(config *model.SFTP) (*server.Client, error) {
 	}
 
 	return &server.Client{Handler: client}, err
+}
+
+// Common return common configuration
+func (c *Client) Common() model.ServerCommon {
+	return model.ServerCommon{
+		Host:    c.config.Host,
+		Port:    c.config.Port,
+		Sources: c.config.Sources,
+	}
 }
 
 func (c *Client) readPublicKey(key string, password string) ([]ssh.AuthMethod, error) {
@@ -77,17 +85,6 @@ func (c *Client) readPublicKey(key string, password string) ([]ssh.AuthMethod, e
 	}
 
 	return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
-}
-
-// Common return common configuration
-func (c *Client) Common() model.Common {
-	return model.Common{
-		Host:     c.cfg.Host,
-		Port:     c.cfg.Port,
-		Username: c.cfg.Username,
-		Password: c.cfg.Password,
-		Sources:  c.cfg.Sources,
-	}
 }
 
 // ReadDir fetches the contents of a directory, returning a list of os.FileInfo's

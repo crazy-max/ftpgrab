@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"regexp"
-	"time"
 
 	"github.com/ftpgrab/ftpgrab/internal/logging"
 	"github.com/ftpgrab/ftpgrab/internal/model"
@@ -17,30 +16,28 @@ import (
 // Client represents an active ftp object
 type Client struct {
 	*server.Client
-	ftp *ftp.ServerConn
-	cfg *model.FTP
+	config *model.ServerFTP
+	ftp    *ftp.ServerConn
 }
 
 // New creates new ftp instance
-func New(config *model.FTP) (*server.Client, error) {
+func New(config *model.ServerFTP) (*server.Client, error) {
 	var err error
-	var tlsConfig *tls.Config
-	var client = &Client{cfg: config}
+	var client = &Client{config: config}
 
 	ftpConfig := []ftp.DialOption{
-		ftp.DialWithTimeout(config.Timeout * time.Second),
-		ftp.DialWithDisabledEPSV(config.DisableEPSV),
+		ftp.DialWithTimeout(*config.Timeout),
+		ftp.DialWithDisabledEPSV(*config.DisableEPSV),
 		ftp.DialWithDebugOutput(&logging.FtpWriter{
-			Enabled: config.LogTrace,
+			Enabled: *config.LogTrace,
 		}),
 	}
 
-	if config.TLS {
-		tlsConfig = &tls.Config{
+	if *config.TLS {
+		ftpConfig = append(ftpConfig, ftp.DialWithTLS(&tls.Config{
 			ServerName:         config.Host,
-			InsecureSkipVerify: config.InsecureSkipVerify,
-		}
-		ftpConfig = append(ftpConfig, ftp.DialWithTLS(tlsConfig))
+			InsecureSkipVerify: *config.InsecureSkipVerify,
+		}))
 	}
 
 	if client.ftp, err = ftp.Dial(fmt.Sprintf("%s:%d", config.Host, config.Port), ftpConfig...); err != nil {
@@ -57,13 +54,11 @@ func New(config *model.FTP) (*server.Client, error) {
 }
 
 // Common return common configuration
-func (c *Client) Common() model.Common {
-	return model.Common{
-		Host:     c.cfg.Host,
-		Port:     c.cfg.Port,
-		Username: c.cfg.Username,
-		Password: c.cfg.Password,
-		Sources:  c.cfg.Sources,
+func (c *Client) Common() model.ServerCommon {
+	return model.ServerCommon{
+		Host:    c.config.Host,
+		Port:    c.config.Port,
+		Sources: c.config.Sources,
 	}
 }
 

@@ -17,7 +17,7 @@ import (
 	"github.com/ftpgrab/ftpgrab/internal/server"
 	"github.com/ftpgrab/ftpgrab/internal/server/ftp"
 	"github.com/ftpgrab/ftpgrab/internal/server/sftp"
-	"github.com/ftpgrab/ftpgrab/internal/utl"
+	"github.com/ftpgrab/ftpgrab/pkg/utl"
 	"github.com/hako/durafmt"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
@@ -25,7 +25,8 @@ import (
 
 // FtpGrab represents an active ftpgrab object
 type FtpGrab struct {
-	cfg    *config.Configuration
+	meta   model.Meta
+	cfg    *config.Config
 	cron   *cron.Cron
 	srv    *server.Client
 	db     *db.Client
@@ -46,7 +47,7 @@ const (
 )
 
 // New creates new ftpgrab instance
-func New(cfg *config.Configuration, location *time.Location) (*FtpGrab, error) {
+func New(meta model.Meta, cfg *config.Config, location *time.Location) (*FtpGrab, error) {
 	if err := os.MkdirAll(cfg.Download.Output, os.ModePerm); err != nil {
 		return nil, fmt.Errorf("cannot create output download folder %s, %v", cfg.Download.Output, err)
 	}
@@ -56,7 +57,8 @@ func New(cfg *config.Configuration, location *time.Location) (*FtpGrab, error) {
 	}
 
 	return &FtpGrab{
-		cfg: cfg,
+		meta: meta,
+		cfg:  cfg,
 		cron: cron.New(cron.WithLocation(location), cron.WithParser(cron.NewParser(
 			cron.SecondOptional|cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow|cron.Descriptor),
 		)),
@@ -71,14 +73,14 @@ func (fg *FtpGrab) Start() error {
 	fg.Run()
 
 	// Init scheduler if defined
-	if fg.cfg.Cli.Schedule == "" {
+	if fg.cfg.Schedule == "" {
 		return nil
 	}
-	fg.jobID, err = fg.cron.AddJob(fg.cfg.Cli.Schedule, fg)
+	fg.jobID, err = fg.cron.AddJob(fg.cfg.Schedule, fg)
 	if err != nil {
 		return err
 	}
-	log.Info().Msgf("Cron initialized with schedule %s", fg.cfg.Cli.Schedule)
+	log.Info().Msgf("Cron initialized with schedule %s", fg.cfg.Schedule)
 
 	// Start scheduler
 	fg.cron.Start()
@@ -109,25 +111,26 @@ func (fg *FtpGrab) Run() {
 	fg.jnl = journal.New()
 
 	// Server client
-	switch fg.cfg.Server.Type {
-	case model.ServerTypeFTP:
-		fg.srv, err = ftp.New(&fg.cfg.Server.FTP)
-	case model.ServerTypeSFTP:
-		fg.srv, err = sftp.New(&fg.cfg.Server.SFTP)
-	default:
-		log.Fatal().Err(err).Msgf("Unknown server type %s", fg.cfg.Server.Type)
+	if fg.cfg.Server.FTP != nil {
+		fg.srv, err = ftp.New(fg.cfg.Server.FTP)
+		fg.jnl.ServerHost = fg.cfg.Server.FTP.Host
+	} else if fg.cfg.Server.FTP != nil {
+		fg.srv, err = sftp.New(fg.cfg.Server.SFTP)
+		fg.jnl.ServerHost = fg.cfg.Server.SFTP.Host
+	} else {
+		log.Fatal().Err(err).Msg("No server defined")
 	}
 	if err != nil {
 		log.Fatal().Err(err).Msg("Cannot connect to server")
 	}
 
 	// DB client
-	if fg.db, err = db.New(&fg.cfg.Db); err != nil {
+	if fg.db, err = db.New(fg.cfg.Db); err != nil {
 		log.Fatal().Err(err).Msg("Cannot open database")
 	}
 
 	// Notification client
-	if fg.notif, err = notif.New(fg.cfg.Notif, fg.cfg.App, fg.srv.Common()); err != nil {
+	if fg.notif, err = notif.New(fg.cfg.Notif, fg.meta); err != nil {
 		log.Fatal().Err(err).Msg("Cannot create notifiers")
 	}
 
@@ -137,7 +140,7 @@ func (fg *FtpGrab) Run() {
 
 		// Check basedir
 		dest := fg.cfg.Download.Output
-		if src != "/" && fg.cfg.Download.CreateBasedir {
+		if src != "/" && *fg.cfg.Download.CreateBaseDir {
 			dest = path.Join(dest, src)
 		}
 
@@ -222,7 +225,7 @@ func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileIn
 		}
 	}
 	if fg.isSkipped(status) {
-		if !fg.cfg.Download.HideSkipped {
+		if !*fg.cfg.Download.HideSkipped {
 			sublogger.Warn().Str(".status", jnlEntry.StatusText).Msg("Skipped")
 			jnlEntry.StatusType = "skip"
 			return jnlEntry

@@ -3,10 +3,7 @@ package webhook
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"os"
-	"time"
 
 	"github.com/ftpgrab/ftpgrab/internal/journal"
 	"github.com/ftpgrab/ftpgrab/internal/model"
@@ -16,18 +13,16 @@ import (
 // Client represents an active webhook notification object
 type Client struct {
 	*notifier.Notifier
-	cfg model.NotifWebhook
-	app model.App
-	cmn model.Common
+	cfg  *model.NotifWebhook
+	meta model.Meta
 }
 
 // New creates a new webhook notification instance
-func New(config model.NotifWebhook, app model.App, cmn model.Common) notifier.Notifier {
+func New(config *model.NotifWebhook, meta model.Meta) notifier.Notifier {
 	return notifier.Notifier{
 		Handler: &Client{
-			cfg: config,
-			app: app,
-			cmn: cmn,
+			cfg:  config,
+			meta: meta,
 		},
 	}
 }
@@ -40,10 +35,8 @@ func (c *Client) Name() string {
 // Send creates and sends a webhook notification with journal entries
 func (c *Client) Send(jnl journal.Client) error {
 	hc := http.Client{
-		Timeout: c.cfg.Timeout * time.Second,
+		Timeout: *c.cfg.Timeout,
 	}
-
-	hostname, _ := os.Hostname()
 
 	body, err := json.Marshal(struct {
 		Version  string        `json:"ftpgrab_version,omitempty"`
@@ -51,16 +44,16 @@ func (c *Client) Send(jnl journal.Client) error {
 		Dest     string        `json:"dest_hostname,omitempty"`
 		Journal  model.Journal `json:"journal,omitempty"`
 	}{
-		Version:  c.app.Version,
-		ServerIP: c.cmn.Host,
-		Dest:     hostname,
+		Version:  c.meta.Version,
+		ServerIP: jnl.ServerHost,
+		Dest:     c.meta.Hostname,
 		Journal:  jnl.Journal,
 	})
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest(c.cfg.Method, c.cfg.Endpoint, bytes.NewBuffer([]byte(body)))
+	req, err := http.NewRequest(c.cfg.Method, c.cfg.Endpoint, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -71,7 +64,7 @@ func (c *Client) Send(jnl journal.Client) error {
 		}
 	}
 
-	req.Header.Set("User-Agent", fmt.Sprintf("%s %s", c.app.Name, c.app.Version))
+	req.Header.Set("User-Agent", c.meta.UserAgent)
 
 	_, err = hc.Do(req)
 	return err

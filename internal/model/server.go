@@ -1,25 +1,44 @@
 package model
 
-const (
-	ServerTypeFTP  = ServerType("ftp")
-	ServerTypeSFTP = ServerType("sftp")
+import (
+	"github.com/pkg/errors"
 )
 
-// Server holds data necessary for server configuration
+// Server represents a server configuration
 type Server struct {
-	Type ServerType `yaml:"type,omitempty"`
-	FTP  FTP        `yaml:"ftp,omitempty"`
-	SFTP SFTP       `yaml:"sftp,omitempty"`
+	FTP  *ServerFTP  `yaml:"ftp,omitempty" json:"ftp,omitempty"`
+	SFTP *ServerSFTP `yaml:"sftp,omitempty" json:"sftp,omitempty"`
 }
 
-// ServerType is the server type, can be ftp or sftp
-type ServerType string
+// ServerCommon holds common data server configuration
+type ServerCommon struct {
+	Host    string
+	Port    int
+	Sources []string
+}
 
-// Common holds common data server configuration
-type Common struct {
-	Host     string   `yaml:"host,omitempty"`
-	Port     int      `yaml:"port,omitempty"`
-	Username string   `yaml:"username,omitempty"`
-	Password string   `yaml:"password,omitempty"`
-	Sources  []string `yaml:"sources,omitempty"`
+// GetDefaults gets the default values
+func (s *Server) GetDefaults() *Server {
+	return nil
+}
+
+// SetDefaults sets the default values
+func (s *Server) SetDefaults() {
+	// noop
+}
+
+// UnmarshalYAML implements the yaml.Unmarshaler interface
+func (s *Server) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	type plain Server
+	if err := unmarshal((*plain)(s)); err != nil {
+		return err
+	}
+
+	if s.FTP == nil && s.SFTP == nil {
+		return errors.New("one server (ftp or sftp) must be defined")
+	} else if s.FTP != nil && s.SFTP != nil {
+		return errors.New("only one server (ftp or sftp) is allowed")
+	}
+
+	return nil
 }

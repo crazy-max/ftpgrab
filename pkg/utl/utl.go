@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"time"
 )
 
 // GetEnv retrieves the value of the environment variable named by the key
@@ -49,4 +50,21 @@ func MatchString(exp string, s string) bool {
 		return false
 	}
 	return re.MatchString(s)
+}
+
+// NewFalse returns a false bool pointer
+func NewFalse() *bool {
+	b := false
+	return &b
+}
+
+// NewTrue returns a true bool pointer
+func NewTrue() *bool {
+	b := true
+	return &b
+}
+
+// NewDuration returns a duration pointer
+func NewDuration(duration time.Duration) *time.Duration {
+	return &duration
 }

@@ -12,30 +12,33 @@ import (
 
 // Client represents an active webhook notification object
 type Client struct {
-	cfg       model.Notif
-	app       model.App
-	cmn       model.Common
+	cfg       *model.Notif
+	meta      model.Meta
 	notifiers []notifier.Notifier
 }
 
 // New creates a new notification instance
-func New(config model.Notif, app model.App, cmn model.Common) (*Client, error) {
+func New(config *model.Notif, meta model.Meta) (*Client, error) {
 	var c = &Client{
 		cfg:       config,
-		app:       app,
-		cmn:       cmn,
+		meta:      meta,
 		notifiers: []notifier.Notifier{},
 	}
 
+	if config == nil {
+		log.Warn().Msg("No notifier available")
+		return c, nil
+	}
+
 	// Add notifiers
-	if config.Mail.Enable {
-		c.notifiers = append(c.notifiers, mail.New(config.Mail, app, cmn))
+	if config.Mail != nil {
+		c.notifiers = append(c.notifiers, mail.New(config.Mail, meta))
 	}
-	if config.Slack.Enable {
-		c.notifiers = append(c.notifiers, slack.New(config.Slack, app, cmn))
+	if config.Slack != nil {
+		c.notifiers = append(c.notifiers, slack.New(config.Slack, meta))
 	}
-	if config.Webhook.Enable {
-		c.notifiers = append(c.notifiers, webhook.New(config.Webhook, app, cmn))
+	if config.Webhook != nil {
+		c.notifiers = append(c.notifiers, webhook.New(config.Webhook, meta))
 	}
 
 	log.Debug().Msgf("%d notifier(s) created", len(c.notifiers))
