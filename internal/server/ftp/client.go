@@ -7,9 +7,9 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/ftpgrab/ftpgrab/internal/logging"
-	"github.com/ftpgrab/ftpgrab/internal/model"
-	"github.com/ftpgrab/ftpgrab/internal/server"
+	"github.com/ftpgrab/ftpgrab/v7/internal/logging"
+	"github.com/ftpgrab/ftpgrab/v7/internal/model"
+	"github.com/ftpgrab/ftpgrab/v7/internal/server"
 	"github.com/jlaffaye/ftp"
 )
 

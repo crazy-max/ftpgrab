@@ -4,7 +4,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/ftpgrab/ftpgrab/internal/model"
+	"github.com/ftpgrab/ftpgrab/v7/internal/model"
 )
 
 // Handler is a server interface

@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/alecthomas/kong"
-	"github.com/ftpgrab/ftpgrab/internal/app"
-	"github.com/ftpgrab/ftpgrab/internal/config"
-	"github.com/ftpgrab/ftpgrab/internal/logging"
-	"github.com/ftpgrab/ftpgrab/internal/model"
+	"github.com/ftpgrab/ftpgrab/v7/internal/app"
+	"github.com/ftpgrab/ftpgrab/v7/internal/config"
+	"github.com/ftpgrab/ftpgrab/v7/internal/logging"
+	"github.com/ftpgrab/ftpgrab/v7/internal/model"
 	"github.com/rs/zerolog/log"
 )
 

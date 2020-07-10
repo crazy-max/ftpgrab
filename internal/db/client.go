@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ftpgrab/ftpgrab/internal/model"
-	"github.com/ftpgrab/ftpgrab/pkg/utl"
+	"github.com/ftpgrab/ftpgrab/v7/internal/model"
+	"github.com/ftpgrab/ftpgrab/v7/pkg/utl"
 	"github.com/rs/zerolog/log"
 	bolt "go.etcd.io/bbolt"
 )

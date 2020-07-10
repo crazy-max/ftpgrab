@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ftpgrab/ftpgrab/pkg/utl"
+	"github.com/ftpgrab/ftpgrab/v7/pkg/utl"
 )
 
 // Download holds download configuration details

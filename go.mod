@@ -1,4 +1,4 @@
-module github.com/ftpgrab/ftpgrab
+module github.com/ftpgrab/ftpgrab/v7
 
 go 1.13
 

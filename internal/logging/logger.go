@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ftpgrab/ftpgrab/internal/model"
+	"github.com/ftpgrab/ftpgrab/v7/internal/model"
 	"github.com/ilya1st/rotatewriter"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"

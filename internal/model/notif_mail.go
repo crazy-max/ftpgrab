@@ -3,7 +3,7 @@ package model
 import (
 	"net/mail"
 
-	"github.com/ftpgrab/ftpgrab/pkg/utl"
+	"github.com/ftpgrab/ftpgrab/v7/pkg/utl"
 	"github.com/imdario/mergo"
 	"github.com/pkg/errors"
 )

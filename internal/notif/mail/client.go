@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ftpgrab/ftpgrab/internal/journal"
-	"github.com/ftpgrab/ftpgrab/internal/model"
-	"github.com/ftpgrab/ftpgrab/internal/notif/notifier"
+	"github.com/ftpgrab/ftpgrab/v7/internal/journal"
+	"github.com/ftpgrab/ftpgrab/v7/internal/model"
+	"github.com/ftpgrab/ftpgrab/v7/internal/notif/notifier"
 	"github.com/go-gomail/gomail"
 	"github.com/hako/durafmt"
 	"github.com/matcornic/hermes/v2"
