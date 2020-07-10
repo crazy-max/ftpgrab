@@ -3,7 +3,7 @@ module github.com/ftpgrab/ftpgrab
 go 1.13
 
 require (
-	github.com/alecthomas/kong v0.2.9
+	github.com/alecthomas/kong v0.2.10
 	github.com/docker/go-units v0.4.0
 	github.com/hako/durafmt v0.0.0-20191009132224-3f39dc1ed9f4
 	github.com/ilya1st/rotatewriter v0.0.0-20171126183947-3df0c1a3ed6d
