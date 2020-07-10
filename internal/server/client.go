@@ -9,7 +9,7 @@ import (
 
 // Handler is a server interface
 type Handler interface {
-	Common() model.Common
+	Common() model.ServerCommon
 	ReadDir(source string) ([]os.FileInfo, error)
 	Retrieve(path string, dest io.Writer) error
 	Close() error

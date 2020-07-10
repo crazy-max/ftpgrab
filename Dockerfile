@@ -55,7 +55,7 @@ COPY --from=builder /app/ftpgrab /usr/local/bin/ftpgrab
 COPY --from=builder /usr/local/go/lib/time/zoneinfo.zip /usr/local/go/lib/time/zoneinfo.zip
 RUN ftpgrab --version
 
-ENV FTPGRAB_DB="/db/ftpgrab.db" \
+ENV FTPGRAB_DB_PATH="/db/ftpgrab.db" \
   FTPGRAB_DOWNLOAD_OUTPUT="/download"
 
 VOLUME [ "/db", "/download" ]

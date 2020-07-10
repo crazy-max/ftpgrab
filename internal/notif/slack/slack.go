@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"os"
 	"strconv"
 	"time"
 
@@ -19,18 +18,16 @@ import (
 // Client represents an active slack notification object
 type Client struct {
 	*notifier.Notifier
-	cfg model.NotifSlack
-	app model.App
-	cmn model.Common
+	cfg  *model.NotifSlack
+	meta model.Meta
 }
 
 // New creates a new slack notification instance
-func New(config model.NotifSlack, app model.App, cmn model.Common) notifier.Notifier {
+func New(config *model.NotifSlack, meta model.Meta) notifier.Notifier {
 	return notifier.Notifier{
 		Handler: &Client{
-			cfg: config,
-			app: app,
-			cmn: cmn,
+			cfg:  config,
+			meta: meta,
 		},
 	}
 }
@@ -65,26 +62,24 @@ func (c *Client) Send(jnl journal.Client) error {
 		color = "#fbca04"
 	}
 
-	hostname, _ := os.Hostname()
-
 	return slack.PostWebhook(c.cfg.WebhookURL, &slack.WebhookMessage{
 		Attachments: []slack.Attachment{slack.Attachment{
 			Color:         color,
-			AuthorName:    "FTPGrab",
+			AuthorName:    c.meta.Name,
 			AuthorSubname: "github.com/ftpgrab/ftpgrab",
-			AuthorLink:    "https://github.com/ftpgrab/ftpgrab",
-			AuthorIcon:    "https://raw.githubusercontent.com/ftpgrab/ftpgrab/master/.res/ftpgrab.png",
+			AuthorLink:    c.meta.URL,
+			AuthorIcon:    c.meta.Logo,
 			Text:          fmt.Sprintf("%s %s", "<!channel>", textBuf.String()),
-			Footer:        fmt.Sprintf("%s © %d %s %s", c.app.Author, time.Now().Year(), c.app.Name, c.app.Version),
+			Footer:        fmt.Sprintf("%s © %d %s %s", c.meta.Author, time.Now().Year(), c.meta.Name, c.meta.Version),
 			Fields: []slack.AttachmentField{
 				{
 					Title: "Server",
-					Value: c.cmn.Host,
+					Value: jnl.ServerHost,
 					Short: false,
 				},
 				{
 					Title: "Destination hostname",
-					Value: hostname,
+					Value: c.meta.Hostname,
 					Short: false,
 				},
 			},

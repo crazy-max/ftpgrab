@@ -1,18 +1,41 @@
 package model
 
-import "time"
+import (
+	"os"
+	"time"
+
+	"github.com/ftpgrab/ftpgrab/pkg/utl"
+)
 
 // Download holds download configuration details
 type Download struct {
-	Output        string    `yaml:"output,omitempty"`
-	UID           int       `yaml:"uid,omitempty"`
-	GID           int       `yaml:"gid,omitempty"`
-	ChmodFile     int       `yaml:"chmod_file,omitempty"`
-	ChmodDir      int       `yaml:"chmod_dir,omitempty"`
-	Include       []string  `yaml:"include,omitempty"`
-	Exclude       []string  `yaml:"exclude,omitempty"`
-	Since         time.Time `yaml:"since,omitempty"`
-	Retry         int       `yaml:"retry,omitempty"`
-	HideSkipped   bool      `yaml:"hide_skipped,omitempty"`
-	CreateBasedir bool      `yaml:"create_basedir,omitempty"`
+	Output        string    `yaml:"output,omitempty" json:"output,omitempty" validate:"required,dir"`
+	UID           int       `yaml:"uid,omitempty" json:"uid,omitempty"`
+	GID           int       `yaml:"gid,omitempty" json:"gid,omitempty"`
+	ChmodFile     int       `yaml:"chmodFile,omitempty" json:"chmodFile,omitempty"`
+	ChmodDir      int       `yaml:"chmodDir,omitempty" json:"chmodDir,omitempty"`
+	Include       []string  `yaml:"include,omitempty" json:"include,omitempty"`
+	Exclude       []string  `yaml:"exclude,omitempty" json:"exclude,omitempty"`
+	Since         time.Time `yaml:"since,omitempty" json:"since,omitempty"`
+	Retry         int       `yaml:"retry,omitempty" json:"retry,omitempty"`
+	HideSkipped   *bool     `yaml:"hideSkipped,omitempty" json:"hideSkipped,omitempty"`
+	CreateBaseDir *bool     `yaml:"createBaseDir,omitempty" json:"createBaseDir,omitempty"`
+}
+
+// GetDefaults gets the default values
+func (s *Download) GetDefaults() *Download {
+	n := &Download{}
+	n.SetDefaults()
+	return n
+}
+
+// SetDefaults sets the default values
+func (s *Download) SetDefaults() {
+	s.UID = os.Getuid()
+	s.GID = os.Getgid()
+	s.ChmodFile = 0644
+	s.ChmodDir = 0755
+	s.Retry = 3
+	s.HideSkipped = utl.NewFalse()
+	s.CreateBaseDir = utl.NewFalse()
 }

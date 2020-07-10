@@ -9,8 +9,9 @@ import (
 
 // Journal holds ftpgrab entries and status
 type Journal struct {
-	Entries []Entry `json:"entries,omitempty"`
-	Count   struct {
+	ServerHost string  `json:"-"`
+	Entries    []Entry `json:"entries,omitempty"`
+	Count      struct {
 		Success int `json:"success,omitempty"`
 		Error   int `json:"error,omitempty"`
 		Skip    int `json:"skip,omitempty"`

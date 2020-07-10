@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/ftpgrab/ftpgrab/internal/model"
-	"github.com/ftpgrab/ftpgrab/internal/utl"
+	"github.com/ftpgrab/ftpgrab/pkg/utl"
 	"github.com/rs/zerolog/log"
 	bolt "go.etcd.io/bbolt"
 )
@@ -32,7 +32,7 @@ func New(cfg *model.Db) (c *Client, err error) {
 	var db *bolt.DB
 	var bucket = "ftpgrab"
 
-	if !cfg.Enable {
+	if cfg == nil || cfg.Path == "" {
 		return &Client{
 			cfg:    cfg,
 			bucket: bucket,
@@ -67,7 +67,7 @@ func New(cfg *model.Db) (c *Client, err error) {
 
 // Enabled verifies if db is enabled
 func (c *Client) Enabled() bool {
-	return c.cfg.Enable
+	return c.cfg != nil && c.cfg.Path != ""
 }
 
 // Close closes db connection

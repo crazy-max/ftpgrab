@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime"
+	"strings"
 	"syscall"
 	"time"
 
@@ -19,13 +21,30 @@ var (
 	ftpgrab *app.FtpGrab
 	cli     model.Cli
 	version = "dev"
+	meta    = model.Meta{
+		ID:     "ftpgrab",
+		Name:   "FTPGrab",
+		Desc:   "Grab your files periodically from a remote FTP or SFTP server easily",
+		URL:    "https://github.com/ftpgrab/ftpgrab",
+		Logo:   "https://raw.githubusercontent.com/ftpgrab/ftpgrab/master/.res/ftpgrab.png",
+		Author: "CrazyMax",
+	}
 )
 
 func main() {
+	var err error
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	meta.Version = version
+	meta.UserAgent = fmt.Sprintf("%s/%s go/%s %s", meta.ID, meta.Version, runtime.Version()[2:], strings.Title(runtime.GOOS))
+	if meta.Hostname, err = os.Hostname(); err != nil {
+		log.Fatal().Err(err).Msg("Cannot resolve hostname")
+	}
+
 	// Parse command line
 	_ = kong.Parse(&cli,
-		kong.Name("ftpgrab"),
-		kong.Description(`Grab your files periodically from a remote FTP or SFTP server easily. More info: https://github.com/ftpgrab/ftpgrab`),
+		kong.Name(meta.ID),
+		kong.Description(fmt.Sprintf("%s. More info: %s", meta.Desc, meta.URL)),
 		kong.UsageOnError(),
 		kong.Vars{
 			"version": fmt.Sprintf("%s", version),
@@ -43,7 +62,7 @@ func main() {
 
 	// Init
 	logging.Configure(&cli, location)
-	log.Info().Msgf("Starting FTPGrab %s", version)
+	log.Info().Str("version", version).Msgf("Starting %s", meta.Name)
 
 	// Handle os signals
 	channel := make(chan os.Signal)
@@ -55,24 +74,20 @@ func main() {
 		os.Exit(0)
 	}()
 
-	// Load and check configuration
-	cfg, err := config.Load(cli, version)
+	// Load configuration
+	cfg, err := config.Load(cli.Cfgfile, cli.Schedule)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Cannot load configuration")
 	}
-	if err := cfg.Check(); err != nil {
-		cfg.Display()
-		log.Fatal().Err(err).Msg("Improper configuration")
-	}
-	cfg.Display()
+	log.Debug().Msg(cfg.String())
 
 	// Init
-	if ftpgrab, err = app.New(cfg, location); err != nil {
-		log.Fatal().Err(err).Msg("Cannot initialize FTPGrab")
+	if ftpgrab, err = app.New(meta, cfg, location); err != nil {
+		log.Fatal().Err(err).Msgf("Cannot initialize %s", meta.Name)
 	}
 
 	// Start
 	if err = ftpgrab.Start(); err != nil {
-		log.Fatal().Err(err).Msg("Cannot start FTPGrab")
+		log.Fatal().Err(err).Msgf("Cannot start %s", meta.Name)
 	}
 }
