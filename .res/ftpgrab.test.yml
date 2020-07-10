@@ -1,3 +1,6 @@
+db:
+  path: ftpgrab.db
+
 server:
   ftp:
     host: pureftpd
@@ -6,34 +9,15 @@ server:
     password: bar
     sources:
       - /
-    connections_per_host: 5
     timeout: 5s
-    disable_epsv: false
+    disableEPSV: false
     tls: false
-    insecure_skip_verify: false
-    log_trace: false
-
-db:
-  enable: true
+    insecureSkipVerify: false
+    logTrace: false
 
 download:
-  uid:
-  gid:
-  chmod_file: 0644
-  chmod_dir: 0755
-  include:
-  exclude:
+  chmodFile: 0644
+  chmodDir: 0755
   retry: 3
-  hide_skipped: false
-  create_basedir: false
-
-mail:
-  enable: false
-  host: localhost
-  port: 25
-  ssl: false
-  insecure_skip_verify: false
-  username:
-  password:
-  from:
-  to:
+  hideSkipped: false
+  createBaseDir: false
