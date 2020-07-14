@@ -48,14 +48,6 @@ const (
 
 // New creates new ftpgrab instance
 func New(meta model.Meta, cfg *config.Config, location *time.Location) (*FtpGrab, error) {
-	if err := os.MkdirAll(cfg.Download.Output, os.ModePerm); err != nil {
-		return nil, fmt.Errorf("cannot create output download folder %s, %v", cfg.Download.Output, err)
-	}
-
-	if err := os.MkdirAll(path.Dir(cfg.Db.Path), os.ModePerm); err != nil {
-		return nil, fmt.Errorf("cannot create database destination folder %s, %v", path.Dir(cfg.Db.Path), err)
-	}
-
 	return &FtpGrab{
 		meta: meta,
 		cfg:  cfg,

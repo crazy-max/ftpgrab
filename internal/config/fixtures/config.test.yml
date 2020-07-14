@@ -1,0 +1,39 @@
+server:
+  ftp:
+    host: test.rebex.net
+    port: 21
+    username: demo
+    password: password
+    sources:
+      - /
+    timeout: 5s
+    disableEPSV: false
+    tls: false
+    insecureSkipVerify: false
+    logTrace: false
+
+download:
+  output: ./fixtures/downloads
+  chmodFile: 0644
+  chmodDir: 0755
+  retry: 3
+  hideSkipped: false
+  createBaseDir: false
+
+notif:
+  mail:
+    host: localhost
+    port: 25
+    ssl: false
+    insecureSkipVerify: false
+    from: ftpgrab@example.com
+    to: webmaster@example.com
+  slack:
+    webhookURL: https://hooks.slack.com/services/ABCD12EFG/HIJK34LMN/01234567890abcdefghij
+  webhook:
+    endpoint: http://webhook.foo.com/sd54qad89azd5a
+    method: GET
+    headers:
+      content-type: application/json
+      authorization: Token123456
+    timeout: 10s

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/containous/traefik/v2/pkg/config/env"
 	"github.com/containous/traefik/v2/pkg/config/file"
@@ -16,7 +17,7 @@ import (
 // Config holds configuration details
 type Config struct {
 	Schedule string          `yaml:"schedule,omitempty" json:"schedule,omitempty"`
-	Db       *model.Db       `yaml:"db,omitempty" json:"db,omitempty"`
+	Db       *model.Db       `yaml:"db,omitempty" json:"db,omitempty" validate:"omitempty"`
 	Server   *model.Server   `yaml:"server,omitempty" json:"server,omitempty" validate:"required"`
 	Download *model.Download `yaml:"download,omitempty" json:"download,omitempty" validate:"required"`
 	Notif    *model.Notif    `yaml:"notif,omitempty" json:"notif,omitempty"`
@@ -26,6 +27,7 @@ type Config struct {
 func Load(cfgfile string, schedule string) (*Config, error) {
 	cfg := Config{
 		Schedule: schedule,
+		Db:       (&model.Db{}).GetDefaults(),
 	}
 
 	if err := cfg.loadFile(cfgfile, &cfg); err != nil {
@@ -36,8 +38,7 @@ func Load(cfgfile string, schedule string) (*Config, error) {
 		return nil, err
 	}
 
-	validate := validator.New()
-	if err := validate.Struct(&cfg); err != nil {
+	if err := cfg.validate(); err != nil {
 		return nil, err
 	}
 
@@ -76,6 +77,29 @@ func (cfg *Config) loadEnv(out interface{}) error {
 	}
 
 	return nil
+}
+
+func (cfg *Config) validate() error {
+	if cfg.Db != nil && cfg.Db.Path != "" {
+		if err := os.MkdirAll(path.Dir(cfg.Db.Path), os.ModePerm); err != nil {
+			return errors.Wrap(err, "Cannot create database destination folder")
+		}
+	}
+
+	if cfg.Server == nil || (cfg.Server.FTP == nil && cfg.Server.SFTP == nil) {
+		return errors.New("a server must be defined")
+	} else if cfg.Server != nil && cfg.Server.FTP != nil && cfg.Server.SFTP != nil {
+		return errors.New("only one server is allowed")
+	}
+
+	if cfg.Download != nil && cfg.Download.Output != "" {
+		if err := os.MkdirAll(cfg.Download.Output, os.ModePerm); err != nil {
+			return errors.Wrap(err, "Cannot create download output folder")
+		}
+	}
+
+	validate := validator.New()
+	return validate.Struct(cfg)
 }
 
 // String returns the string representation of configuration

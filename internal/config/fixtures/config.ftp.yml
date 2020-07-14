@@ -1,0 +1,24 @@
+db:
+  path: /db/ftpgrab.db
+
+server:
+  ftp:
+    host: test.rebex.net
+    port: 21
+    username: demo
+    password: password
+    sources:
+      - /
+    timeout: 5s
+    disableEPSV: false
+    tls: false
+    insecureSkipVerify: false
+    logTrace: false
+
+download:
+  output: ./fixtures/downloads
+  chmodFile: 0644
+  chmodDir: 0755
+  retry: 3
+  hideSkipped: false
+  createBaseDir: false

@@ -1,0 +1,21 @@
+db:
+  path: /db/ftpgrab.db
+
+server:
+  sftp:
+    host: 10.0.0.1
+    port: 22
+    username: foo
+    password: bar
+    sources:
+      - /
+    timeout: 30s
+    maxPacketSize: 32768
+
+download:
+  output: ./fixtures/downloads
+  chmodFile: 0644
+  chmodDir: 0755
+  retry: 3
+  hideSkipped: true
+  createBaseDir: false
