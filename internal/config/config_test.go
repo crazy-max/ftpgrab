@@ -235,7 +235,7 @@ func TestLoadMixed(t *testing.T) {
 			},
 			expected: &config.Config{
 				Db: &model.Db{
-					Path: "/db/ftpgrab.db",
+					Path: "./fixtures/db/ftpgrab.db",
 				},
 				Server: &model.Server{
 					FTP: &model.ServerFTP{
@@ -284,7 +284,7 @@ func TestLoadMixed(t *testing.T) {
 			},
 			expected: &config.Config{
 				Db: &model.Db{
-					Path: "/db/ftpgrab.db",
+					Path: "./fixtures/db/ftpgrab.db",
 				},
 				Server: &model.Server{
 					SFTP: &model.ServerSFTP{
