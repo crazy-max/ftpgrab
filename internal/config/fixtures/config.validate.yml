@@ -1,5 +1,5 @@
 db:
-  path: ftpgrab.db
+  path: ./fixtures/db/ftpgrab.db
 
 server:
   ftp:
@@ -17,26 +17,24 @@ server:
 
 download:
   output: ./fixtures/downloads
+  uid: 1000
+  gid: 1000
   chmodFile: 0644
   chmodDir: 0755
+  include:
+    - ^Mr\.Robot\.S04.+(VOSTFR|SUBFRENCH).+(720p).+(HDTV|WEB-DL|WEBRip).+
+  exclude:
+    - \.nfo$
+  since: 2019-02-01T18:50:05Z
   retry: 3
   hideSkipped: false
   createBaseDir: false
 
 notif:
   mail:
-    host: localhost
-    port: 25
+    host: smtp.example.com
+    port: 587
     ssl: false
     insecureSkipVerify: false
-    from: diun@example.com
+    from: ftpgrab@example.com
     to: webmaster@example.com
-  slack:
-    webhookURL: https://hooks.slack.com/services/ABCD12EFG/HIJK34LMN/01234567890abcdefghij
-  webhook:
-    endpoint: http://webhook.foo.com/sd54qad89azd5a
-    method: GET
-    headers:
-      content-type: application/json
-      authorization: Token123456
-    timeout: 10s

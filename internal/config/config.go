@@ -2,9 +2,9 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path"
+	"regexp"
 
 	"github.com/containous/traefik/v2/pkg/config/env"
 	"github.com/containous/traefik/v2/pkg/config/file"
@@ -45,20 +45,27 @@ func Load(cfgfile string, schedule string) (*Config, error) {
 	return &cfg, nil
 }
 
-func (cfg *Config) loadFile(cfgfile string, out interface{}) error {
-	if len(cfgfile) == 0 {
+func (cfg *Config) loadFile(configFile string, out interface{}) error {
+	finder := Finder{
+		BasePaths:  []string{"/etc/ftpgrab/ftpgrab", "$XDG_CONFIG_HOME/ftpgrab", "$HOME/.config/ftpgrab", "./ftpgrab"},
+		Extensions: []string{"yaml", "yml"},
+	}
+
+	filePath, err := finder.Find(configFile)
+	if err != nil {
+		return err
+	}
+
+	if len(filePath) == 0 {
 		log.Debug().Msg("No configuration file defined")
 		return nil
 	}
 
-	if _, err := os.Lstat(cfgfile); os.IsNotExist(err) {
-		return fmt.Errorf("config file %s not found", cfgfile)
+	if err := file.Decode(filePath, out); err != nil {
+		return errors.Wrap(err, "Failed to decode configuration from file")
 	}
 
-	if err := file.Decode(cfgfile, out); err != nil {
-		return errors.Wrap(err, "failed to decode configuration from file")
-	}
-
+	log.Info().Msgf("Configuration loaded from file: %s", filePath)
 	return nil
 }
 
@@ -86,15 +93,37 @@ func (cfg *Config) validate() error {
 		}
 	}
 
-	if cfg.Server == nil || (cfg.Server.FTP == nil && cfg.Server.SFTP == nil) {
-		return errors.New("a server must be defined")
-	} else if cfg.Server != nil && cfg.Server.FTP != nil && cfg.Server.SFTP != nil {
-		return errors.New("only one server is allowed")
+	if cfg.Server != nil {
+		if cfg.Server.FTP == nil && cfg.Server.SFTP == nil {
+			return errors.New("A server must be defined")
+		} else if cfg.Server.FTP != nil && cfg.Server.SFTP != nil {
+			return errors.New("Only one server is allowed")
+		}
+		if cfg.Server.FTP != nil {
+			if len(cfg.Server.FTP.Sources) == 0 {
+				return errors.New("At least one FTP source is required")
+			}
+		}
+		if cfg.Server.SFTP != nil {
+			if len(cfg.Server.SFTP.Sources) == 0 {
+				return errors.New("At least one SFTP source is required")
+			}
+		}
 	}
 
-	if cfg.Download != nil && cfg.Download.Output != "" {
+	if cfg.Download != nil {
 		if err := os.MkdirAll(cfg.Download.Output, os.ModePerm); err != nil {
 			return errors.Wrap(err, "Cannot create download output folder")
+		}
+		for _, include := range cfg.Download.Include {
+			if _, err := regexp.Compile(include); err != nil {
+				return errors.Wrapf(err, "Include regex '%s' cannot compile", include)
+			}
+		}
+		for _, exclude := range cfg.Download.Exclude {
+			if _, err := regexp.Compile(exclude); err != nil {
+				return errors.Wrapf(err, "Exclude regex '%s' cannot compile", exclude)
+			}
 		}
 	}
 

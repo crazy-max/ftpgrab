@@ -1,12 +1,13 @@
-package config_test
+package config
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/ftpgrab/ftpgrab/v7/internal/config"
+	"github.com/containous/traefik/v2/pkg/config/env"
 	"github.com/ftpgrab/ftpgrab/v7/internal/model"
 	"github.com/ftpgrab/ftpgrab/v7/pkg/utl"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +18,7 @@ func TestLoadFile(t *testing.T) {
 	cases := []struct {
 		name     string
 		cfgfile  string
-		wantData *config.Config
+		wantData *Config
 		wantErr  bool
 	}{
 		{
@@ -33,7 +34,7 @@ func TestLoadFile(t *testing.T) {
 		{
 			name:    "Success",
 			cfgfile: "./fixtures/config.test.yml",
-			wantData: &config.Config{
+			wantData: &Config{
 				Db: (&model.Db{}).GetDefaults(),
 				Server: &model.Server{
 					FTP: &model.ServerFTP{
@@ -88,7 +89,7 @@ func TestLoadFile(t *testing.T) {
 	}
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg, err := config.Load(tt.cfgfile, "")
+			cfg, err := Load(tt.cfgfile, "")
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -127,7 +128,7 @@ func TestLoadEnv(t *testing.T) {
 				"FTPGRAB_SERVER_FTP_SOURCES=/",
 				"FTPGRAB_DOWNLOAD_OUTPUT=./fixtures/downloads",
 			},
-			expected: &config.Config{
+			expected: &Config{
 				Db: (&model.Db{}).GetDefaults(),
 				Server: &model.Server{
 					FTP: &model.ServerFTP{
@@ -187,7 +188,7 @@ func TestLoadEnv(t *testing.T) {
 				}
 			}
 
-			cfg, err := config.Load(tt.cfgfile, "")
+			cfg, err := Load(tt.cfgfile, "")
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -233,7 +234,7 @@ func TestLoadMixed(t *testing.T) {
 				"FTPGRAB_NOTIF_MAIL_FROM=ftpgrab@foo.com",
 				"FTPGRAB_NOTIF_MAIL_TO=webmaster@foo.com",
 			},
-			expected: &config.Config{
+			expected: &Config{
 				Db: &model.Db{
 					Path: "./fixtures/db/ftpgrab.db",
 				},
@@ -282,7 +283,7 @@ func TestLoadMixed(t *testing.T) {
 			environ: []string{
 				"FTPGRAB_NOTIF_SLACK_WEBHOOKURL=https://hooks.slack.com/services/ABCD12EFG/HIJK34LMN/01234567890abcdefghij",
 			},
-			expected: &config.Config{
+			expected: &Config{
 				Db: &model.Db{
 					Path: "./fixtures/db/ftpgrab.db",
 				},
@@ -330,7 +331,7 @@ func TestLoadMixed(t *testing.T) {
 				}
 			}
 
-			cfg, err := config.Load(tt.cfgfile, "")
+			cfg, err := Load(tt.cfgfile, "")
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -354,13 +355,14 @@ func TestValidation(t *testing.T) {
 	}
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := config.Load(tt.cfgfile, "")
+			cfg, err := Load(tt.cfgfile, "")
 			require.NoError(t, err)
 
-			//dec, err := env.Encode(cfg)
-			//for _, value := range dec {
-			//	fmt.Println(fmt.Sprintf(`%s=%s`, strings.Replace(value.Name, "TRAEFIK_", "FTPGRAB_", 1), value.Default))
-			//}
+			dec, err := env.Encode(cfg)
+			require.NoError(t, err)
+			for _, value := range dec {
+				fmt.Println(fmt.Sprintf(`%s=%s`, strings.Replace(value.Name, "TRAEFIK_", "FTPGRAB_", 1), value.Default))
+			}
 		})
 	}
 }
