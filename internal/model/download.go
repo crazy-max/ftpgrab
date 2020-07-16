@@ -16,7 +16,8 @@ type Download struct {
 	ChmodDir      int       `yaml:"chmodDir,omitempty" json:"chmodDir,omitempty"`
 	Include       []string  `yaml:"include,omitempty" json:"include,omitempty"`
 	Exclude       []string  `yaml:"exclude,omitempty" json:"exclude,omitempty"`
-	Since         time.Time `yaml:"since,omitempty" json:"since,omitempty"`
+	Since         string    `yaml:"since,omitempty" json:"since,omitempty"`
+	SinceTime     time.Time `yaml:"-" json:"-" label:"-" file:"-"`
 	Retry         int       `yaml:"retry,omitempty" json:"retry,omitempty"`
 	HideSkipped   *bool     `yaml:"hideSkipped,omitempty" json:"hideSkipped,omitempty"`
 	CreateBaseDir *bool     `yaml:"createBaseDir,omitempty" json:"createBaseDir,omitempty"`

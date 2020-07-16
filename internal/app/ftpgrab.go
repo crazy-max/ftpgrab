@@ -65,7 +65,7 @@ func (fg *FtpGrab) Start() error {
 	fg.Run()
 
 	// Init scheduler if defined
-	if fg.cfg.Schedule == "" {
+	if len(fg.cfg.Schedule) == 0 {
 		return nil
 	}
 	fg.jobID, err = fg.cron.AddJob(fg.cfg.Schedule, fg)
@@ -289,7 +289,7 @@ func (fg *FtpGrab) fileStatus(base string, src string, dest string, file os.File
 		return notIncluded
 	} else if fg.isExcluded(file.Name()) {
 		return excluded
-	} else if file.ModTime().Before(fg.cfg.Download.Since) {
+	} else if file.ModTime().Before(fg.cfg.Download.SinceTime) {
 		return outdated
 	} else if destfile, err := os.Stat(path.Join(dest, file.Name())); err == nil {
 		if destfile.Size() == file.Size() {

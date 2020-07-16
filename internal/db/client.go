@@ -32,7 +32,7 @@ func New(cfg *model.Db) (c *Client, err error) {
 	var db *bolt.DB
 	var bucket = "ftpgrab"
 
-	if cfg == nil || cfg.Path == "" {
+	if cfg == nil || len(cfg.Path) == 0 {
 		return &Client{
 			cfg:    cfg,
 			bucket: bucket,
@@ -67,7 +67,7 @@ func New(cfg *model.Db) (c *Client, err error) {
 
 // Enabled verifies if db is enabled
 func (c *Client) Enabled() bool {
-	return c.cfg != nil && c.cfg.Path != ""
+	return c.cfg != nil && len(c.cfg.Path) > 0
 }
 
 // Close closes db connection

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/containous/traefik/v2/pkg/config/env"
+	"github.com/crazy-max/gonfig/env"
 	"github.com/ftpgrab/ftpgrab/v7/internal/model"
 	"github.com/ftpgrab/ftpgrab/v7/pkg/utl"
 	"github.com/stretchr/testify/assert"
@@ -58,6 +58,8 @@ func TestLoadFile(t *testing.T) {
 					GID:           os.Getgid(),
 					ChmodFile:     0644,
 					ChmodDir:      0755,
+					Since:         "2019-02-01T18:50:05Z",
+					SinceTime:     time.Date(2019, 2, 1, 18, 50, 05, 0, time.UTC),
 					Retry:         3,
 					HideSkipped:   utl.NewFalse(),
 					CreateBaseDir: utl.NewFalse(),
@@ -361,7 +363,7 @@ func TestValidation(t *testing.T) {
 			dec, err := env.Encode(cfg)
 			require.NoError(t, err)
 			for _, value := range dec {
-				fmt.Println(fmt.Sprintf(`%s=%s`, strings.Replace(value.Name, "TRAEFIK_", "FTPGRAB_", 1), value.Default))
+				fmt.Println(fmt.Sprintf(`%s=%s`, strings.Replace(value.Name, "GONFIG_", "FTPGRAB_", 1), value.Default))
 			}
 		})
 	}

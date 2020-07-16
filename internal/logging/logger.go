@@ -32,7 +32,7 @@ func Configure(cli *model.Cli, location *time.Location) {
 		w = os.Stdout
 	}
 
-	if cli.LogFile != "" {
+	if len(cli.LogFile) > 0 {
 		logFile := path.Clean(cli.LogFile)
 		if err := os.MkdirAll(path.Dir(logFile), os.ModePerm); err != nil {
 			log.Fatal().Err(err).Msgf("Cannot create log folder")

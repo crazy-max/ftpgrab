@@ -5,9 +5,9 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"time"
 
-	"github.com/containous/traefik/v2/pkg/config/env"
-	"github.com/containous/traefik/v2/pkg/config/file"
+	"github.com/crazy-max/gonfig"
 	"github.com/ftpgrab/ftpgrab/v7/internal/model"
 	"github.com/go-playground/validator/v10"
 	"github.com/pkg/errors"
@@ -30,12 +30,30 @@ func Load(cfgfile string, schedule string) (*Config, error) {
 		Db:       (&model.Db{}).GetDefaults(),
 	}
 
-	if err := cfg.loadFile(cfgfile, &cfg); err != nil {
-		return nil, err
+	fileLoader := gonfig.NewFileLoader(gonfig.FileLoaderConfig{
+		Filename: cfgfile,
+		Finder: gonfig.Finder{
+			BasePaths:  []string{"/etc/ftpgrab/ftpgrab", "$XDG_CONFIG_HOME/ftpgrab", "$HOME/.config/ftpgrab", "./ftpgrab"},
+			Extensions: []string{"yaml", "yml"},
+		},
+	})
+	if found, err := fileLoader.Load(&cfg); err != nil {
+		return nil, errors.Wrap(err, "Failed to decode configuration from file")
+	} else if !found {
+		log.Debug().Msg("No configuration file found")
+	} else {
+		log.Info().Msgf("Configuration loaded from file: %s", fileLoader.GetFilename())
 	}
 
-	if err := cfg.loadEnv(&cfg); err != nil {
-		return nil, err
+	envLoader := gonfig.NewEnvLoader(gonfig.EnvLoaderConfig{
+		Prefix: "FTPGRAB_",
+	})
+	if found, err := envLoader.Load(&cfg); err != nil {
+		return nil, errors.Wrap(err, "Failed to decode configuration from environment variables")
+	} else if !found {
+		log.Debug().Msg("No FTPGRAB_* environment variables defined")
+	} else {
+		log.Info().Msgf("Configuration loaded from %d environment variables", len(envLoader.GetVars()))
 	}
 
 	if err := cfg.validate(); err != nil {
@@ -45,51 +63,14 @@ func Load(cfgfile string, schedule string) (*Config, error) {
 	return &cfg, nil
 }
 
-func (cfg *Config) loadFile(configFile string, out interface{}) error {
-	finder := Finder{
-		BasePaths:  []string{"/etc/ftpgrab/ftpgrab", "$XDG_CONFIG_HOME/ftpgrab", "$HOME/.config/ftpgrab", "./ftpgrab"},
-		Extensions: []string{"yaml", "yml"},
-	}
-
-	filePath, err := finder.Find(configFile)
-	if err != nil {
-		return err
-	}
-
-	if len(filePath) == 0 {
-		log.Debug().Msg("No configuration file defined")
-		return nil
-	}
-
-	if err := file.Decode(filePath, out); err != nil {
-		return errors.Wrap(err, "Failed to decode configuration from file")
-	}
-
-	log.Info().Msgf("Configuration loaded from file: %s", filePath)
-	return nil
-}
-
-func (cfg *Config) loadEnv(out interface{}) error {
-	var envvars []string
-	for _, envvar := range env.FindPrefixedEnvVars(os.Environ(), "FTPGRAB_", out) {
-		envvars = append(envvars, envvar)
-	}
-	if len(envvars) == 0 {
-		log.Debug().Msg("No FTPGRAB_* environment variables defined")
-		return nil
-	}
-
-	if err := env.Decode(envvars, "FTPGRAB_", out); err != nil {
-		return errors.Wrap(err, "failed to decode configuration from environment variables")
-	}
-
-	return nil
-}
-
 func (cfg *Config) validate() error {
-	if cfg.Db != nil && cfg.Db.Path != "" {
-		if err := os.MkdirAll(path.Dir(cfg.Db.Path), os.ModePerm); err != nil {
-			return errors.Wrap(err, "Cannot create database destination folder")
+	var err error
+
+	if cfg.Db != nil {
+		if len(cfg.Db.Path) > 0 {
+			if err := os.MkdirAll(path.Dir(cfg.Db.Path), os.ModePerm); err != nil {
+				return errors.Wrap(err, "Cannot create database destination folder")
+			}
 		}
 	}
 
@@ -125,10 +106,15 @@ func (cfg *Config) validate() error {
 				return errors.Wrapf(err, "Exclude regex '%s' cannot compile", exclude)
 			}
 		}
+		if len(cfg.Download.Since) > 0 {
+			cfg.Download.SinceTime, err = time.Parse("2006-01-02T15:04:05Z", cfg.Download.Since)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
-	validate := validator.New()
-	return validate.Struct(cfg)
+	return validator.New().Struct(cfg)
 }
 
 // String returns the string representation of configuration

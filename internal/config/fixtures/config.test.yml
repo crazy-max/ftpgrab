@@ -16,6 +16,7 @@ download:
   output: ./fixtures/downloads
   chmodFile: 0644
   chmodDir: 0755
+  since: 2019-02-01T18:50:05Z
   retry: 3
   hideSkipped: false
   createBaseDir: false

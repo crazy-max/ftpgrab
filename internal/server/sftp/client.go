@@ -28,7 +28,7 @@ func New(config *model.ServerSFTP) (*server.Client, error) {
 	var sshAuth []ssh.AuthMethod
 
 	// SSH Auth
-	if config.Key != "" {
+	if len(config.Key) > 0 {
 		if sshAuth, err = client.readPublicKey(config.Key, config.Password); err != nil {
 			return nil, fmt.Errorf("unable to read SFTP public key, %v", err)
 		}
@@ -75,7 +75,7 @@ func (c *Client) readPublicKey(key string, password string) ([]ssh.AuthMethod, e
 		return nil, err
 	}
 
-	if password != "" {
+	if len(password) > 0 {
 		signer, err = ssh.ParsePrivateKeyWithPassphrase(buffer, []byte(password))
 	} else {
 		signer, err = ssh.ParsePrivateKey(buffer)

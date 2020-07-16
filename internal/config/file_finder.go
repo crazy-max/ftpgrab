@@ -37,7 +37,7 @@ func (f Finder) Find(configFile string) (string, error) {
 
 func (f Finder) getPaths(configFile string) []string {
 	var paths []string
-	if strings.TrimSpace(configFile) != "" {
+	if len(strings.TrimSpace(configFile)) > 0 {
 		paths = append(paths, configFile)
 	}
 

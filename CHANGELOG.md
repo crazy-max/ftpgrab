@@ -57,7 +57,7 @@
 
 ## 5.5.0 (2019/07/20)
 
-* Switch to [crazy-max/goftp](https://github.com/crazy-max/goftp) (Issue #55)
+* Switch to [crazy-max/goftp](https://github.com/crazy-max/goftp) (#55)
 
 ## 5.4.1 (2019/07/18)
 
@@ -73,7 +73,7 @@
 
 ## 5.3.0 (2019/05/04)
 
-* Escape all regexp metacharacters on read dir (Issue #49)
+* Escape all regexp metacharacters on read dir (#49)
 * Remove unused field
 * Go 1.12
 * Update deps
@@ -83,7 +83,7 @@
 :warning: See **Migration notes** in the documentation for breaking changes.
 
 * Add webhook notification method
-* Remove unnecessary `connections_per_host` field (Issue #48)
+* Remove unnecessary `connections_per_host` field (#48)
 * Fix log folder creation
 
 ## 5.1.1 (2019/02/18)
@@ -94,7 +94,7 @@
 
 :warning: See **Migration notes** in the documentation for breaking changes.
 
-* Add SFTP support (Issue #42)
+* Add SFTP support (#42)
 
 ## 5.0.1 (2019/02/13)
 
@@ -105,7 +105,7 @@
 
 :warning: See **Migration notes** in the documentation for breaking changes.
 
-* BIG rewrite (Issue #36)
+* BIG rewrite (#36)
 * Multiplatform : Linux, macOS and Windows on architectures like amd64, i386, ARM and others
 * Modern CLI interactions
 * Yaml Configuration file
@@ -123,7 +123,7 @@
 * Manage base dir
 * Set original modtime
 * Include/exclude based on regexp
-* Ignore files by date (Issue #39)
+* Ignore files by date (#39)
 * Handle mutex
 
 ## 4.3.5 (2019/02/04)
@@ -132,23 +132,23 @@
 
 ## 4.3.4 (2018/08/15)
 
-* Empty folder leeds to spinlock (Issue #33)
+* Empty folder leeds to spinlock (#33)
 
 ## 4.3.3 (2018/05/14)
 
-* nawk and gawk not required anymore (Issue #38)
+* nawk and gawk not required anymore (#38)
 
 ## 4.3.2 (2018/04/20)
 
-* Detect if file size is currently changing and hold for download (Issue #37)
+* Detect if file size is currently changing and hold for download (#37)
 
 ## 4.3.1 (2018/01/15)
 
-* Fix issue while checking source hash (Issue #35)
+* Fix issue while checking source hash (#35)
 
 ## 4.3.0 (2017/12/26)
 
-* Add an exclude filter for files through `DL_EXCLUDE_REGEX` (Issue #27)
+* Add an exclude filter for files through `DL_EXCLUDE_REGEX` (#27)
 
 ## 4.2.4 (2017/11/01)
 
@@ -156,7 +156,7 @@
 
 ## 4.2.3 (2017/10/30)
 
-* Fix files download again (Issue #32)
+* Fix files download again (#32)
 
 ## 4.2.2 (2017/10/29)
 
@@ -179,8 +179,8 @@
 
 ## 4.1.1 (2017/04/26)
 
-* Add tests (Issue #30)
-* Use type instead of which (Issue #29)
+* Add tests (#30)
+* Use type instead of which (#29)
 * Fix error prone and performance issues
 * Coding style
 * Add default config
@@ -190,19 +190,19 @@
 
 :warning: See **Migration notes** in the documentation for breaking changes.
 
-* Rename the project ftpgrab ! (Issue #28)
+* Rename the project ftpgrab ! (#28)
 
 ## 4.0 (2017/03/14)
 
 :warning: See **Migration notes** in the documentation for breaking changes.
 
-* Shuffle file/folder listing (Issue #25)
-* Allow multiple instances (Issue #22)
+* Shuffle file/folder listing (#25)
+* Allow multiple instances (#22)
 
 ## 3.2 (2016/06/20)
 
-* Add messages for permission issue (Issue #19)
-* Move some instructions to Wiki (Issue #18)
+* Add messages for permission issue (#19)
+* Move some instructions to Wiki (#18)
 * Update `ISSUE_TEMPLATE.md`
 * Add [.editorconfig](http://editorconfig.org/)
 * MIT License
@@ -211,17 +211,17 @@
 
 **You have to edit the config file `ftp-sync.conf` if you upgrade from a previous release!**
 
-* Add multiple ftp sources paths (Issue #18)
-* Sed not escaping & char (Issue #17)
+* Add multiple ftp sources paths (#18)
+* Sed not escaping & char (#17)
 * Add `DL_CREATE_BASEDIR` option to create basename of a ftp source path in the destination folder.
 
 ## 3.0 (2016/03/20)
 
 **You have to edit the config file `ftp-sync.conf` if you upgrade from a previous release!**
 
-* MD5 file not created with text mode (Issue #16)
-* Implement FTPS support for Curl (Issue #15)
-* Implement resume downloads support (Issue #14)
+* MD5 file not created with text mode (#16)
+* Implement FTPS support for Curl (#15)
+* Implement resume downloads support (#14)
 * Add DEBUG option
 * Full Curl implementation when selected for file size and list files
 * Bug with ftpsyncGetHumanSize function
@@ -238,19 +238,19 @@
 
 ## 2.02 (2015/03/21)
 
-* Bug checking MD5 (Issue #11)
+* Bug checking MD5 (#11)
 
 ## 2.01 (2015/03/20)
 
-* Bug download with sqlite3 (Issue #10)
+* Bug download with sqlite3 (#10)
 
 ## 2.00 (2015/03/19)
 
-* Add SQLite method to store MD5 hash (Issue #8)
+* Add SQLite method to store MD5 hash (#8)
 
 ## 1.95 (2014/08/09)
 
-* Bug trailing slash  (Issue #6)
+* Bug trailing slash  (#6)
 
 ## 1.94 (2014/05/22)
 

@@ -38,3 +38,10 @@ notif:
     insecureSkipVerify: false
     from: ftpgrab@example.com
     to: webmaster@example.com
+  webhook:
+    endpoint: http://webhook.foo.com/sd54qad89azd5a
+    method: GET
+    headers:
+      content-type: application/json
+      authorization: Token123456
+    timeout: 10s
