@@ -62,6 +62,20 @@ SFTP username.
 !!! abstract "Environment variables"
     * `FTPGRAB_SERVER_SFTP_USERNAME`
 
+### `usernameFile`
+
+Use content of secret file as SFTP username if `username` not defined.
+
+!!! example "Config file"
+    ```yaml
+    server:
+      sftp:
+        usernameFile: /run/secrets/username
+    ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_SFTP_USERNAMEFILE`
+
 ### `password`
 
 SFTP password or passphrase if `key` is used.
@@ -75,6 +89,20 @@ SFTP password or passphrase if `key` is used.
 
 !!! abstract "Environment variables"
     * `FTPGRAB_SERVER_SFTP_PASSWORD`
+
+### `passwordFile`
+
+Use content of secret file as SFTP password if `password` not defined.
+
+!!! example "Config file"
+    ```yaml
+    server:
+      sftp:
+        passwordFile: /run/secrets/password
+    ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_SFTP_PASSWORDFILE`
 
 ### `key`
 

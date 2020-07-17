@@ -64,6 +64,20 @@ FTP username.
 !!! abstract "Environment variables"
     * `FTPGRAB_SERVER_FTP_USERNAME`
 
+### `usernameFile`
+
+Use content of secret file as FTP username if `username` not defined.
+
+!!! example "Config file"
+    ```yaml
+    server:
+      ftp:
+        usernameFile: /run/secrets/username
+    ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_USERNAMEFILE`
+
 ### `password`
 
 FTP password.
@@ -77,6 +91,20 @@ FTP password.
 
 !!! abstract "Environment variables"
     * `FTPGRAB_SERVER_FTP_PASSWORD`
+
+### `passwordFile`
+
+Use content of secret file as FTP password if `password` not defined.
+
+!!! example "Config file"
+    ```yaml
+    server:
+      ftp:
+        passwordFile: /run/secrets/password
+    ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_PASSWORDFILE`
 
 ### `sources`
 

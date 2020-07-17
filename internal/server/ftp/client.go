@@ -10,7 +10,9 @@ import (
 	"github.com/ftpgrab/ftpgrab/v7/internal/logging"
 	"github.com/ftpgrab/ftpgrab/v7/internal/model"
 	"github.com/ftpgrab/ftpgrab/v7/internal/server"
+	"github.com/ftpgrab/ftpgrab/v7/pkg/utl"
 	"github.com/jlaffaye/ftp"
+	"github.com/rs/zerolog/log"
 )
 
 // Client represents an active ftp object
@@ -44,8 +46,17 @@ func New(config *model.ServerFTP) (*server.Client, error) {
 		return nil, err
 	}
 
-	if len(config.Username) > 0 {
-		if err = client.ftp.Login(config.Username, config.Password); err != nil {
+	username, err := utl.GetSecret(config.Username, config.UsernameFile)
+	if err != nil {
+		log.Warn().Err(err).Msg("Cannot retrieve username secret for ftp server")
+	}
+	password, err := utl.GetSecret(config.Password, config.PasswordFile)
+	if err != nil {
+		log.Warn().Err(err).Msg("Cannot retrieve password secret for ftp server")
+	}
+
+	if len(username) > 0 {
+		if err = client.ftp.Login(username, password); err != nil {
 			return nil, err
 		}
 	}

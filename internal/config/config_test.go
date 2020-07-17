@@ -162,6 +162,43 @@ func TestLoadEnv(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			desc: "sftp server",
+			environ: []string{
+				"FTPGRAB_SERVER_SFTP_HOST=10.0.0.1",
+				"FTPGRAB_SERVER_SFTP_USERNAMEFILE=./fixtures/run_secrets_username",
+				"FTPGRAB_SERVER_SFTP_PASSWORDFILE=./fixtures/run_secrets_password",
+				"FTPGRAB_SERVER_SFTP_SOURCES=/",
+				"FTPGRAB_DOWNLOAD_OUTPUT=./fixtures/downloads",
+			},
+			expected: &Config{
+				Db: (&model.Db{}).GetDefaults(),
+				Server: &model.Server{
+					SFTP: &model.ServerSFTP{
+						Host:         "10.0.0.1",
+						Port:         22,
+						UsernameFile: "./fixtures/run_secrets_username",
+						PasswordFile: "./fixtures/run_secrets_password",
+						Sources: []string{
+							"/",
+						},
+						Timeout:       utl.NewDuration(30 * time.Second),
+						MaxPacketSize: 32768,
+					},
+				},
+				Download: &model.Download{
+					Output:        "./fixtures/downloads",
+					UID:           os.Getuid(),
+					GID:           os.Getgid(),
+					ChmodFile:     0644,
+					ChmodDir:      0755,
+					Retry:         3,
+					HideSkipped:   utl.NewFalse(),
+					CreateBaseDir: utl.NewFalse(),
+				},
+			},
+			wantErr: false,
+		},
+		{
 			desc: "ftp and sftp server defined",
 			environ: []string{
 				"FTPGRAB_SERVER_FTP_HOST=test.rebex.net",

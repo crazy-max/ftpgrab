@@ -8,7 +8,9 @@ import (
 
 	"github.com/ftpgrab/ftpgrab/v7/internal/model"
 	"github.com/ftpgrab/ftpgrab/v7/internal/server"
+	"github.com/ftpgrab/ftpgrab/v7/pkg/utl"
 	"github.com/pkg/sftp"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -33,12 +35,22 @@ func New(config *model.ServerSFTP) (*server.Client, error) {
 			return nil, fmt.Errorf("unable to read SFTP public key, %v", err)
 		}
 	} else {
+		password, err := utl.GetSecret(config.Password, config.PasswordFile)
+		if err != nil {
+			log.Warn().Err(err).Msg("Cannot retrieve password secret for sftp server")
+		}
 		sshAuth = []ssh.AuthMethod{
-			ssh.Password(config.Password),
+			ssh.Password(password),
 		}
 	}
+
+	username, err := utl.GetSecret(config.Username, config.UsernameFile)
+	if err != nil {
+		log.Warn().Err(err).Msg("Cannot retrieve username secret for sftp server")
+	}
+
 	sshConf = &ssh.ClientConfig{
-		User:            config.Username,
+		User:            username,
 		Auth:            sshAuth,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		Timeout:         *config.Timeout,

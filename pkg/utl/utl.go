@@ -3,6 +3,7 @@ package utl
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -16,6 +17,20 @@ func GetEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+// GetSecret retrieves secret's value from plaintext or filename if defined
+func GetSecret(plaintext, filename string) (string, error) {
+	if plaintext != "" {
+		return plaintext, nil
+	} else if filename != "" {
+		b, err := ioutil.ReadFile(filename)
+		if err != nil {
+			return "", err
+		}
+		return string(b), nil
+	}
+	return "", nil
 }
 
 // Exists reports whether the named file or directory exists

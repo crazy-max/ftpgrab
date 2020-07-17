@@ -8,9 +8,11 @@ import (
 	"github.com/ftpgrab/ftpgrab/v7/internal/journal"
 	"github.com/ftpgrab/ftpgrab/v7/internal/model"
 	"github.com/ftpgrab/ftpgrab/v7/internal/notif/notifier"
+	"github.com/ftpgrab/ftpgrab/v7/pkg/utl"
 	"github.com/go-gomail/gomail"
 	"github.com/hako/durafmt"
 	"github.com/matcornic/hermes/v2"
+	"github.com/rs/zerolog/log"
 )
 
 // Client represents an active mail notification object
@@ -115,11 +117,20 @@ func (c *Client) Send(jnl journal.Client) error {
 		}
 	}
 
+	username, err := utl.GetSecret(c.cfg.Username, c.cfg.UsernameFile)
+	if err != nil {
+		log.Warn().Err(err).Msg("Cannot retrieve username secret for mail notifier")
+	}
+	password, err := utl.GetSecret(c.cfg.Password, c.cfg.PasswordFile)
+	if err != nil {
+		log.Warn().Err(err).Msg("Cannot retrieve password secret for mail notifier")
+	}
+
 	dialer := &gomail.Dialer{
 		Host:      c.cfg.Host,
 		Port:      c.cfg.Port,
-		Username:  c.cfg.Username,
-		Password:  c.cfg.Password,
+		Username:  username,
+		Password:  password,
 		SSL:       *c.cfg.SSL,
 		TLSConfig: tlsConfig,
 	}
