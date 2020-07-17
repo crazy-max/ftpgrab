@@ -59,6 +59,4 @@ ENV FTPGRAB_DB_PATH="/db/ftpgrab.db" \
   FTPGRAB_DOWNLOAD_OUTPUT="/download"
 
 VOLUME [ "/db", "/download" ]
-
 ENTRYPOINT [ "ftpgrab" ]
-CMD [ "--config", "/ftpgrab.yml" ]
