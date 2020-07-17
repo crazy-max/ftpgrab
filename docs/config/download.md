@@ -4,121 +4,153 @@
     ```yaml
     download:
       output: /download
-      uid:
-      gid:
-      chmod_file: 0644
-      chmod_dir: 0755
+      uid: 1000
+      gid: 1000
+      chmodFile: 0644
+      chmodDir: 0755
       include:
+        - ^Mr\.Robot\.S04.+(VOSTFR|SUBFRENCH).+(720p).+(HDTV|WEB-DL|WEBRip).+
       exclude:
-      since: 0001-01-01T00:00:00Z
+        - \.nfo$
+      since: 2019-02-01T18:50:05Z
       retry: 3
-      hide_skipped: false
-      create_basedir: false
+      hideSkipped: false
+      createBaseDir: false
     ```
 
 ## `output`
 
 Output destination folder of downloaded files. Env var `FTPGRAB_DOWNLOAD_OUTPUT` overrides this value.
 
-!!! example
+!!! example "Config file"
     ```yaml
     download:
       output: /download
     ```
 
+!!! abstract "Environment variables"
+    * `FTPGRAB_DOWNLOAD_OUTPUT`
+
 ## `uid`
 
 Owner user applied to downloaded files. (default to caller)
 
-!!! example
+!!! example "Config file"
     ```yaml
     download:
       uid: 1000
     ```
 
+!!! abstract "Environment variables"
+    * `FTPGRAB_DOWNLOAD_UID`
+
 ## `gid`
 
 Owner group applied to downloaded files. (default to caller)
 
-!!! example
+!!! example "Config file"
     ```yaml
     download:
       gid: 1000
     ```
 
-## `chmod_file`
+!!! abstract "Environment variables"
+    * `FTPGRAB_DOWNLOAD_GID`
+
+## `chmodFile`
 
 Permissions applied to files. (default: `0644`)
 
-!!! example
+!!! example "Config file"
     ```yaml
     download:
-      chmod_file: 0644
+      chmodFile: 0644
     ```
 
-## `chmod_dir`
+!!! abstract "Environment variables"
+    * `FTPGRAB_DOWNLOAD_CHMODFILE`
+
+## `chmodDir`
 
 Permissions applied to folders. (default: `0755`)
 
-!!! example
+!!! example "Config file"
     ```yaml
     download:
-      chmod_dir: 0755
+      chmodDir: 0755
     ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_DOWNLOAD_CHMODDIR`
 
 ## `include`
 
 List of regular expressions to include files.
 
-!!! example
+!!! example "Config file"
     ```yaml
     download:
       include:
         - ^Mr\.Robot\.S04.+(VOSTFR|SUBFRENCH).+(720p).+(HDTV|WEB-DL|WEBRip).+
     ```
 
+!!! abstract "Environment variables"
+    * `FTPGRAB_DOWNLOAD_INCLUDE`
+
 ## `exclude`
 
 List of regular expressions to exclude files.
 
-!!! example
+!!! example "Config file"
     ```yaml
     download:
       exclude:
         - \.nfo$
     ```
 
+!!! abstract "Environment variables"
+    * `FTPGRAB_DOWNLOAD_EXCLUDE`
+
 ## `since`
 
 Only download files created since the specified date in RFC3339 format.
 
-!!! example
+!!! example "Config file"
     ```yaml
     download:
       since: 2019-02-01T18:50:05Z
     ```
 
+!!! abstract "Environment variables"
+    * `FTPGRAB_DOWNLOAD_SINCE`
+
 ## `retry`
 
 Number of retries in case of download failure. (default: `3`)
 
-!!! example
+!!! example "Config file"
     ```yaml
     download:
       retry: 3
     ```
 
-## `hide_skipped`
+!!! abstract "Environment variables"
+    * `FTPGRAB_DOWNLOAD_RETRY`
+
+## `hideSkipped`
 
 Not display skipped downloads. (default: `false`)
 
-!!! example
+!!! example "Config file"
     ```yaml
     download:
-      hide_skipped: false
+      hideSkipped: false
     ```
 
-## `create_basedir`
+!!! abstract "Environment variables"
+    * `FTPGRAB_DOWNLOAD_HIDESKIPPED`
+
+## `createBaseDir`
 
 Create basename of a FTP source path in the destination folder. This is highly recommended if you have multiple FTP
 source paths to prevent overwriting. (default: `false`)
@@ -126,8 +158,11 @@ source paths to prevent overwriting. (default: `false`)
 !!! warning
     Does not apply if `sources` is `/` only.
 
-!!! example
+!!! example "Config file"
     ```yaml
     download:
-      create_basedir: false
+      createBaseDir: false
     ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_DOWNLOAD_CREATEBASEDIR`

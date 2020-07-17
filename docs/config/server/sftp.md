@@ -1,23 +1,21 @@
 # SFTP server configuration
 
-## Overview
-
-You have to choose the server type `sftp` in the configuration and use the below corresponding fields.
+!!! warning
+    `ftp` and `sftp` are mutually exclusive
 
 !!! example
     ```yaml
     server:
-      type: sftp
       sftp:
-        host:
+        host: 10.0.0.1
         port: 22
-        username:
-        password:
-        key:
+        username: foo
+        password: bar
+        key: /home/user/key.ppk
         sources:
           - /
         timeout: 30s
-        max_packet_size: 32768
+        maxPacketSize: 32768
     ```
 
 ## Reference
@@ -26,96 +24,112 @@ You have to choose the server type `sftp` in the configuration and use the below
 
 SFTP host IP or domain.
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: sftp
       sftp:
         host: 127.0.0.1
     ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_SFTP_HOST`
 
 ### `port`
 
 SFTP port. (default `22`)
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: sftp
       sftp:
         port: 22
     ```
 
-### `user`
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_SFTP_PORT`
+
+### `username`
 
 SFTP username.
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: sftp
       sftp:
-        user: foo
+        username: foo
     ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_SFTP_USERNAME`
 
 ### `password`
 
 SFTP password or passphrase if `key` is used.
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: sftp
       sftp:
         password: bar
     ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_SFTP_PASSWORD`
 
 ### `key`
 
 Path to your private key to enable publickey authentication.
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: sftp
       sftp:
         key: /home/user/key.ppk
     ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_SFTP_KEY`
 
 ### `sources`
 
 List of sources paths to grab from SFTP server.
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: sftp
       sftp:
         sources:
           - /path1
           - /path2/folder
     ```
 
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_SFTP_SOURCES`
+
 ### `timeout`
 
 Timeout is the maximum amount of time for the TCP connection to establish. `0s` means no timeout. (default `30s`)
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: sftp
       sftp:
         timeout: 30s
     ```
 
-### `max_packet_size`
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_SFTP_TIMEOUT`
+
+### `maxPacketSize`
 
 Sets the maximum size of the payload, measured in bytes. (default `32768`)
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: sftp
       sftp:
-        max_packet_size: 32768
+        maxPacketSize: 32768
     ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_SFTP_MAXPACKETSIZE`

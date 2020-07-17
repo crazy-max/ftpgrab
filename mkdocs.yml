@@ -81,10 +81,10 @@ nav:
     - Basic example: usage/basic-example.md
   - Configuration:
     - Overview: config/index.md
+    - .db: config/db.md
     - .server:
       - .ftp: config/server/ftp.md
       - .sftp: config/server/sftp.md
-    - .db: config/db.md
     - .download: config/download.md
     - .notif:
       - .mail: config/notif/mail.md
@@ -93,6 +93,7 @@ nav:
   - FAQ: faq.md
   - Changelog: changelog.md
   - Migration:
+    - FTPGrab v6 to v7: migration/v6-to-v7.md
     - FTPGrab v5.2 to v6.0: migration/v5.2-to-v6.0.md
     - FTPGrab v5.1 to v5.2: migration/v5.1-to-v5.2.md
     - FTPGrab v5.0 to v5.1: migration/v5.0-to-v5.1.md

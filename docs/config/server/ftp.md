@@ -1,25 +1,23 @@
 # FTP server configuration
 
-## Overview
-
-You have to choose the server type `ftp` in the configuration and use the below corresponding fields.
+!!! warning
+    `ftp` and `sftp` are mutually exclusive
 
 !!! example
     ```yaml
     server:
-      type: ftp
       ftp:
-        host:
+        host: test.rebex.net
         port: 21
-        username:
-        password:
+        username: demo
+        password: password
         sources:
           - /
         timeout: 5s
-        disable_epsv: false
+        disableEPSV: false
         tls: false
-        insecure_skip_verify: false
-        log_trace: false
+        insecureSkipVerify: false
+        logTrace: false
     ```
 
 ## Reference
@@ -28,121 +26,143 @@ You have to choose the server type `ftp` in the configuration and use the below 
 
 FTP host IP or domain.
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: ftp
       ftp:
         host: 127.0.0.1
     ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_HOST`
 
 ### `port`
 
 FTP port. (default `21`)
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: ftp
       ftp:
         port: 21
     ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_PORT`
 
 ### `username`
 
 FTP username.
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: ftp
       ftp:
         username: foo
     ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_USERNAME`
 
 ### `password`
 
 FTP password.
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: ftp
       ftp:
         password: bar
     ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_PASSWORD`
 
 ### `sources`
 
 List of sources paths to grab from FTP server.
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: ftp
       ftp:
         sources:
           - /path1
           - /path2/folder
     ```
 
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_SOURCES`
+
 ### `timeout`
 
 Timeout for opening connections, sending control commands, and each read/write of data transfers. (default `5s`)
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: ftp
       ftp:
         timeout: 5s
     ```
 
-### `disable_epsv`
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_TIMEOUT`
+
+### `disableEPSV`
 
 Disables EPSV in favour of PASV. This is useful in cases where EPSV connections neither complete nor downgrade to
 PASV successfully by themselves, resulting in hung connections. (default `false`)
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: ftp
       ftp:
-        disable_epsv: false
+        disableEPSV: false
     ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_DISABLEEPSV`
 
 ### `tls`
 
 Use implicit FTP over TLS. (default `false`)
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
-      type: ftp
       ftp:
         tls: false
     ```
 
-### `insecure_skip_verify`
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_TLS`
+
+### `insecureSkipVerify`
 
 Controls whether a client verifies the server’s certificate chain and host name. (default `false`)
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
       type: ftp
       ftp:
-        insecure_skip_verify: false
+        insecureSkipVerify: false
     ```
 
-### `log_trace`
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_INSECURESKIPVERIFY`
+
+### `logTrace`
 
 Enable low-level FTP log. Works only if global log level is debug. (default `false`)
 
-!!! example
+!!! example "Config file"
     ```yaml
     server:
       type: ftp
       ftp:
-        log_trace: false
+        logTrace: false
     ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_LOGTRACE`

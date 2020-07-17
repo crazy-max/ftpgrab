@@ -4,11 +4,10 @@ You can send webhook notifications with the following settings.
 
 ## Configuration
 
-!!! example
+!!! example "File"
     ```yaml
     notif:
       webhook:
-        enable: true
         endpoint: http://webhook.foo.com/sd54qad89azd5a
         method: GET
         headers:
@@ -17,9 +16,14 @@ You can send webhook notifications with the following settings.
         timeout: 10s
     ```
 
+!!! abstract "Environment variables"
+    * `FTPGRAB_NOTIF_WEBHOOK_ENDPOINT`
+    * `FTPGRAB_NOTIF_WEBHOOK_METHOD`
+    * `FTPGRAB_NOTIF_WEBHOOK_HEADERS_<KEY>`
+    * `FTPGRAB_NOTIF_WEBHOOK_TIMEOUT`
+
 | Name               | Default       | Description   |
 |--------------------|---------------|---------------|
-| `enable`[^1]       | `false`       | Enable webhook notification |
 | `endpoint`[^1]     |               | URL of the HTTP request |
 | `method`[^1]       | `GET`         | HTTP method |
 | `headers`          |               | Map of additional headers to be sent (key is case insensitive) |

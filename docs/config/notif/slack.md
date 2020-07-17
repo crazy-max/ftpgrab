@@ -7,18 +7,19 @@ You can send notifications to your Slack channel using an [incoming webhook URL]
 
 ## Configuration
 
-!!! example
+!!! example "File"
     ```yaml
     notif:
       slack:
-        enable: true
-        webhook_url: https://hooks.slack.com/services/ABCD12EFG/HIJK34LMN/01234567890abcdefghij
+        webhookURL: https://hooks.slack.com/services/ABCD12EFG/HIJK34LMN/01234567890abcdefghij
     ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_NOTIF_SLACK_WEBHOOKURL`
 
 | Name               | Default       | Description   |
 |--------------------|---------------|---------------|
-| `enable`[^1]       | `false`       | Enable slack notifications |
-| `webhook_url`[^1]  |               | Slack [incoming webhook URL](https://api.slack.com/messaging/webhooks) |
+| `webhookURL`[^1]   |               | Slack [incoming webhook URL](https://api.slack.com/messaging/webhooks) |
 
 ## Sample
 
