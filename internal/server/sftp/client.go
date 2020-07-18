@@ -30,11 +30,15 @@ func New(config *model.ServerSFTP) (*server.Client, error) {
 	var sshAuth []ssh.AuthMethod
 
 	// SSH Auth
-	if len(config.Key) > 0 {
-		if sshAuth, err = client.readPublicKey(config.Key, config.Password); err != nil {
+	if len(config.KeyFile) > 0 {
+		keyPassphrase, err := utl.GetSecret(config.KeyPassphrase, config.KeyPassphraseFile)
+		if err != nil {
+			log.Warn().Err(err).Msg("Cannot retrieve key passphrase secret for sftp server")
+		}
+		if sshAuth, err = client.readPublicKey(config.KeyFile, keyPassphrase); err != nil {
 			return nil, fmt.Errorf("unable to read SFTP public key, %v", err)
 		}
-	} else {
+	} else if len(config.Password) > 0 || len(config.PasswordFile) > 0 {
 		password, err := utl.GetSecret(config.Password, config.PasswordFile)
 		if err != nil {
 			log.Warn().Err(err).Msg("Cannot retrieve password secret for sftp server")

@@ -151,6 +151,10 @@ The `type` field has been removed for server. The server type will now be choose
           - /
     ```
 
+## Changes for SFTP auth fields
+
+`key` field has been renamed `keyFile` and can be use with the dedicated `keyPassphrase` field if a passphrase is required.
+
 ## Remove `enable` field for notifiers
 
 The `enable` field has been removed for notifiers. If you don't want a notifier to be enabled, you must now remove

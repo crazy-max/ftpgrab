@@ -11,7 +11,6 @@
         port: 22
         username: foo
         password: bar
-        key: /home/user/key.ppk
         sources:
           - /
         timeout: 30s
@@ -78,7 +77,10 @@ Use content of secret file as SFTP username if `username` not defined.
 
 ### `password`
 
-SFTP password or passphrase if `key` is used.
+!!! warning
+    `password` and `keyFile` are mutually exclusive
+
+SFTP password.
 
 !!! example "Config file"
     ```yaml
@@ -104,7 +106,10 @@ Use content of secret file as SFTP password if `password` not defined.
 !!! abstract "Environment variables"
     * `FTPGRAB_SERVER_SFTP_PASSWORDFILE`
 
-### `key`
+### `keyFile`
+
+!!! warning
+    `keyFile` and `password` are mutually exclusive
 
 Path to your private key to enable publickey authentication.
 
@@ -112,11 +117,36 @@ Path to your private key to enable publickey authentication.
     ```yaml
     server:
       sftp:
-        key: /home/user/key.ppk
+        keyFile: /home/user/key.ppk
     ```
 
 !!! abstract "Environment variables"
-    * `FTPGRAB_SERVER_SFTP_KEY`
+    * `FTPGRAB_SERVER_SFTP_KEYFILE`
+
+### `keyPassphrase`
+
+SFTP key passphrase if `keyFile` is defined.
+
+!!! example "Config file"
+    ```yaml
+    server:
+      sftp:
+        keyPassphrase: bar
+    ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_SFTP_PASSWORD`
+
+### `keyPassphraseFile`
+
+Use content of secret file as SFTP key passphrase if `keyPassphrase` not defined.
+
+!!! example "Config file"
+    ```yaml
+    server:
+      sftp:
+        keyPassphraseFile: /run/secrets/passphrase
+    ```
 
 ### `sources`
 
