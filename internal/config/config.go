@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/crazy-max/ftpgrab/v7/internal/model"
 	"github.com/crazy-max/gonfig"
-	"github.com/ftpgrab/ftpgrab/v7/internal/model"
 	"github.com/go-playground/validator/v10"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"

@@ -3,17 +3,17 @@
 ## Usage
 
 ```shell
-$ ftpgrab --config=CONFIG [<flags>]
+$ ftpgrab [options]
 ```
 
 ## Options
 
 ```
 $ ftpgrab --help
-Usage: ftpgrab --config=STRING
+Usage: ftpgrab
 
 Grab your files periodically from a remote FTP or SFTP server easily. More info:
-https://github.com/ftpgrab/ftpgrab
+https://github.com/crazy-max/ftpgrab
 
 Flags:
   --help                Show context-sensitive help.

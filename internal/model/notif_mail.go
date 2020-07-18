@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/ftpgrab/ftpgrab/v7/pkg/utl"
+	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 )
 
 // NotifMail holds mail notification configuration details

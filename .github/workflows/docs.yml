@@ -63,8 +63,7 @@ jobs:
         if: success() && github.event_name != 'pull_request' && (endsWith(github.ref, github.event.repository.default_branch) || steps.prepare.outputs.release == 'true')
         uses: crazy-max/ghaction-github-pages@v2.1.0
         with:
-          repo: ftpgrab/ftpgrab.github.io
-          target_branch: master
+          target_branch: gh-pages
           build_dir: site
         env:
-          GH_PAT: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

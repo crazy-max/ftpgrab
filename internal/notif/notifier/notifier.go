@@ -1,6 +1,6 @@
 package notifier
 
-import "github.com/ftpgrab/ftpgrab/v7/internal/journal"
+import "github.com/crazy-max/ftpgrab/v7/internal/journal"
 
 // Handler is a notifier interface
 type Handler interface {

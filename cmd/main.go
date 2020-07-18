@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/alecthomas/kong"
-	"github.com/ftpgrab/ftpgrab/v7/internal/app"
-	"github.com/ftpgrab/ftpgrab/v7/internal/config"
-	"github.com/ftpgrab/ftpgrab/v7/internal/logging"
-	"github.com/ftpgrab/ftpgrab/v7/internal/model"
+	"github.com/crazy-max/ftpgrab/v7/internal/app"
+	"github.com/crazy-max/ftpgrab/v7/internal/config"
+	"github.com/crazy-max/ftpgrab/v7/internal/logging"
+	"github.com/crazy-max/ftpgrab/v7/internal/model"
 	"github.com/rs/zerolog/log"
 )
 
@@ -25,8 +25,8 @@ var (
 		ID:     "ftpgrab",
 		Name:   "FTPGrab",
 		Desc:   "Grab your files periodically from a remote FTP or SFTP server easily",
-		URL:    "https://github.com/ftpgrab/ftpgrab",
-		Logo:   "https://raw.githubusercontent.com/ftpgrab/ftpgrab/master/.res/ftpgrab.png",
+		URL:    "https://github.com/crazy-max/ftpgrab",
+		Logo:   "https://raw.githubusercontent.com/crazy-max/ftpgrab/master/.res/ftpgrab.png",
 		Author: "CrazyMax",
 	}
 )

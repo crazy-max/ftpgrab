@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/ftpgrab/ftpgrab/v7/pkg/utl"
+	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 )
 
 // ServerFTP holds ftp server configuration

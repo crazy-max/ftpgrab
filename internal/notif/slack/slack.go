@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ftpgrab/ftpgrab/v7/internal/journal"
-	"github.com/ftpgrab/ftpgrab/v7/internal/model"
-	"github.com/ftpgrab/ftpgrab/v7/internal/notif/notifier"
+	"github.com/crazy-max/ftpgrab/v7/internal/journal"
+	"github.com/crazy-max/ftpgrab/v7/internal/model"
+	"github.com/crazy-max/ftpgrab/v7/internal/notif/notifier"
 	"github.com/hako/durafmt"
 	"github.com/nlopes/slack"
 )
@@ -66,7 +66,7 @@ func (c *Client) Send(jnl journal.Client) error {
 		Attachments: []slack.Attachment{slack.Attachment{
 			Color:         color,
 			AuthorName:    c.meta.Name,
-			AuthorSubname: "github.com/ftpgrab/ftpgrab/v7",
+			AuthorSubname: "github.com/crazy-max/ftpgrab",
 			AuthorLink:    c.meta.URL,
 			AuthorIcon:    c.meta.Logo,
 			Text:          fmt.Sprintf("%s %s", "<!channel>", textBuf.String()),

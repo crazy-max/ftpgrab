@@ -347,7 +347,7 @@ func (t *Theme) HTMLTemplate() string {
                                           {{ end }}
                                         >
                                           {{ if (eq $cell.Key "Status") }}
-                                            <img alt="{{ $cell.Value }}" src="https://raw.githubusercontent.com/ftpgrab/ftpgrab/master/.res/status_{{ $cell.Value }}.png" />
+                                            <img alt="{{ $cell.Value }}" src="https://raw.githubusercontent.com/crazy-max/ftpgrab/master/.res/status_{{ $cell.Value }}.png" />
                                           {{ else }}
                                             {{ $cell.Value }}
                                           {{ end }}

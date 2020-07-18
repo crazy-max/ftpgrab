@@ -1,13 +1,5 @@
 # FAQ
 
-## Who is behind FTPGrab?
-
-Hi, I'm [CrazyMax](https://crazymax.dev). This project is self-funded and developed using my decade of experience
-building open source software.
-
-By [supporting me](https://github.com/sponsors/crazy-max), you're not only sustaining this project,
-but rather all of [my open source projects](https://github.com/crazy-max).
-
 ## How to grab from multiple sources?
 
 You can add multiple sources in the `sources` field of the configuration file:

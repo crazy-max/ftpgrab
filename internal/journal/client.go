@@ -1,7 +1,7 @@
 package journal
 
 import (
-	"github.com/ftpgrab/ftpgrab/v7/internal/model"
+	"github.com/crazy-max/ftpgrab/v7/internal/model"
 )
 
 // Client represents an active journal object

@@ -2,7 +2,7 @@
 
 ## About
 
-FTPGrab provides automatically updated Docker :whale: images within [Docker Hub](https://hub.docker.com/r/ftpgrab/ftpgrab).
+FTPGrab provides automatically updated Docker :whale: images within [Docker Hub](https://hub.docker.com/r/crazymax/ftpgrab).
 It is possible to always use the latest stable tag or to use another service that handles updating Docker images.
 
 !!! note
@@ -11,8 +11,8 @@ It is possible to always use the latest stable tag or to use another service tha
 Following platforms for this image are available:
 
 ```shell
-$ docker run --rm mplatform/mquery ftpgrab/ftpgrab:latest
-Image: ftpgrab/ftpgrab:latest
+$ docker run --rm mplatform/mquery crazymax/ftpgrab:latest
+Image: crazymax/ftpgrab:latest
  * Manifest List: Yes
  * Supported platforms:
    - linux/amd64
@@ -42,7 +42,7 @@ version: "3.5"
 
 services:
   ftpgrab:
-    image: ftpgrab/ftpgrab:latest
+    image: crazymax/ftpgrab:latest
     container_name: ftpgrab
     volumes:
       - "./db:/db:rw"
@@ -102,7 +102,7 @@ $ docker run -d --name ftpgrab \
     -e "FTPGRAB_NOTIF_MAIL_TO=webmaster@example.com" \
     -v "$(pwd)/db:/db:rw" \
     -v "$(pwd)/download:/download:rw" \
-    ftpgrab/ftpgrab:latest
+    crazymax/ftpgrab:latest
 ```
 
 To upgrade your installation to the latest release:
@@ -120,7 +120,7 @@ version: "3.5"
 
 services:
   ftpgrab:
-    image: ftpgrab/ftpgrab:latest
+    image: crazymax/ftpgrab:latest
     container_name: ftpgrab
     volumes:
       - "./db:/db:rw"
@@ -172,7 +172,7 @@ version: "3.5"
 
 services:
   ftpgrab:
-    image: ftpgrab/ftpgrab:latest
+    image: crazymax/ftpgrab:latest
     container_name: ftpgrab
     volumes:
       - "./db:/db:rw"

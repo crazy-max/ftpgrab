@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/ftpgrab/ftpgrab/v7/internal/model"
-	"github.com/ftpgrab/ftpgrab/v7/internal/server"
-	"github.com/ftpgrab/ftpgrab/v7/pkg/utl"
+	"github.com/crazy-max/ftpgrab/v7/internal/model"
+	"github.com/crazy-max/ftpgrab/v7/internal/server"
+	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/pkg/sftp"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/ssh"

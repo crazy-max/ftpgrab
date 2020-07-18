@@ -7,10 +7,10 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/ftpgrab/ftpgrab/v7/internal/logging"
-	"github.com/ftpgrab/ftpgrab/v7/internal/model"
-	"github.com/ftpgrab/ftpgrab/v7/internal/server"
-	"github.com/ftpgrab/ftpgrab/v7/pkg/utl"
+	"github.com/crazy-max/ftpgrab/v7/internal/logging"
+	"github.com/crazy-max/ftpgrab/v7/internal/model"
+	"github.com/crazy-max/ftpgrab/v7/internal/server"
+	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/jlaffaye/ftp"
 	"github.com/rs/zerolog/log"
 )

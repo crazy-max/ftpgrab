@@ -1,12 +1,12 @@
 package notif
 
 import (
-	"github.com/ftpgrab/ftpgrab/v7/internal/journal"
-	"github.com/ftpgrab/ftpgrab/v7/internal/model"
-	"github.com/ftpgrab/ftpgrab/v7/internal/notif/mail"
-	"github.com/ftpgrab/ftpgrab/v7/internal/notif/notifier"
-	"github.com/ftpgrab/ftpgrab/v7/internal/notif/slack"
-	"github.com/ftpgrab/ftpgrab/v7/internal/notif/webhook"
+	"github.com/crazy-max/ftpgrab/v7/internal/journal"
+	"github.com/crazy-max/ftpgrab/v7/internal/model"
+	"github.com/crazy-max/ftpgrab/v7/internal/notif/mail"
+	"github.com/crazy-max/ftpgrab/v7/internal/notif/notifier"
+	"github.com/crazy-max/ftpgrab/v7/internal/notif/slack"
+	"github.com/crazy-max/ftpgrab/v7/internal/notif/webhook"
 	"github.com/rs/zerolog/log"
 )
 

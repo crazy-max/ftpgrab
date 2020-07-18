@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/crazy-max/ftpgrab/v7/internal/model"
+	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/crazy-max/gonfig/env"
-	"github.com/ftpgrab/ftpgrab/v7/internal/model"
-	"github.com/ftpgrab/ftpgrab/v7/pkg/utl"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

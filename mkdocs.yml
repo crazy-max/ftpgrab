@@ -1,12 +1,12 @@
 site_name: FTPGrab
 site_description: Grab your files periodically from a remote FTP or SFTP server easily
 site_author: CrazyMax
-site_url: https://ftpgrab.github.io/
+site_url: https://crazy-max.github.io/ftpgrab/
 edit_uri: edit/master/docs/
 docs_dir: docs
 
-repo_name: ftpgrab/ftpgrab
-repo_url: https://github.com/ftpgrab/ftpgrab
+repo_name: crazy-max/ftpgrab
+repo_url: https://github.com/crazy-max/ftpgrab
 
 extra:
   seo:
@@ -16,7 +16,7 @@ extra:
   #yandex:
   social:
     - icon: fontawesome/brands/github-alt
-      link: https://github.com/ftpgrab/ftpgrab
+      link: https://github.com/crazy-max/ftpgrab
 
 theme:
     name: material
