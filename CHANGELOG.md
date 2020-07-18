@@ -1,5 +1,22 @@
 # Changelog
 
+## 7.0.0 (2020/07/18)
+
+* Repository moved to [crazy-max/ftpgrab](https://github.com/crazy-max/ftpgrab)
+* DockerHub repository moved to [crazymax/ftpgrab](https://hub.docker.com/r/crazymax/ftpgrab)
+* Configuration transposed into environment variables (#90)
+* `FTPGRAB_DB` env var renamed `FTPGRAB_DB_PATH`
+* `key` field for SFTP authentication has been renamed `keyFile`
+* Add `keyPassphrase` to provide a passphrase linked to `keyFile`
+* Improve configuration validation
+* All fields in configuration now _camelCased_
+* Add tests and coverage
+* Seek configuration file from default places
+* Configuration file not required anymore
+* Switch to [gonfig](https://github.com/crazy-max/gonfig)
+* Add fields to load sensitive values from file
+* Update deps
+
 ## 6.5.0 (2020/07/07)
 
 * Docs website with mkdocs
