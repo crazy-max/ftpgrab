@@ -37,5 +37,4 @@ Following environment variables can be used in place:
 | `TZ`               | `UTC`         | Timezone assigned |
 | `LOG_LEVEL`        | `info`        | Log level output |
 | `LOG_JSON`         | `false`       | Enable JSON logging output |
-| `LOG_CALLER`       | `false`       | Enable to add `file:line` of the caller |
 | `LOG_FILE`         |               | Add logging to a specific file |

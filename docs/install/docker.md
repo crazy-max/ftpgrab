@@ -116,25 +116,6 @@ If you prefer to rely on the [`configuration file](../config/index.md#configurat
 environment variables:
 
 ```yaml
-version: "3.5"
-
-services:
-  ftpgrab:
-    image: crazymax/ftpgrab:latest
-    container_name: ftpgrab
-    volumes:
-      - "./db:/db:rw"
-      - "./download:/download:rw"
-      - "./ftpgrab.yml:/ftpgrab.yml:ro"
-    environment:
-      - "TZ=Europe/Paris"
-      - "SCHEDULE=*/30 * * * *"
-      - "LOG_LEVEL=info"
-      - "LOG_JSON=false"
-    restart: always
-```
-
-```yaml
 # ./ftpgrab.yml
 
 server:
@@ -165,7 +146,7 @@ notif:
     to: webmaster@example.com
 ```
 
-And your docker composition:
+And here is your docker composition:
 
 ```yaml
 version: "3.5"

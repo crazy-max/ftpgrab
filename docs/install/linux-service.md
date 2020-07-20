@@ -19,7 +19,7 @@ RestartSec=2s
 Type=simple
 User=ftpgrab
 Group=ftpgrab
-ExecStart=/usr/local/bin/ftpgrab --config /etc/ftpgrab/ftpgrab.yml --log-level info
+ExecStart=/usr/local/bin/ftpgrab --config /etc/ftpgrab/ftpgrab.yml --schedule "*/30 * * * *" --log-level info
 Restart=always
 Environment=FTPGRAB_DB=/var/lib/ftpgrab/ftpgrab.db
 
