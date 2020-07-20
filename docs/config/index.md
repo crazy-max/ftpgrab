@@ -17,7 +17,7 @@ For example, the `FTPGRAB_DB` environment variable is enough by itself to enable
 
 At startup, FTPGrab searches for a file named `ftpgrab.yml` (or `ftpgrab.yaml`) in:
 
-* `/etc/traefik/`
+* `/etc/ftpgrab/`
 * `$XDG_CONFIG_HOME/`
 * `$HOME/.config/`
 * `.` _(the working directory)_
