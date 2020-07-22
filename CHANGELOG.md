@@ -2,6 +2,8 @@
 
 ## 7.0.0 (2020/07/18)
 
+:warning: See **Migration notes** in the documentation for breaking changes.
+
 * Repository moved to [crazy-max/ftpgrab](https://github.com/crazy-max/ftpgrab)
 * DockerHub repository moved to [crazymax/ftpgrab](https://hub.docker.com/r/crazymax/ftpgrab)
 * Configuration transposed into environment variables (#90)
