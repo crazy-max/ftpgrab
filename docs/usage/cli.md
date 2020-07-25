@@ -33,7 +33,7 @@ Following environment variables can be used in place:
 | Name               | Default       | Description   |
 |--------------------|---------------|---------------|
 | `CONFIG`           |               | FTPGrab configuration file |
-| `SCHEDULE`         |               | CRON expression format |
+| `SCHEDULE`         |               | [CRON expression](https://godoc.org/github.com/robfig/cron#hdr-CRON_Expression_Format) to schedule FTPGrab |
 | `TZ`               | `UTC`         | Timezone assigned |
 | `LOG_LEVEL`        | `info`        | Log level output |
 | `LOG_JSON`         | `false`       | Enable JSON logging output |
