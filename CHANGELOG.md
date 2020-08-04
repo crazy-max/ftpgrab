@@ -1,5 +1,9 @@
 # Changelog
 
+## 7.0.1 (2020/08/04)
+
+* Fix SFTP not taken into account
+
 ## 7.0.0 (2020/07/18)
 
 :warning: See **Migration notes** in the documentation for breaking changes.

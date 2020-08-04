@@ -106,7 +106,7 @@ func (fg *FtpGrab) Run() {
 	if fg.cfg.Server.FTP != nil {
 		fg.srv, err = ftp.New(fg.cfg.Server.FTP)
 		fg.jnl.ServerHost = fg.cfg.Server.FTP.Host
-	} else if fg.cfg.Server.FTP != nil {
+	} else if fg.cfg.Server.SFTP != nil {
 		fg.srv, err = sftp.New(fg.cfg.Server.SFTP)
 		fg.jnl.ServerHost = fg.cfg.Server.SFTP.Host
 	} else {
