@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/alecthomas/kong v0.2.11
-	github.com/crazy-max/gonfig v0.2.0
+	github.com/crazy-max/gonfig v0.3.0
 	github.com/docker/go-units v0.4.0
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
 	github.com/go-playground/validator/v10 v10.3.0
