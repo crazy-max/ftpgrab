@@ -10,6 +10,7 @@ server:
     sources:
       - /
     timeout: 5s
+    disableUTF8: true
     disableEPSV: false
     tls: false
     insecureSkipVerify: false

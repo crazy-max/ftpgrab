@@ -30,6 +30,7 @@ func New(cfg *config.ServerFTP) (*server.Client, error) {
 	ftpConfig := []ftp.DialOption{
 		ftp.DialWithTimeout(*cfg.Timeout),
 		ftp.DialWithDisabledEPSV(*cfg.DisableEPSV),
+		ftp.DialWithDisabledUTF8(*cfg.DisableUTF8),
 		ftp.DialWithDebugOutput(&logging.FtpWriter{
 			Enabled: *cfg.LogTrace,
 		}),
