@@ -1,4 +1,4 @@
-package model
+package config
 
 // Server represents a server configuration
 type Server struct {

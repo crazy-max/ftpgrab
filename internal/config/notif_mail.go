@@ -1,4 +1,4 @@
-package model
+package config
 
 import (
 	"github.com/crazy-max/ftpgrab/v7/pkg/utl"

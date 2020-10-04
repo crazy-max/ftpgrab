@@ -5,28 +5,29 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
-	"github.com/crazy-max/ftpgrab/v7/internal/model"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/notifier"
 	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/go-gomail/gomail"
 	"github.com/hako/durafmt"
 	"github.com/matcornic/hermes/v2"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
 
 // Client represents an active mail notification object
 type Client struct {
 	*notifier.Notifier
-	cfg  *model.NotifMail
-	meta model.Meta
+	cfg  *config.NotifMail
+	meta config.Meta
 }
 
 // New creates a new mail notification instance
-func New(config *model.NotifMail, meta model.Meta) notifier.Notifier {
+func New(cfg *config.NotifMail, meta config.Meta) notifier.Notifier {
 	return notifier.Notifier{
 		Handler: &Client{
-			cfg:  config,
+			cfg:  cfg,
 			meta: meta,
 		},
 	}
@@ -38,7 +39,7 @@ func (c *Client) Name() string {
 }
 
 // Send creates and sends an email notification with journal entries
-func (c *Client) Send(jnl journal.Client) error {
+func (c *Client) Send(jnl journal.Journal) error {
 	h := hermes.Hermes{
 		Theme: new(Theme),
 		Product: hermes.Product{
@@ -56,8 +57,8 @@ func (c *Client) Send(jnl journal.Client) error {
 	var entriesData [][]hermes.Entry
 	for _, entry := range jnl.Entries {
 		entriesData = append(entriesData, []hermes.Entry{
-			{Key: "Status", Value: entry.StatusType},
-			{Key: "Info", Value: string(entry.StatusText)},
+			{Key: "Status", Value: string(entry.Level)},
+			{Key: "Info", Value: entry.Text},
 			{Key: "File", Value: entry.File},
 		})
 	}
@@ -90,13 +91,13 @@ func (c *Client) Send(jnl journal.Client) error {
 	// Generate an HTML email with the provided contents (for modern clients)
 	htmlpart, err := h.GenerateHTML(email)
 	if err != nil {
-		return fmt.Errorf("hermes: %v", err)
+		return errors.Wrap(err, "Cannot generate HTML content for email notification")
 	}
 
 	// Generate the plaintext version of the e-mail (for clients that do not support xHTML)
 	textpart, err := h.GeneratePlainText(email)
 	if err != nil {
-		return fmt.Errorf("hermes: %v", err)
+		return errors.Wrap(err, "Cannot generate plaintext content for email notification")
 	}
 
 	msg := gomail.NewMessage()

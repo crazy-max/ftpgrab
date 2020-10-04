@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
-	"github.com/crazy-max/ftpgrab/v7/internal/model"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/notifier"
 	"github.com/hako/durafmt"
 	"github.com/nlopes/slack"
@@ -18,15 +18,15 @@ import (
 // Client represents an active slack notification object
 type Client struct {
 	*notifier.Notifier
-	cfg  *model.NotifSlack
-	meta model.Meta
+	cfg  *config.NotifSlack
+	meta config.Meta
 }
 
 // New creates a new slack notification instance
-func New(config *model.NotifSlack, meta model.Meta) notifier.Notifier {
+func New(cfg *config.NotifSlack, meta config.Meta) notifier.Notifier {
 	return notifier.Notifier{
 		Handler: &Client{
-			cfg:  config,
+			cfg:  cfg,
 			meta: meta,
 		},
 	}
@@ -38,7 +38,7 @@ func (c *Client) Name() string {
 }
 
 // Send creates and sends a slack notification with journal entries
-func (c *Client) Send(jnl journal.Client) error {
+func (c *Client) Send(jnl journal.Journal) error {
 	var textBuf bytes.Buffer
 	textTpl := template.Must(template.New("text").Parse("FTPGrab has successfully downloaded *{{ .Success }}* files in *{{ .Duration }}*.\n*{{ .Skip }}* have been skipped and *{{ .Error }}* errors occurred."))
 	if err := textTpl.Execute(&textBuf, struct {

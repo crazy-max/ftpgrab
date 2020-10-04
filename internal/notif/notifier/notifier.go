@@ -5,7 +5,7 @@ import "github.com/crazy-max/ftpgrab/v7/internal/journal"
 // Handler is a notifier interface
 type Handler interface {
 	Name() string
-	Send(jnl journal.Client) error
+	Send(jnl journal.Journal) error
 }
 
 // Notifier represents an active notifier object

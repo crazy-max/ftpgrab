@@ -33,7 +33,7 @@ jobs:
           fetch-depth: 0
       -
         name: Prepare
-        id: prepare
+        id: prep
         run: |
           VERSION=edge
           RELEASE=false

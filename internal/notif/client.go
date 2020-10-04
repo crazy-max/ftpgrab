@@ -1,8 +1,8 @@
 package notif
 
 import (
+	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
-	"github.com/crazy-max/ftpgrab/v7/internal/model"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/mail"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/notifier"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/slack"
@@ -10,35 +10,35 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// Client represents an active webhook notification object
+// Client represents an active notification object
 type Client struct {
-	cfg       *model.Notif
-	meta      model.Meta
+	cfg       *config.Notif
+	meta      config.Meta
 	notifiers []notifier.Notifier
 }
 
 // New creates a new notification instance
-func New(config *model.Notif, meta model.Meta) (*Client, error) {
+func New(cfg *config.Notif, meta config.Meta) (*Client, error) {
 	var c = &Client{
-		cfg:       config,
+		cfg:       cfg,
 		meta:      meta,
 		notifiers: []notifier.Notifier{},
 	}
 
-	if config == nil {
+	if cfg == nil {
 		log.Warn().Msg("No notifier available")
 		return c, nil
 	}
 
 	// Add notifiers
-	if config.Mail != nil {
-		c.notifiers = append(c.notifiers, mail.New(config.Mail, meta))
+	if cfg.Mail != nil {
+		c.notifiers = append(c.notifiers, mail.New(cfg.Mail, meta))
 	}
-	if config.Slack != nil {
-		c.notifiers = append(c.notifiers, slack.New(config.Slack, meta))
+	if cfg.Slack != nil {
+		c.notifiers = append(c.notifiers, slack.New(cfg.Slack, meta))
 	}
-	if config.Webhook != nil {
-		c.notifiers = append(c.notifiers, webhook.New(config.Webhook, meta))
+	if cfg.Webhook != nil {
+		c.notifiers = append(c.notifiers, webhook.New(cfg.Webhook, meta))
 	}
 
 	log.Debug().Msgf("%d notifier(s) created", len(c.notifiers))
@@ -46,7 +46,7 @@ func New(config *model.Notif, meta model.Meta) (*Client, error) {
 }
 
 // Send creates and sends notifications to notifiers
-func (c *Client) Send(jnl journal.Client) {
+func (c *Client) Send(jnl journal.Journal) {
 	for _, n := range c.notifiers {
 		log.Debug().Msgf("Sending %s notification...", n.Name())
 		if err := n.Send(jnl); err != nil {

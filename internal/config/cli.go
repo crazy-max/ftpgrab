@@ -1,4 +1,4 @@
-package model
+package config
 
 import "github.com/alecthomas/kong"
 

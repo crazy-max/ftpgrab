@@ -2,14 +2,14 @@ package db
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"path"
 	"strings"
 	"time"
 
-	"github.com/crazy-max/ftpgrab/v7/internal/model"
+	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	bolt "go.etcd.io/bbolt"
 )
@@ -17,7 +17,7 @@ import (
 // Client represents an active db object
 type Client struct {
 	*bolt.DB
-	cfg    *model.Db
+	cfg    *config.Db
 	bucket string
 }
 
@@ -28,7 +28,7 @@ type entry struct {
 }
 
 // New creates new db instance
-func New(cfg *model.Db) (c *Client, err error) {
+func New(cfg *config.Db) (c *Client, err error) {
 	var db *bolt.DB
 	var bucket = "ftpgrab"
 
@@ -59,7 +59,7 @@ func New(cfg *model.Db) (c *Client, err error) {
 		log.Debug().Msgf("%d entries found in database", stats.KeyN)
 		return nil
 	}); err != nil {
-		return nil, fmt.Errorf("cannot count entries in database, %v", err)
+		return nil, errors.Wrap(err, "Cannot count entries in database")
 	}
 
 	return &Client{db, cfg, bucket}, nil

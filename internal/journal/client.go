@@ -1,32 +1,29 @@
 package journal
 
-import (
-	"github.com/crazy-max/ftpgrab/v7/internal/model"
-)
-
 // Client represents an active journal object
 type Client struct {
-	model.Journal
+	Journal
 }
 
 // New creates new journal instance
 func New() *Client {
-	return &Client{model.Journal{}}
+	return &Client{Journal{}}
 }
 
-// AddEntry adds an entry in the journal
-func (c *Client) AddEntry(entry model.Entry) {
+// Add adds an entry in the journal
+func (c *Client) Add(entry Entry) {
 	c.Entries = append(c.Entries, entry)
-	if entry.StatusType == "error" {
+	switch entry.Level {
+	case EntryLevelError:
 		c.Count.Error++
-	} else if entry.StatusType == "skip" {
+	case EntryLevelSkip:
 		c.Count.Skip++
-	} else if entry.StatusType == "success" {
+	case EntryLevelSuccess:
 		c.Count.Success++
 	}
 }
 
-// IsEmpty verifies if journal is empty
+// IsEmpty checks if journal is empty
 func (c *Client) IsEmpty() bool {
-	return c.Count.Error == 0 && c.Count.Success == 0
+	return c.Entries == nil || len(c.Entries) == 0
 }
