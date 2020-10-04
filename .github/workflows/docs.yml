@@ -28,7 +28,7 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v2.3.2
+        uses: actions/checkout@v2.3.3
         with:
           fetch-depth: 0
       -
@@ -55,13 +55,13 @@ jobs:
           sudo chown -R $(id -u):$(id -g) ./site
       -
         name: Check GitHub Pages status
-        uses: crazy-max/ghaction-github-status@v1
+        uses: crazy-max/ghaction-github-status@v2
         with:
           pages_threshold: major_outage
       -
         name: Deploy
-        if: success() && github.event_name != 'pull_request' && (endsWith(github.ref, github.event.repository.default_branch) || steps.prep.outputs.release == 'true')
-        uses: crazy-max/ghaction-github-pages@v2.1.1
+        if: success() && github.event_name != 'pull_request' && (endsWith(github.ref, github.event.repository.default_branch) || steps.prepare.outputs.release == 'true')
+        uses: crazy-max/ghaction-github-pages@v2.1.2
         with:
           target_branch: gh-pages
           build_dir: site
