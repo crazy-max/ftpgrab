@@ -38,6 +38,7 @@ You can override this using the [`--config` flag or `CONFIG` env var](../usage/c
         sources:
           - /
         timeout: 5s
+        disableUTF8: false
         disableEPSV: false
         tls: false
         insecureSkipVerify: false
@@ -94,6 +95,7 @@ All configuration from file can be transposed into environment variables. As an 
           - /src1
           - /src2
         timeout: 5s
+        disableUTF8: false
         disableEPSV: false
         tls: false
         insecureSkipVerify: false
@@ -136,6 +138,7 @@ Can be transposed to:
     FTPGRAB_SERVER_FTP_PASSWORD=password
     FTPGRAB_SERVER_FTP_SOURCES=/src1,/src2
     FTPGRAB_SERVER_FTP_TIMEOUT=5s
+    FTPGRAB_SERVER_FTP_DISABLEUTF8=false
     FTPGRAB_SERVER_FTP_DISABLEEPSV=false
     FTPGRAB_SERVER_FTP_TLS=false
     FTPGRAB_SERVER_FTP_INSECURESKIPVERIFY=false

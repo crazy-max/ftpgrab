@@ -51,7 +51,7 @@ jobs:
             -v "${HOME}/warmup:/home/foo" \
             -v "/tmp/pureftpd.passwd:/data/pureftpd.passwd" \
             -v "/tmp/pureftpd.flags:/data/pureftpd.flags" \
-            crazymax/pure-ftpd:1.0.47
+            crazymax/pure-ftpd:latest
 
           sleep 5
           docker exec -i pureftpd pure-pw show foo

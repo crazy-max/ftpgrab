@@ -14,6 +14,7 @@
         sources:
           - /
         timeout: 5s
+        disableUTF8: false
         disableEPSV: false
         tls: false
         insecureSkipVerify: false
@@ -135,6 +136,20 @@ Timeout for opening connections, sending control commands, and each read/write o
 
 !!! abstract "Environment variables"
     * `FTPGRAB_SERVER_FTP_TIMEOUT`
+
+### `disableUTF8`
+
+Do not issue the `OPTS UTF8 ON` command (default `false`).
+
+!!! example "Config file"
+    ```yaml
+    server:
+      ftp:
+        disableUTF8: false
+    ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_DISABLEUTF8`
 
 ### `disableEPSV`
 
