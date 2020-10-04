@@ -8,14 +8,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/crazy-max/ftpgrab/v7/internal/model"
+	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/ilya1st/rotatewriter"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 // Configure configures logger
-func Configure(cli *model.Cli, location *time.Location) {
+func Configure(cli config.Cli, location *time.Location) {
 	var err error
 	var w io.Writer
 

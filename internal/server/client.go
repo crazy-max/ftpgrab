@@ -4,12 +4,12 @@ import (
 	"io"
 	"os"
 
-	"github.com/crazy-max/ftpgrab/v7/internal/model"
+	"github.com/crazy-max/ftpgrab/v7/internal/config"
 )
 
 // Handler is a server interface
 type Handler interface {
-	Common() model.ServerCommon
+	Common() config.ServerCommon
 	ReadDir(source string) ([]os.FileInfo, error)
 	Retrieve(path string, dest io.Writer) error
 	Close() error

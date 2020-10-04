@@ -1,23 +1,13 @@
 package app
 
 import (
-	"fmt"
-	"os"
-	"path"
-	"runtime"
 	"sync/atomic"
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
-	"github.com/crazy-max/ftpgrab/v7/internal/db"
-	"github.com/crazy-max/ftpgrab/v7/internal/journal"
-	"github.com/crazy-max/ftpgrab/v7/internal/model"
+	"github.com/crazy-max/ftpgrab/v7/internal/grabber"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif"
 	"github.com/crazy-max/ftpgrab/v7/internal/server"
-	"github.com/crazy-max/ftpgrab/v7/internal/server/ftp"
-	"github.com/crazy-max/ftpgrab/v7/internal/server/sftp"
-	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
-	"github.com/docker/go-units"
 	"github.com/hako/durafmt"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
@@ -25,32 +15,19 @@ import (
 
 // FtpGrab represents an active ftpgrab object
 type FtpGrab struct {
-	meta   model.Meta
-	cfg    *config.Config
-	cron   *cron.Cron
-	srv    *server.Client
-	db     *db.Client
-	notif  *notif.Client
-	jnl    *journal.Client
-	jobID  cron.EntryID
-	locker uint32
+	cfg     *config.Config
+	cron    *cron.Cron
+	srv     *server.Client
+	notif   *notif.Client
+	grabber *grabber.Client
+	jobID   cron.EntryID
+	locker  uint32
 }
 
-const (
-	outdated    = model.EntryStatus("Outdated file")
-	notIncluded = model.EntryStatus("Not included")
-	excluded    = model.EntryStatus("Excluded")
-	neverDl     = model.EntryStatus("Never downloaded")
-	alreadyDl   = model.EntryStatus("Already downloaded")
-	sizeDiff    = model.EntryStatus("Exists but size is different")
-	hashExists  = model.EntryStatus("Hash sum exists")
-)
-
 // New creates new ftpgrab instance
-func New(meta model.Meta, cfg *config.Config, location *time.Location) (*FtpGrab, error) {
+func New(cfg *config.Config, location *time.Location) (*FtpGrab, error) {
 	return &FtpGrab{
-		meta: meta,
-		cfg:  cfg,
+		cfg: cfg,
 		cron: cron.New(cron.WithLocation(location), cron.WithParser(cron.NewParser(
 			cron.SecondOptional|cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow|cron.Descriptor),
 		)),
@@ -65,14 +42,13 @@ func (fg *FtpGrab) Start() error {
 	fg.Run()
 
 	// Init scheduler if defined
-	if len(fg.cfg.Schedule) == 0 {
+	if len(fg.cfg.Cli.Schedule) == 0 {
 		return nil
 	}
-	fg.jobID, err = fg.cron.AddJob(fg.cfg.Schedule, fg)
-	if err != nil {
+	if fg.jobID, err = fg.cron.AddJob(fg.cfg.Cli.Schedule, fg); err != nil {
 		return err
 	}
-	log.Info().Msgf("Cron initialized with schedule %s", fg.cfg.Schedule)
+	log.Info().Msgf("Cron initialized with schedule %s", fg.cfg.Cli.Schedule)
 
 	// Start scheduler
 	fg.cron.Start()
@@ -99,264 +75,46 @@ func (fg *FtpGrab) Run() {
 	start := time.Now()
 	var err error
 
-	// Journal client
-	fg.jnl = journal.New()
-
-	// Server client
-	if fg.cfg.Server.FTP != nil {
-		fg.srv, err = ftp.New(fg.cfg.Server.FTP)
-		fg.jnl.ServerHost = fg.cfg.Server.FTP.Host
-	} else if fg.cfg.Server.SFTP != nil {
-		fg.srv, err = sftp.New(fg.cfg.Server.SFTP)
-		fg.jnl.ServerHost = fg.cfg.Server.SFTP.Host
-	} else {
-		log.Fatal().Err(err).Msg("No server defined")
-	}
-	if err != nil {
-		log.Fatal().Err(err).Msg("Cannot connect to server")
-	}
-
-	// DB client
-	if fg.db, err = db.New(fg.cfg.Db); err != nil {
-		log.Fatal().Err(err).Msg("Cannot open database")
-	}
-
 	// Notification client
-	if fg.notif, err = notif.New(fg.cfg.Notif, fg.meta); err != nil {
+	if fg.notif, err = notif.New(fg.cfg.Notif, fg.cfg.Meta); err != nil {
 		log.Fatal().Err(err).Msg("Cannot create notifiers")
 	}
 
-	// Iterate sources
-	for _, src := range fg.srv.Common().Sources {
-		log.Info().Str("source", src).Msg("Grabbing")
-
-		// Check basedir
-		dest := fg.cfg.Download.Output
-		if src != "/" && *fg.cfg.Download.CreateBaseDir {
-			dest = path.Join(dest, src)
-		}
-
-		// Retrieve recursively
-		fg.retrieveRecursive(src, src, dest)
+	// Grabber client
+	if fg.grabber, err = grabber.New(fg.cfg.Download, fg.cfg.Db, fg.cfg.Server); err != nil {
+		log.Fatal().Err(err).Msg("Cannot create grabber")
 	}
+	defer fg.grabber.Close()
 
-	if err := fg.srv.Close(); err != nil {
-		log.Warn().Err(err).Msg("Cannot close server connection")
+	// List files
+	files := fg.grabber.ListFiles()
+	if len(files) == 0 {
+		log.Warn().Msg("No file found from the provided sources")
+		return
 	}
-	if err := fg.db.Close(); err != nil {
-		log.Warn().Err(err).Msg("Cannot close database")
-	}
-	fg.jnl.Duration = time.Since(start)
+	log.Info().Msgf("%d file(s) found", len(files))
 
+	// Grab
+	jnl := fg.grabber.Grab(files)
+	jnl.Duration = time.Since(start)
 	log.Info().
 		Str("duration", time.Since(start).Round(time.Millisecond).String()).
 		Msg("Finished")
 
 	// Check journal before sending report
-	if fg.jnl.IsEmpty() {
+	if jnl.IsEmpty() {
 		log.Warn().Msg("Journal empty, skip sending report")
 		return
 	}
 
 	// Send notifications
-	fg.notif.Send(*fg.jnl)
+	fg.notif.Send(jnl)
 }
 
 // Close closes ftpgrab
 func (fg *FtpGrab) Close() {
-	if err := fg.srv.Close(); err != nil {
-		log.Warn().Err(err).Msg("Cannot close server connection")
-	}
-	if err := fg.db.Close(); err != nil {
-		log.Warn().Err(err).Msg("Cannot close database")
-	}
+	fg.grabber.Close()
 	if fg.cron != nil {
 		fg.cron.Stop()
 	}
-}
-
-func (fg *FtpGrab) retrieveRecursive(base string, source string, dest string) {
-	// Check source dir exists
-	files, err := fg.srv.ReadDir(source)
-	if err != nil {
-		log.Error().Err(err).Str("source", base).
-			Msgf("Cannot read directory %s", source)
-		return
-	}
-
-	for _, file := range files {
-		if jnlEntry := fg.retrieve(base, source, dest, file, 0); jnlEntry != nil {
-			fg.jnl.AddEntry(*jnlEntry)
-		}
-	}
-}
-
-func (fg *FtpGrab) retrieve(base string, src string, dest string, file os.FileInfo, retry int) *model.Entry {
-	srcpath := path.Join(src, file.Name())
-	destpath := path.Join(dest, file.Name())
-
-	if file.IsDir() {
-		fg.retrieveRecursive(base, srcpath, destpath)
-		return nil
-	}
-
-	status := fg.fileStatus(base, src, dest, file)
-	jnlEntry := &model.Entry{
-		File:       srcpath,
-		StatusText: string(status),
-	}
-
-	sublogger := log.With().
-		Str("file", jnlEntry.File).
-		Str("size", units.HumanSize(float64(file.Size()))).
-		Logger()
-
-	if status == alreadyDl && !fg.db.HasHash(base, src, file) {
-		if err := fg.db.PutHash(base, src, file); err != nil {
-			sublogger.Error().Err(err).Msg("Cannot add hash into db")
-		}
-	}
-	if fg.isSkipped(status) {
-		if !*fg.cfg.Download.HideSkipped {
-			sublogger.Warn().Str(".status", jnlEntry.StatusText).Msg("Skipped")
-			jnlEntry.StatusType = "skip"
-			return jnlEntry
-		}
-		return nil
-	}
-
-	retrieveStart := time.Now()
-	sublogger.Info().Str("dest", destpath).Msg("Downloading...")
-
-	destfolder := path.Dir(destpath)
-	if err := os.MkdirAll(destfolder, os.ModePerm); err != nil {
-		sublogger.Error().Err(err).Msg("Cannot create destination dir")
-		jnlEntry.StatusType = "error"
-		jnlEntry.StatusText = fmt.Sprintf("Cannot create destination dir: %v", err)
-		return jnlEntry
-	}
-	if err := fg.fixPerms(destfolder); err != nil {
-		sublogger.Warn().Err(err).Msg("Cannot fix parent folder permissions")
-	}
-
-	destfile, err := os.Create(destpath)
-	if err != nil {
-		sublogger.Error().Err(err).Msg("Cannot create destination file")
-		jnlEntry.StatusType = "error"
-		jnlEntry.StatusText = fmt.Sprintf("Cannot create destination file: %v", err)
-		return jnlEntry
-	}
-
-	err = fg.srv.Retrieve(srcpath, destfile)
-	if err != nil {
-		retry++
-		sublogger.Error().Err(err).Msgf("Error downloading, retry %d/%d", retry, fg.cfg.Download.Retry)
-		if retry == fg.cfg.Download.Retry {
-			sublogger.Error().Err(err).Msg("Cannot download file")
-			jnlEntry.StatusType = "error"
-			jnlEntry.StatusText = fmt.Sprintf("Cannot download file: %v", err)
-		} else {
-			fg.retrieve(base, src, dest, file, retry)
-			return nil
-		}
-	} else {
-		sublogger.Info().
-			Str("duration", time.Since(retrieveStart).Round(time.Millisecond).String()).
-			Msg("File successfully downloaded")
-		jnlEntry.StatusType = "success"
-		jnlEntry.StatusText = fmt.Sprintf("%s successfully downloaded in %s",
-			units.HumanSize(float64(file.Size())),
-			time.Since(retrieveStart).Round(time.Millisecond).String(),
-		)
-		if err := fg.fixPerms(destpath); err != nil {
-			sublogger.Warn().Err(err).Msg("Cannot fix file permissions")
-		}
-		if err := fg.db.PutHash(base, src, file); err != nil {
-			sublogger.Error().Err(err).Msg("Cannot add hash into db")
-			jnlEntry.StatusType = "warning"
-			jnlEntry.StatusText = fmt.Sprintf("Successfully downloaded but cannot add hash into db: %v", err)
-		}
-		if err = os.Chtimes(destpath, file.ModTime(), file.ModTime()); err != nil {
-			sublogger.Warn().Err(err).Msg("Cannot change modtime of destination file")
-		}
-	}
-
-	return jnlEntry
-}
-
-func (fg *FtpGrab) fileStatus(base string, src string, dest string, file os.FileInfo) model.EntryStatus {
-	if !fg.isIncluded(file.Name()) {
-		return notIncluded
-	} else if fg.isExcluded(file.Name()) {
-		return excluded
-	} else if file.ModTime().Before(fg.cfg.Download.SinceTime) {
-		return outdated
-	} else if destfile, err := os.Stat(path.Join(dest, file.Name())); err == nil {
-		if destfile.Size() == file.Size() {
-			return alreadyDl
-		}
-		return sizeDiff
-	} else if fg.db.HasHash(base, src, file) {
-		return hashExists
-	}
-
-	return neverDl
-}
-
-func (fg *FtpGrab) fixPerms(filepath string) error {
-	if runtime.GOOS == "windows" {
-		return nil
-	}
-
-	fileinfo, err := os.Stat(filepath)
-	if err != nil {
-		return err
-	}
-
-	chmod := os.FileMode(fg.cfg.Download.ChmodFile)
-	if fileinfo.IsDir() {
-		chmod = os.FileMode(fg.cfg.Download.ChmodDir)
-	}
-
-	if err := os.Chmod(filepath, chmod); err != nil {
-		return err
-	}
-
-	if err := os.Chown(filepath, fg.cfg.Download.UID, fg.cfg.Download.GID); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (fg *FtpGrab) isIncluded(filename string) bool {
-	if len(fg.cfg.Download.Include) == 0 {
-		return true
-	}
-	for _, include := range fg.cfg.Download.Include {
-		if utl.MatchString(include, filename) {
-			return true
-		}
-	}
-	return false
-}
-
-func (fg *FtpGrab) isExcluded(filename string) bool {
-	if len(fg.cfg.Download.Exclude) == 0 {
-		return false
-	}
-	for _, exclude := range fg.cfg.Download.Exclude {
-		if utl.MatchString(exclude, filename) {
-			return true
-		}
-	}
-	return false
-}
-
-func (fg *FtpGrab) isSkipped(status model.EntryStatus) bool {
-	return status == alreadyDl ||
-		status == hashExists ||
-		status == outdated ||
-		status == notIncluded ||
-		status == excluded
 }

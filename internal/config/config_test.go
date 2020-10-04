@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/crazy-max/ftpgrab/v7/internal/model"
 	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/crazy-max/gonfig/env"
 	"github.com/stretchr/testify/assert"
@@ -17,27 +16,33 @@ import (
 func TestLoadFile(t *testing.T) {
 	cases := []struct {
 		name     string
-		cfgfile  string
+		cli      Cli
 		wantData *Config
 		wantErr  bool
 	}{
 		{
 			name:    "Failed on non-existing file",
-			cfgfile: "",
 			wantErr: true,
 		},
 		{
-			name:    "Fail on wrong file format",
-			cfgfile: "./fixtures/config.invalid.yml",
+			name: "Fail on wrong file format",
+			cli: Cli{
+				Cfgfile: "./fixtures/config.invalid.yml",
+			},
 			wantErr: true,
 		},
 		{
-			name:    "Success",
-			cfgfile: "./fixtures/config.test.yml",
+			name: "Success",
+			cli: Cli{
+				Cfgfile: "./fixtures/config.test.yml",
+			},
 			wantData: &Config{
-				Db: (&model.Db{}).GetDefaults(),
-				Server: &model.Server{
-					FTP: &model.ServerFTP{
+				Cli: Cli{
+					Cfgfile: "./fixtures/config.test.yml",
+				},
+				Db: (&Db{}).GetDefaults(),
+				Server: &Server{
+					FTP: &ServerFTP{
 						Host:     "test.rebex.net",
 						Port:     21,
 						Username: "demo",
@@ -52,7 +57,7 @@ func TestLoadFile(t *testing.T) {
 						LogTrace:           utl.NewFalse(),
 					},
 				},
-				Download: &model.Download{
+				Download: &Download{
 					Output:        "./fixtures/downloads",
 					UID:           os.Getuid(),
 					GID:           os.Getgid(),
@@ -64,8 +69,8 @@ func TestLoadFile(t *testing.T) {
 					HideSkipped:   utl.NewFalse(),
 					CreateBaseDir: utl.NewFalse(),
 				},
-				Notif: &model.Notif{
-					Mail: &model.NotifMail{
+				Notif: &Notif{
+					Mail: &NotifMail{
 						Host:               "localhost",
 						Port:               25,
 						SSL:                utl.NewFalse(),
@@ -73,10 +78,10 @@ func TestLoadFile(t *testing.T) {
 						From:               "ftpgrab@example.com",
 						To:                 "webmaster@example.com",
 					},
-					Slack: &model.NotifSlack{
+					Slack: &NotifSlack{
 						WebhookURL: "https://hooks.slack.com/services/ABCD12EFG/HIJK34LMN/01234567890abcdefghij",
 					},
-					Webhook: &model.NotifWebhook{
+					Webhook: &NotifWebhook{
 						Endpoint: "http://webhook.foo.com/sd54qad89azd5a",
 						Method:   "GET",
 						Headers: map[string]string{
@@ -91,7 +96,7 @@ func TestLoadFile(t *testing.T) {
 	}
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg, err := Load(tt.cfgfile, "")
+			cfg, err := Load(tt.cli, Meta{})
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -110,7 +115,7 @@ func TestLoadEnv(t *testing.T) {
 
 	testCases := []struct {
 		desc     string
-		cfgfile  string
+		cli      Cli
 		environ  []string
 		expected interface{}
 		wantErr  bool
@@ -131,9 +136,9 @@ func TestLoadEnv(t *testing.T) {
 				"FTPGRAB_DOWNLOAD_OUTPUT=./fixtures/downloads",
 			},
 			expected: &Config{
-				Db: (&model.Db{}).GetDefaults(),
-				Server: &model.Server{
-					FTP: &model.ServerFTP{
+				Db: (&Db{}).GetDefaults(),
+				Server: &Server{
+					FTP: &ServerFTP{
 						Host:     "test.rebex.net",
 						Port:     21,
 						Username: "demo",
@@ -148,7 +153,7 @@ func TestLoadEnv(t *testing.T) {
 						LogTrace:           utl.NewFalse(),
 					},
 				},
-				Download: &model.Download{
+				Download: &Download{
 					Output:        "./fixtures/downloads",
 					UID:           os.Getuid(),
 					GID:           os.Getgid(),
@@ -171,9 +176,9 @@ func TestLoadEnv(t *testing.T) {
 				"FTPGRAB_DOWNLOAD_OUTPUT=./fixtures/downloads",
 			},
 			expected: &Config{
-				Db: (&model.Db{}).GetDefaults(),
-				Server: &model.Server{
-					SFTP: &model.ServerSFTP{
+				Db: (&Db{}).GetDefaults(),
+				Server: &Server{
+					SFTP: &ServerSFTP{
 						Host:         "10.0.0.1",
 						Port:         22,
 						UsernameFile: "./fixtures/run_secrets_username",
@@ -185,7 +190,7 @@ func TestLoadEnv(t *testing.T) {
 						MaxPacketSize: 32768,
 					},
 				},
-				Download: &model.Download{
+				Download: &Download{
 					Output:        "./fixtures/downloads",
 					UID:           os.Getuid(),
 					GID:           os.Getgid(),
@@ -227,7 +232,7 @@ func TestLoadEnv(t *testing.T) {
 				}
 			}
 
-			cfg, err := Load(tt.cfgfile, "")
+			cfg, err := Load(tt.cli, Meta{})
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -244,14 +249,16 @@ func TestLoadMixed(t *testing.T) {
 
 	testCases := []struct {
 		desc     string
-		cfgfile  string
+		cli      Cli
 		environ  []string
 		expected interface{}
 		wantErr  bool
 	}{
 		{
-			desc:    "env vars and invalid file",
-			cfgfile: "./fixtures/config.invalid.yml",
+			desc: "env vars and invalid file",
+			cli: Cli{
+				Cfgfile: "./fixtures/config.invalid.yml",
+			},
 			environ: []string{
 				"FTPGRAB_SERVER_FTP_HOST=test.rebex.net",
 				"FTPGRAB_SERVER_FTP_USERNAME=demo",
@@ -263,8 +270,10 @@ func TestLoadMixed(t *testing.T) {
 			wantErr:  true,
 		},
 		{
-			desc:    "ftp server (file) and notif mails (envs)",
-			cfgfile: "./fixtures/config.ftp.yml",
+			desc: "ftp server (file) and notif mails (envs)",
+			cli: Cli{
+				Cfgfile: "./fixtures/config.ftp.yml",
+			},
 			environ: []string{
 				"FTPGRAB_NOTIF_MAIL_HOST=127.0.0.1",
 				"FTPGRAB_NOTIF_MAIL_PORT=25",
@@ -274,11 +283,14 @@ func TestLoadMixed(t *testing.T) {
 				"FTPGRAB_NOTIF_MAIL_TO=webmaster@foo.com",
 			},
 			expected: &Config{
-				Db: &model.Db{
+				Cli: Cli{
+					Cfgfile: "./fixtures/config.ftp.yml",
+				},
+				Db: &Db{
 					Path: "./fixtures/db/ftpgrab.db",
 				},
-				Server: &model.Server{
-					FTP: &model.ServerFTP{
+				Server: &Server{
+					FTP: &ServerFTP{
 						Host:     "test.rebex.net",
 						Port:     21,
 						Username: "demo",
@@ -293,7 +305,7 @@ func TestLoadMixed(t *testing.T) {
 						LogTrace:           utl.NewFalse(),
 					},
 				},
-				Download: &model.Download{
+				Download: &Download{
 					Output:        "./fixtures/downloads",
 					UID:           os.Getuid(),
 					GID:           os.Getgid(),
@@ -303,8 +315,8 @@ func TestLoadMixed(t *testing.T) {
 					HideSkipped:   utl.NewFalse(),
 					CreateBaseDir: utl.NewFalse(),
 				},
-				Notif: &model.Notif{
-					Mail: &model.NotifMail{
+				Notif: &Notif{
+					Mail: &NotifMail{
 						Host:               "127.0.0.1",
 						Port:               25,
 						SSL:                utl.NewFalse(),
@@ -317,17 +329,22 @@ func TestLoadMixed(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			desc:    "sftp server (file) and notif slack (envs)",
-			cfgfile: "./fixtures/config.sftp.yml",
+			desc: "sftp server (file) and notif slack (envs)",
+			cli: Cli{
+				Cfgfile: "./fixtures/config.sftp.yml",
+			},
 			environ: []string{
 				"FTPGRAB_NOTIF_SLACK_WEBHOOKURL=https://hooks.slack.com/services/ABCD12EFG/HIJK34LMN/01234567890abcdefghij",
 			},
 			expected: &Config{
-				Db: &model.Db{
+				Cli: Cli{
+					Cfgfile: "./fixtures/config.sftp.yml",
+				},
+				Db: &Db{
 					Path: "./fixtures/db/ftpgrab.db",
 				},
-				Server: &model.Server{
-					SFTP: &model.ServerSFTP{
+				Server: &Server{
+					SFTP: &ServerSFTP{
 						Host:     "10.0.0.1",
 						Port:     22,
 						Username: "foo",
@@ -339,7 +356,7 @@ func TestLoadMixed(t *testing.T) {
 						MaxPacketSize: 32768,
 					},
 				},
-				Download: &model.Download{
+				Download: &Download{
 					Output:        "./fixtures/downloads",
 					UID:           os.Getuid(),
 					GID:           os.Getgid(),
@@ -349,8 +366,8 @@ func TestLoadMixed(t *testing.T) {
 					HideSkipped:   utl.NewTrue(),
 					CreateBaseDir: utl.NewFalse(),
 				},
-				Notif: &model.Notif{
-					Slack: &model.NotifSlack{
+				Notif: &Notif{
+					Slack: &NotifSlack{
 						WebhookURL: "https://hooks.slack.com/services/ABCD12EFG/HIJK34LMN/01234567890abcdefghij",
 					},
 				},
@@ -370,7 +387,7 @@ func TestLoadMixed(t *testing.T) {
 				}
 			}
 
-			cfg, err := Load(tt.cfgfile, "")
+			cfg, err := Load(tt.cli, Meta{})
 			if tt.wantErr {
 				require.Error(t, err)
 				return
@@ -384,17 +401,19 @@ func TestLoadMixed(t *testing.T) {
 
 func TestValidation(t *testing.T) {
 	cases := []struct {
-		name    string
-		cfgfile string
+		name string
+		cli  Cli
 	}{
 		{
-			name:    "Success",
-			cfgfile: "./fixtures/config.validate.yml",
+			name: "Success",
+			cli: Cli{
+				Cfgfile: "./fixtures/config.validate.yml",
+			},
 		},
 	}
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
-			cfg, err := Load(tt.cfgfile, "")
+			cfg, err := Load(tt.cli, Meta{})
 			require.NoError(t, err)
 
 			dec, err := env.Encode(cfg)

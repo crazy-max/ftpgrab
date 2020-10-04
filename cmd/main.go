@@ -13,15 +13,14 @@ import (
 	"github.com/crazy-max/ftpgrab/v7/internal/app"
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/logging"
-	"github.com/crazy-max/ftpgrab/v7/internal/model"
 	"github.com/rs/zerolog/log"
 )
 
 var (
 	ftpgrab *app.FtpGrab
-	cli     model.Cli
+	cli     config.Cli
 	version = "dev"
-	meta    = model.Meta{
+	meta    = config.Meta{
 		ID:     "ftpgrab",
 		Name:   "FTPGrab",
 		Desc:   "Grab your files periodically from a remote FTP or SFTP server easily",
@@ -61,7 +60,7 @@ func main() {
 	}
 
 	// Init
-	logging.Configure(&cli, location)
+	logging.Configure(cli, location)
 	log.Info().Str("version", version).Msgf("Starting %s", meta.Name)
 
 	// Handle os signals
@@ -75,14 +74,14 @@ func main() {
 	}()
 
 	// Load configuration
-	cfg, err := config.Load(cli.Cfgfile, cli.Schedule)
+	cfg, err := config.Load(cli, meta)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Cannot load configuration")
 	}
 	log.Debug().Msg(cfg.String())
 
 	// Init
-	if ftpgrab, err = app.New(meta, cfg, location); err != nil {
+	if ftpgrab, err = app.New(cfg, location); err != nil {
 		log.Fatal().Err(err).Msgf("Cannot initialize %s", meta.Name)
 	}
 

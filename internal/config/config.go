@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/crazy-max/ftpgrab/v7/internal/model"
 	"github.com/crazy-max/gonfig"
 	"github.com/go-playground/validator/v10"
 	"github.com/pkg/errors"
@@ -16,22 +15,24 @@ import (
 
 // Config holds configuration details
 type Config struct {
-	Schedule string          `yaml:"schedule,omitempty" json:"schedule,omitempty"`
-	Db       *model.Db       `yaml:"db,omitempty" json:"db,omitempty" validate:"omitempty"`
-	Server   *model.Server   `yaml:"server,omitempty" json:"server,omitempty" validate:"required"`
-	Download *model.Download `yaml:"download,omitempty" json:"download,omitempty" validate:"required"`
-	Notif    *model.Notif    `yaml:"notif,omitempty" json:"notif,omitempty"`
+	Cli      Cli       `yaml:"-" json:"-" label:"-" file:"-"`
+	Meta     Meta      `yaml:"-" json:"-" label:"-" file:"-"`
+	Db       *Db       `yaml:"db,omitempty" json:"db,omitempty" validate:"omitempty"`
+	Server   *Server   `yaml:"server,omitempty" json:"server,omitempty" validate:"required"`
+	Download *Download `yaml:"download,omitempty" json:"download,omitempty" validate:"required"`
+	Notif    *Notif    `yaml:"notif,omitempty" json:"notif,omitempty"`
 }
 
 // Load returns Config struct
-func Load(cfgfile string, schedule string) (*Config, error) {
+func Load(cli Cli, meta Meta) (*Config, error) {
 	cfg := Config{
-		Schedule: schedule,
-		Db:       (&model.Db{}).GetDefaults(),
+		Cli:  cli,
+		Meta: meta,
+		Db:   (&Db{}).GetDefaults(),
 	}
 
 	fileLoader := gonfig.NewFileLoader(gonfig.FileLoaderConfig{
-		Filename: cfgfile,
+		Filename: cli.Cfgfile,
 		Finder: gonfig.Finder{
 			BasePaths:  []string{"/etc/ftpgrab/ftpgrab", "$XDG_CONFIG_HOME/ftpgrab", "$HOME/.config/ftpgrab", "./ftpgrab"},
 			Extensions: []string{"yaml", "yml"},

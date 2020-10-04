@@ -1,4 +1,4 @@
-package model
+package config
 
 // Meta holds application details
 type Meta struct {

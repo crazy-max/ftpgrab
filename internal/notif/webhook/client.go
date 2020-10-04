@@ -5,20 +5,20 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
-	"github.com/crazy-max/ftpgrab/v7/internal/model"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/notifier"
 )
 
 // Client represents an active webhook notification object
 type Client struct {
 	*notifier.Notifier
-	cfg  *model.NotifWebhook
-	meta model.Meta
+	cfg  *config.NotifWebhook
+	meta config.Meta
 }
 
 // New creates a new webhook notification instance
-func New(config *model.NotifWebhook, meta model.Meta) notifier.Notifier {
+func New(config *config.NotifWebhook, meta config.Meta) notifier.Notifier {
 	return notifier.Notifier{
 		Handler: &Client{
 			cfg:  config,
@@ -33,21 +33,21 @@ func (c *Client) Name() string {
 }
 
 // Send creates and sends a webhook notification with journal entries
-func (c *Client) Send(jnl journal.Client) error {
+func (c *Client) Send(jnl journal.Journal) error {
 	hc := http.Client{
 		Timeout: *c.cfg.Timeout,
 	}
 
 	body, err := json.Marshal(struct {
-		Version  string        `json:"ftpgrab_version,omitempty"`
-		ServerIP string        `json:"server_ip,omitempty"`
-		Dest     string        `json:"dest_hostname,omitempty"`
-		Journal  model.Journal `json:"journal,omitempty"`
+		Version  string          `json:"ftpgrab_version,omitempty"`
+		ServerIP string          `json:"server_ip,omitempty"`
+		Dest     string          `json:"dest_hostname,omitempty"`
+		Journal  journal.Journal `json:"journal,omitempty"`
 	}{
 		Version:  c.meta.Version,
 		ServerIP: jnl.ServerHost,
 		Dest:     c.meta.Hostname,
-		Journal:  jnl.Journal,
+		Journal:  jnl,
 	})
 	if err != nil {
 		return err

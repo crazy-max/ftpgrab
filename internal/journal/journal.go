@@ -1,4 +1,4 @@
-package model
+package journal
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"github.com/hako/durafmt"
 )
 
-// Journal holds ftpgrab entries and status
+// Journal holds journal entries
 type Journal struct {
 	ServerHost string  `json:"-"`
 	Entries    []Entry `json:"entries,omitempty"`
@@ -20,16 +20,6 @@ type Journal struct {
 	Duration time.Duration `json:"duration,omitempty"`
 }
 
-// Entry represents a journal entry
-type Entry struct {
-	File       string `json:"file,omitempty"`
-	StatusType string `json:"status_type,omitempty"`
-	StatusText string `json:"status_text,omitempty"`
-}
-
-// EntryStatus represents entry status
-type EntryStatus string
-
 func (j Journal) MarshalJSON() ([]byte, error) {
 	type Alias Journal
 	return json.Marshal(&struct {
@@ -39,4 +29,9 @@ func (j Journal) MarshalJSON() ([]byte, error) {
 		Alias:    (Alias)(j),
 		Duration: durafmt.ParseShort(j.Duration).String(),
 	})
+}
+
+// IsEmpty checks if journal is empty
+func (j Journal) IsEmpty() bool {
+	return j.Entries == nil || len(j.Entries) == 0
 }

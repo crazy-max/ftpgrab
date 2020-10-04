@@ -7,8 +7,8 @@ import (
 	"os"
 	"regexp"
 
+	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/logging"
-	"github.com/crazy-max/ftpgrab/v7/internal/model"
 	"github.com/crazy-max/ftpgrab/v7/internal/server"
 	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/jlaffaye/ftp"
@@ -18,39 +18,39 @@ import (
 // Client represents an active ftp object
 type Client struct {
 	*server.Client
-	config *model.ServerFTP
-	ftp    *ftp.ServerConn
+	cfg *config.ServerFTP
+	ftp *ftp.ServerConn
 }
 
 // New creates new ftp instance
-func New(config *model.ServerFTP) (*server.Client, error) {
+func New(cfg *config.ServerFTP) (*server.Client, error) {
 	var err error
-	var client = &Client{config: config}
+	var client = &Client{cfg: cfg}
 
 	ftpConfig := []ftp.DialOption{
-		ftp.DialWithTimeout(*config.Timeout),
-		ftp.DialWithDisabledEPSV(*config.DisableEPSV),
+		ftp.DialWithTimeout(*cfg.Timeout),
+		ftp.DialWithDisabledEPSV(*cfg.DisableEPSV),
 		ftp.DialWithDebugOutput(&logging.FtpWriter{
-			Enabled: *config.LogTrace,
+			Enabled: *cfg.LogTrace,
 		}),
 	}
 
-	if *config.TLS {
+	if *cfg.TLS {
 		ftpConfig = append(ftpConfig, ftp.DialWithTLS(&tls.Config{
-			ServerName:         config.Host,
-			InsecureSkipVerify: *config.InsecureSkipVerify,
+			ServerName:         cfg.Host,
+			InsecureSkipVerify: *cfg.InsecureSkipVerify,
 		}))
 	}
 
-	if client.ftp, err = ftp.Dial(fmt.Sprintf("%s:%d", config.Host, config.Port), ftpConfig...); err != nil {
+	if client.ftp, err = ftp.Dial(fmt.Sprintf("%s:%d", cfg.Host, cfg.Port), ftpConfig...); err != nil {
 		return nil, err
 	}
 
-	username, err := utl.GetSecret(config.Username, config.UsernameFile)
+	username, err := utl.GetSecret(cfg.Username, cfg.UsernameFile)
 	if err != nil {
 		log.Warn().Err(err).Msg("Cannot retrieve username secret for ftp server")
 	}
-	password, err := utl.GetSecret(config.Password, config.PasswordFile)
+	password, err := utl.GetSecret(cfg.Password, cfg.PasswordFile)
 	if err != nil {
 		log.Warn().Err(err).Msg("Cannot retrieve password secret for ftp server")
 	}
@@ -65,11 +65,11 @@ func New(config *model.ServerFTP) (*server.Client, error) {
 }
 
 // Common return common configuration
-func (c *Client) Common() model.ServerCommon {
-	return model.ServerCommon{
-		Host:    c.config.Host,
-		Port:    c.config.Port,
-		Sources: c.config.Sources,
+func (c *Client) Common() config.ServerCommon {
+	return config.ServerCommon{
+		Host:    c.cfg.Host,
+		Port:    c.cfg.Port,
+		Sources: c.cfg.Sources,
 	}
 }
 

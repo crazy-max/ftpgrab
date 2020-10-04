@@ -1,4 +1,4 @@
-package model
+package config
 
 // NotifSlack holds slack notification configuration details
 type NotifSlack struct {
