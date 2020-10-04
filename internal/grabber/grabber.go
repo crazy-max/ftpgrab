@@ -79,7 +79,8 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 	}
 
 	sublogger := log.With().
-		Str("file", entry.File).
+		Str("src", entry.File).
+		Str("dest", file.DestDir).
 		Str("size", units.HumanSize(float64(file.Info.Size()))).
 		Logger()
 
@@ -102,7 +103,6 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 	}
 
 	retrieveStart := time.Now()
-	sublogger.Info().Str("dest", destpath).Msg("Downloading...")
 
 	destfolder := path.Dir(destpath)
 	if err := os.MkdirAll(destfolder, os.ModePerm); err != nil {
