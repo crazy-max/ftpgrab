@@ -1,5 +1,14 @@
 # Changelog
 
+## 7.1.0 (2020/10/04)
+
+* Allow to disable `OPTS UTF8 ON` command
+* Refactor to start working on #48
+* Switch to Docker actions
+* Go 1.15
+* Update `GOPROXY` setting
+* Update deps
+
 ## 7.0.1 (2020/08/04)
 
 * Fix SFTP not taken into account
