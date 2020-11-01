@@ -1,8 +1,6 @@
 FROM --platform=${BUILDPLATFORM:-linux/amd64} tonistiigi/xx:golang AS xgo
 FROM --platform=${BUILDPLATFORM:-linux/amd64} golang:1.15-alpine AS builder
 
-ARG BUILD_DATE
-ARG VCS_REF
 ARG VERSION=dev
 
 ENV CGO_ENABLED 0
@@ -30,20 +28,7 @@ RUN go build -ldflags "-w -s -X 'main.version=${VERSION}'" -v -o ftpgrab cmd/mai
 
 FROM --platform=${TARGETPLATFORM:-linux/amd64} alpine:latest
 
-ARG BUILD_DATE
-ARG VCS_REF
-ARG VERSION
-
-LABEL maintainer="CrazyMax" \
-  org.opencontainers.image.created=$BUILD_DATE \
-  org.opencontainers.image.url="https://github.com/crazy-max/ftpgrab" \
-  org.opencontainers.image.source="https://github.com/crazy-max/ftpgrab" \
-  org.opencontainers.image.version=$VERSION \
-  org.opencontainers.image.revision=$VCS_REF \
-  org.opencontainers.image.vendor="CrazyMax" \
-  org.opencontainers.image.title="FTPGrab" \
-  org.opencontainers.image.description="Grab your files periodically from a remote FTP or SFTP server easily" \
-  org.opencontainers.image.licenses="MIT"
+LABEL maintainer="CrazyMax"
 
 RUN apk --update --no-cache add \
     ca-certificates \
