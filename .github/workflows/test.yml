@@ -3,8 +3,7 @@ name: test
 on:
   push:
     branches:
-      - 'master'
-      - 'v*'
+      - '**'
     paths-ignore:
       - '**.md'
   pull_request:

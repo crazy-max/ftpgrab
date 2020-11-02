@@ -1,5 +1,12 @@
 # Changelog
 
+## 7.1.1 (2020/11/02)
+
+* Use embedded tzdata package
+* Remove `--timezone` flag
+* Docker image also available on [GitHub Container Registry](https://github.com/users/crazy-max/packages/container/package/ftpgrab)
+* Use Docker meta action to handle tags and labels
+
 ## 7.1.0 (2020/10/04)
 
 * Allow to disable `OPTS UTF8 ON` command

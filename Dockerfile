@@ -33,11 +33,9 @@ LABEL maintainer="CrazyMax"
 RUN apk --update --no-cache add \
     ca-certificates \
     libressl \
-    tzdata \
   && rm -rf /tmp/* /var/cache/apk/*
 
 COPY --from=builder /app/ftpgrab /usr/local/bin/ftpgrab
-COPY --from=builder /usr/local/go/lib/time/zoneinfo.zip /usr/local/go/lib/time/zoneinfo.zip
 RUN ftpgrab --version
 
 ENV FTPGRAB_DB_PATH="/db/ftpgrab.db" \

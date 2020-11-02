@@ -21,6 +21,7 @@ User=ftpgrab
 Group=ftpgrab
 ExecStart=/usr/local/bin/ftpgrab --config /etc/ftpgrab/ftpgrab.yml --schedule "*/30 * * * *" --log-level info
 Restart=always
+#Environment=TZ=Europe/Paris
 Environment=FTPGRAB_DB=/var/lib/ftpgrab/ftpgrab.db
 
 [Install]

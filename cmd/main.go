@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"strings"
 	"syscall"
-	"time"
+	_ "time/tzdata"
 
 	"github.com/alecthomas/kong"
 	"github.com/crazy-max/ftpgrab/v7/internal/app"
@@ -53,14 +53,8 @@ func main() {
 			Summary: true,
 		}))
 
-	// Load timezone location
-	location, err := time.LoadLocation(cli.Timezone)
-	if err != nil {
-		log.Panic().Err(err).Msgf("Cannot load timezone %s", cli.Timezone)
-	}
-
 	// Init
-	logging.Configure(cli, location)
+	logging.Configure(cli)
 	log.Info().Str("version", version).Msgf("Starting %s", meta.Name)
 
 	// Handle os signals
@@ -81,7 +75,7 @@ func main() {
 	log.Debug().Msg(cfg.String())
 
 	// Init
-	if ftpgrab, err = app.New(cfg, location); err != nil {
+	if ftpgrab, err = app.New(cfg); err != nil {
 		log.Fatal().Err(err).Msgf("Cannot initialize %s", meta.Name)
 	}
 

@@ -20,7 +20,6 @@ Flags:
   --version
   --config=STRING       FTPGrab configuration file ($CONFIG).
   --schedule=STRING     CRON expression format ($SCHEDULE).
-  --timezone="UTC"      Timezone assigned to FTPGrab ($TZ).
   --log-level="info"    Set log level ($LOG_LEVEL).
   --log-json            Enable JSON logging output ($LOG_JSON).
   --log-file=STRING     Add logging to a specific file ($LOG_FILE).
@@ -34,7 +33,6 @@ Following environment variables can be used in place:
 |--------------------|---------------|---------------|
 | `CONFIG`           |               | FTPGrab configuration file |
 | `SCHEDULE`         |               | [CRON expression](https://godoc.org/github.com/robfig/cron#hdr-CRON_Expression_Format) to schedule FTPGrab |
-| `TZ`               | `UTC`         | Timezone assigned |
 | `LOG_LEVEL`        | `info`        | Log level output |
 | `LOG_JSON`         | `false`       | Enable JSON logging output |
 | `LOG_FILE`         |               | Add logging to a specific file |

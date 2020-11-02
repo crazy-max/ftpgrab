@@ -42,7 +42,6 @@ periodically to your Synology, Qnap, D-Link and others NAS.
 * Webhook notification
 * Slack incoming webhook notification
 * Enhanced logging
-* Timezone can be changed
 
 ## License
 

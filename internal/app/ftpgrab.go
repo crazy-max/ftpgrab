@@ -25,11 +25,11 @@ type FtpGrab struct {
 }
 
 // New creates new ftpgrab instance
-func New(cfg *config.Config, location *time.Location) (*FtpGrab, error) {
+func New(cfg *config.Config) (*FtpGrab, error) {
 	return &FtpGrab{
 		cfg: cfg,
-		cron: cron.New(cron.WithLocation(location), cron.WithParser(cron.NewParser(
-			cron.SecondOptional|cron.Minute|cron.Hour|cron.Dom|cron.Month|cron.Dow|cron.Descriptor),
+		cron: cron.New(cron.WithParser(cron.NewParser(
+			cron.SecondOptional | cron.Minute | cron.Hour | cron.Dom | cron.Month | cron.Dow | cron.Descriptor),
 		)),
 	}, nil
 }
