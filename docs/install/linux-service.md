@@ -22,7 +22,7 @@ Group=ftpgrab
 ExecStart=/usr/local/bin/ftpgrab --config /etc/ftpgrab/ftpgrab.yml --schedule "*/30 * * * *" --log-level info
 Restart=always
 #Environment=TZ=Europe/Paris
-Environment=FTPGRAB_DB=/var/lib/ftpgrab/ftpgrab.db
+Environment=FTPGRAB_DB_PATH=/var/lib/ftpgrab/ftpgrab.db
 
 [Install]
 WantedBy=multi-user.target

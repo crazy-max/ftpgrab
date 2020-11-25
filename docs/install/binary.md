@@ -76,7 +76,7 @@ See how to create [Linux service](linux-service.md) to start FTPGrab automatical
 ### 2. Running from terminal
 
 ```shell
-$ FTPGRAB_DB=/var/lib/ftpgrab/ftpgrab.db /usr/local/bin/ftpgrab \
+$ FTPGRAB_DB_PATH=/var/lib/ftpgrab/ftpgrab.db /usr/local/bin/ftpgrab \
     --config /etc/ftpgrab/ftpgrab.yml \
     --schedule "*/30 * * * *"
 ```
