@@ -91,6 +91,7 @@ nav:
     - .notif:
       - .mail: config/notif/mail.md
       - .slack: config/notif/slack.md
+      - .script: config/notif/script.md
       - .webhook: config/notif/webhook.md
   - FAQ: faq.md
   - Changelog: changelog.md
