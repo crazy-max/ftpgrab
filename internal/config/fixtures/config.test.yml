@@ -20,6 +20,7 @@ download:
   since: 2019-02-01T18:50:05Z
   retry: 3
   hideSkipped: false
+  tempFirst: false
   createBaseDir: false
 
 notif:

@@ -20,6 +20,7 @@ type Download struct {
 	SinceTime     time.Time `yaml:"-" json:"-" label:"-" file:"-"`
 	Retry         int       `yaml:"retry,omitempty" json:"retry,omitempty"`
 	HideSkipped   *bool     `yaml:"hideSkipped,omitempty" json:"hideSkipped,omitempty"`
+	TempFirst     *bool     `yaml:"tempFirst,omitempty" json:"tempFirst,omitempty"`
 	CreateBaseDir *bool     `yaml:"createBaseDir,omitempty" json:"createBaseDir,omitempty"`
 }
 
@@ -38,5 +39,6 @@ func (s *Download) SetDefaults() {
 	s.ChmodDir = 0755
 	s.Retry = 3
 	s.HideSkipped = utl.NewFalse()
+	s.TempFirst = utl.NewFalse()
 	s.CreateBaseDir = utl.NewFalse()
 }

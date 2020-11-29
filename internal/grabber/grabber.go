@@ -2,9 +2,9 @@ package grabber
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
-	"runtime"
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
@@ -21,9 +21,10 @@ import (
 
 // Client represents an active grabber object
 type Client struct {
-	config *config.Download
-	db     *db.Client
-	server *server.Client
+	config  *config.Download
+	db      *db.Client
+	server  *server.Client
+	tempdir string
 }
 
 // New creates new grabber instance
@@ -49,10 +50,17 @@ func New(dlConfig *config.Download, dbConfig *config.Db, serverConfig *config.Se
 		return nil, errors.Wrap(err, "Cannot connect to server")
 	}
 
+	// Temp dir to download files
+	tempdir, err := ioutil.TempDir("", ".ftpgrab.*")
+	if err != nil {
+		return nil, errors.Wrap(err, "Cannot create temp dir")
+	}
+
 	return &Client{
-		config: dlConfig,
-		db:     dbCli,
-		server: serverCli,
+		config:  dlConfig,
+		db:      dbCli,
+		server:  serverCli,
+		tempdir: tempdir,
 	}, nil
 }
 
@@ -115,13 +123,14 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 		sublogger.Warn().Err(err).Msg("Cannot fix parent folder permissions")
 	}
 
-	destfile, err := os.Create(destpath)
+	destfile, err := c.createFile(destpath)
 	if err != nil {
 		sublogger.Error().Err(err).Msg("Cannot create destination file")
 		entry.Level = journal.EntryLevelError
 		entry.Text = fmt.Sprintf("Cannot create destination file: %v", err)
 		return entry
 	}
+	defer destfile.Close()
 
 	err = c.server.Retrieve(srcpath, destfile)
 	if err != nil {
@@ -135,9 +144,31 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 			return c.download(file, retry)
 		}
 	} else {
+		if err = destfile.Close(); err != nil {
+			sublogger.Error().Err(err).Msg("Cannot close destination file")
+			entry.Level = journal.EntryLevelError
+			entry.Text = fmt.Sprintf("Cannot close destination file: %v", err)
+			return entry
+		}
+
+		if *c.config.TempFirst {
+			log.Debug().
+				Str("tempfile", destfile.Name()).
+				Str("destfile", destpath).
+				Msgf("Move temp file")
+			err := moveFile(destfile.Name(), destpath)
+			if err != nil {
+				sublogger.Error().Err(err).Msg("Cannot move file")
+				entry.Level = journal.EntryLevelError
+				entry.Text = fmt.Sprintf("Cannot move file: %v", err)
+				return entry
+			}
+		}
+
 		sublogger.Info().
 			Str("duration", time.Since(retrieveStart).Round(time.Millisecond).String()).
 			Msg("File successfully downloaded")
+
 		entry.Level = journal.EntryLevelSuccess
 		entry.Text = fmt.Sprintf("%s successfully downloaded in %s",
 			units.HumanSize(float64(file.Info.Size())),
@@ -157,6 +188,22 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 	}
 
 	return entry
+}
+
+func (c *Client) createFile(filename string) (*os.File, error) {
+	if *c.config.TempFirst {
+		tempfile, err := ioutil.TempFile(c.tempdir, path.Base(filename))
+		if err != nil {
+			return nil, err
+		}
+		return tempfile, nil
+	}
+
+	destfile, err := os.Create(filename)
+	if err != nil {
+		return nil, err
+	}
+	return destfile, nil
 }
 
 func (c *Client) getStatus(file File) journal.EntryStatus {
@@ -201,32 +248,6 @@ func (c *Client) isExcluded(file File) bool {
 	return false
 }
 
-func (c *Client) fixPerms(filepath string) error {
-	if runtime.GOOS == "windows" {
-		return nil
-	}
-
-	fileinfo, err := os.Stat(filepath)
-	if err != nil {
-		return err
-	}
-
-	chmod := os.FileMode(c.config.ChmodFile)
-	if fileinfo.IsDir() {
-		chmod = os.FileMode(c.config.ChmodDir)
-	}
-
-	if err := os.Chmod(filepath, chmod); err != nil {
-		return err
-	}
-
-	if err := os.Chown(filepath, c.config.UID, c.config.GID); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Close closes grabber
 func (c *Client) Close() {
 	if err := c.db.Close(); err != nil {
@@ -234,5 +255,8 @@ func (c *Client) Close() {
 	}
 	if err := c.server.Close(); err != nil {
 		log.Warn().Err(err).Msg("Cannot close server connection")
+	}
+	if err := os.RemoveAll(c.tempdir); err != nil {
+		log.Warn().Err(err).Msg("Cannot remove temp folder")
 	}
 }

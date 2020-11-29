@@ -68,6 +68,7 @@ func TestLoadFile(t *testing.T) {
 					SinceTime:     time.Date(2019, 2, 1, 18, 50, 05, 0, time.UTC),
 					Retry:         3,
 					HideSkipped:   utl.NewFalse(),
+					TempFirst:     utl.NewFalse(),
 					CreateBaseDir: utl.NewFalse(),
 				},
 				Notif: &Notif{
