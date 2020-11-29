@@ -80,14 +80,14 @@ func TestLoadFile(t *testing.T) {
 						From:               "ftpgrab@example.com",
 						To:                 "webmaster@example.com",
 					},
-					Slack: &NotifSlack{
-						WebhookURL: "https://hooks.slack.com/services/ABCD12EFG/HIJK34LMN/01234567890abcdefghij",
-					},
 					Script: &NotifScript{
 						Cmd: "uname",
 						Args: []string{
 							"-a",
 						},
+					},
+					Slack: &NotifSlack{
+						WebhookURL: "https://hooks.slack.com/services/ABCD12EFG/HIJK34LMN/01234567890abcdefghij",
 					},
 					Webhook: &NotifWebhook{
 						Endpoint: "http://webhook.foo.com/sd54qad89azd5a",

@@ -37,7 +37,7 @@ func (c *Client) Name() string {
 	return "script"
 }
 
-// Send creates and sends a slack notification with journal entries
+// Send creates and sends a script notification with journal entries
 func (c *Client) Send(jnl journal.Journal) error {
 	cmd := exec.Command(c.cfg.Cmd, c.cfg.Args...)
 	setSysProcAttr(cmd)

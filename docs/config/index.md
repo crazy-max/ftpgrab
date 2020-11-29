@@ -176,6 +176,6 @@ Can be transposed to:
 * [download](download.md)
 * notif
   * [mail](notif/mail.md)
-  * [slack](notif/slack.md)
   * [script](notif/script.md)
+  * [slack](notif/slack.md)
   * [webhook](notif/webhook.md)

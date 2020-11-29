@@ -90,8 +90,8 @@ nav:
     - .download: config/download.md
     - .notif:
       - .mail: config/notif/mail.md
-      - .slack: config/notif/slack.md
       - .script: config/notif/script.md
+      - .slack: config/notif/slack.md
       - .webhook: config/notif/webhook.md
   - FAQ: faq.md
   - Changelog: changelog.md
