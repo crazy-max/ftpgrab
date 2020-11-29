@@ -1,5 +1,12 @@
 # Changelog
 
+## 7.2.0 (2020/11/29)
+
+* Allow to download files to a temp dir first (#149)
+* Allow to disable log timestamp (#148)
+* Add script notification (#147)
+* Bump github.com/crazy-max/gonfig from 0.3.0 to 0.4.0 (#140)
+
 ## 7.1.1 (2020/11/02)
 
 * Use embedded tzdata package
