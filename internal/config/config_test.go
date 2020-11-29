@@ -82,6 +82,12 @@ func TestLoadFile(t *testing.T) {
 					Slack: &NotifSlack{
 						WebhookURL: "https://hooks.slack.com/services/ABCD12EFG/HIJK34LMN/01234567890abcdefghij",
 					},
+					Script: &NotifScript{
+						Cmd: "uname",
+						Args: []string{
+							"-a",
+						},
+					},
 					Webhook: &NotifWebhook{
 						Endpoint: "http://webhook.foo.com/sd54qad89azd5a",
 						Method:   "GET",

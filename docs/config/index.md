@@ -174,4 +174,5 @@ Can be transposed to:
 * notif
   * [mail](notif/mail.md)
   * [slack](notif/slack.md)
+  * [script](notif/script.md)
   * [webhook](notif/webhook.md)
