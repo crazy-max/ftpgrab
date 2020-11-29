@@ -15,6 +15,7 @@
       since: 2019-02-01T18:50:05Z
       retry: 3
       hideSkipped: false
+      tempFirst: false
       createBaseDir: false
     ```
 
@@ -149,6 +150,19 @@ Not display skipped downloads. (default: `false`)
 
 !!! abstract "Environment variables"
     * `FTPGRAB_DOWNLOAD_HIDESKIPPED`
+
+## `tempFirst`
+
+First download the files to a temporary location and then move them to the final destination. (default `false`)
+
+!!! example "Config file"
+    ```yaml
+    download:
+      tempFirst: false
+    ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_DOWNLOAD_TEMPFIRST`
 
 ## `createBaseDir`
 
