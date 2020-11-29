@@ -17,13 +17,9 @@ func (c *Client) fixPerms(filepath string) error {
 		chmod = os.FileMode(c.config.ChmodDir)
 	}
 
-	if err := os.Chmod(filepath, chmod); err != nil {
+	if err = os.Chmod(filepath, chmod); err != nil {
 		return err
 	}
 
-	if err := os.Chown(filepath, c.config.UID, c.config.GID); err != nil {
-		return err
-	}
-
-	return nil
+	return os.Chown(filepath, c.config.UID, c.config.GID)
 }
