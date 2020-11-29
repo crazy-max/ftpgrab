@@ -32,6 +32,10 @@ notif:
     to: webmaster@example.com
   slack:
     webhookURL: https://hooks.slack.com/services/ABCD12EFG/HIJK34LMN/01234567890abcdefghij
+  script:
+    cmd: "uname"
+    args:
+      - "-a"
   webhook:
     endpoint: http://webhook.foo.com/sd54qad89azd5a
     method: GET

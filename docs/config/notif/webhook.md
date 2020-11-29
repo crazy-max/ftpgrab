@@ -42,18 +42,19 @@ The JSON response will look like this:
     "entries": [
       {
         "file": "/test/test_changed/1GB.bin",
-        "status_type": "skip",
-        "status_text": "Not included"
+        "status": "Not included",
+        "level": "skip"
       },
       {
         "file": "/test/test_changed/56a42b12df8d27baa163536e7b10d3c7.png",
-        "status_type": "skip",
-        "status_text": "Not included"
+        "status": "Not included",
+        "level": "skip"
       },
       {
         "file": "/test/test_special_chars/1024.rnd",
-        "status_type": "success",
-        "status_text": "1.049MB successfully downloaded in 513 milliseconds"
+        "status": "Never downloaded",
+        "level": "success",
+        "text": "1.049MB successfully downloaded in 513 milliseconds"
       }
     ],
     "count": {
