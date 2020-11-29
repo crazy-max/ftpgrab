@@ -20,9 +20,10 @@ func Configure(cli config.Cli) {
 	var w io.Writer
 
 	if !cli.LogJSON {
-		w = zerolog.ConsoleWriter{
-			Out:        os.Stdout,
-			TimeFormat: time.RFC1123,
+		w = ConsoleWriter{
+			Out:         os.Stdout,
+			TimeFormat:  time.RFC1123,
+			NoTimestamp: !cli.LogTimestamp,
 		}
 	} else {
 		w = os.Stdout
@@ -51,7 +52,13 @@ func Configure(cli config.Cli) {
 		w = zerolog.MultiLevelWriter(w, rwriter)
 	}
 
-	log.Logger = zerolog.New(w).With().Timestamp().Logger()
+	log.Logger = zerolog.New(w)
+	if cli.LogCaller {
+		log.Logger = log.Logger.With().Caller().Logger()
+	}
+	if cli.LogTimestamp {
+		log.Logger = log.Logger.With().Timestamp().Logger()
+	}
 
 	logLevel, err := zerolog.ParseLevel(cli.LogLevel)
 	if err != nil {
