@@ -164,6 +164,7 @@ func TestLoadEnv(t *testing.T) {
 					ChmodDir:      0755,
 					Retry:         3,
 					HideSkipped:   utl.NewFalse(),
+					TempFirst:     utl.NewFalse(),
 					CreateBaseDir: utl.NewFalse(),
 				},
 			},
@@ -201,6 +202,7 @@ func TestLoadEnv(t *testing.T) {
 					ChmodDir:      0755,
 					Retry:         3,
 					HideSkipped:   utl.NewFalse(),
+					TempFirst:     utl.NewFalse(),
 					CreateBaseDir: utl.NewFalse(),
 				},
 			},
@@ -317,6 +319,7 @@ func TestLoadMixed(t *testing.T) {
 					ChmodDir:      0755,
 					Retry:         3,
 					HideSkipped:   utl.NewFalse(),
+					TempFirst:     utl.NewFalse(),
 					CreateBaseDir: utl.NewFalse(),
 				},
 				Notif: &Notif{
@@ -368,6 +371,7 @@ func TestLoadMixed(t *testing.T) {
 					ChmodDir:      0755,
 					Retry:         3,
 					HideSkipped:   utl.NewTrue(),
+					TempFirst:     utl.NewFalse(),
 					CreateBaseDir: utl.NewFalse(),
 				},
 				Notif: &Notif{
