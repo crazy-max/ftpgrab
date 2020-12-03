@@ -171,11 +171,11 @@ Can be transposed to:
 
 * [db](db.md)
 * server
-  * [ftp](server/ftp.md)
-  * [sftp](server/sftp.md)
+    * [ftp](server/ftp.md)
+    * [sftp](server/sftp.md)
 * [download](download.md)
 * notif
-  * [mail](notif/mail.md)
-  * [script](notif/script.md)
-  * [slack](notif/slack.md)
-  * [webhook](notif/webhook.md)
+    * [mail](notif/mail.md)
+    * [script](notif/script.md)
+    * [slack](notif/slack.md)
+    * [webhook](notif/webhook.md)

@@ -38,10 +38,9 @@ periodically to your Synology, Qnap, D-Link and others NAS.
 * Retry on failed download
 * Change file/folder permissions and owner
 * Translate modtimes on downloaded files
-* Beautiful email report
-* Webhook notification
-* Slack incoming webhook notification
+* Get notified through Mail, Slack, Webhook and [more](config/index.md#reference)
 * Enhanced logging
+* Official [Docker image available](install/docker.md)
 
 ## License
 
