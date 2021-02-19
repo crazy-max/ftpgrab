@@ -17,7 +17,7 @@ require (
 	github.com/pkg/sftp v1.12.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.20.0
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.7.0
 	go.etcd.io/bbolt v1.3.5
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
