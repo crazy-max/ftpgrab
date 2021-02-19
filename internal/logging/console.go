@@ -15,6 +15,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
+//nolint:deadcode,varcheck
 const (
 	colorBlack = iota + 30
 	colorRed

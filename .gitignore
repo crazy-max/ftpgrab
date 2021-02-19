@@ -1,7 +1,9 @@
 /.idea
 /*.iml
 
-/.dev
+.dev
 /bin
 /dist
-/vendor
+/site
+/.goreleaser.yml
+/coverage.txt

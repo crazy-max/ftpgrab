@@ -433,7 +433,7 @@ func TestValidation(t *testing.T) {
 			dec, err := env.Encode("FTPGRAB_", cfg)
 			require.NoError(t, err)
 			for _, value := range dec {
-				fmt.Println(fmt.Sprintf(`%s=%s`, value.Name, value.Default))
+				fmt.Printf(`%s=%s\n`, value.Name, value.Default)
 			}
 		})
 	}

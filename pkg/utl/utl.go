@@ -44,6 +44,7 @@ func Exists(name string) bool {
 }
 
 // Hash a string using SHA256
+//nolint:errcheck
 func Hash(text string) string {
 	hasher := sha256.New()
 	hasher.Write([]byte(text))

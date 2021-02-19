@@ -2,18 +2,20 @@
 
 Hi there! I'm thrilled that you'd like to contribute to this project. Your help is essential for keeping it great.
 
-Contributions to this project are [released](https://help.github.com/articles/github-terms-of-service/#6-contributions-under-repository-license) to the public under the [project's open source license](../LICENSE).
+Contributions to this project are [released](https://help.github.com/articles/github-terms-of-service/#6-contributions-under-repository-license)
+to the public under the [project's open source license](../LICENSE).
 
 ## Submitting a pull request
 
 1. [Fork](https://github.com/crazy-max/ftpgrab/fork) and clone the repository
 2. Configure and install the dependencies: `go mod download`
 3. Create a new branch: `git checkout -b my-branch-name`
-4. Make your change
-5. Test your code: `go test -covermode=atomic ./...`
-6. Build with [GoReleaser](https://goreleaser.com/): `goreleaser release --skip-publish --skip-validate --rm-dist`
-7. Push to your fork and [submit a pull request](https://github.com/crazy-max/ftpgrab/compare)
-8. Pat your self on the back and wait for your pull request to be reviewed and merged.
+4. Make your changes
+5. Validate: `docker buildx bake validate`
+6. Test your code: `docker buildx bake test`
+7. Build the project: `docker buildx bake artifact-all image-all`
+8. Push to your fork and [submit a pull request](https://github.com/crazy-max/ftpgrab/compare)
+9. Pat your self on the back and wait for your pull request to be reviewed and merged.
 
 Here are a few things you can do that will increase the likelihood of your pull request being accepted:
 
@@ -25,5 +27,5 @@ Here are a few things you can do that will increase the likelihood of your pull 
 ## Resources
 
 * [How to Contribute to Open Source](https://opensource.guide/how-to-contribute/)
-* [Using Pull Requests](https://help.github.com/articles/about-pull-requests/)
-* [GitHub Help](https://help.github.com)
+* [Using Pull Requests](https://docs.github.com/free-pro-team@latest/github/collaborating-with-issues-and-pull-requests/about-pull-requests)
+* [GitHub Help](https://docs.github.com)
