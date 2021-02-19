@@ -46,7 +46,9 @@ func Configure(cli config.Cli) {
 				if !ok {
 					return
 				}
-				rwriter.Rotate(nil)
+				if err := rwriter.Rotate(nil); err != nil {
+					log.Error().Err(err).Msgf("Cannot rotate log")
+				}
 			}
 		}()
 		w = zerolog.MultiLevelWriter(w, rwriter)

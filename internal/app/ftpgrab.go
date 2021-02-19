@@ -7,7 +7,6 @@ import (
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/grabber"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif"
-	"github.com/crazy-max/ftpgrab/v7/internal/server"
 	"github.com/hako/durafmt"
 	"github.com/robfig/cron/v3"
 	"github.com/rs/zerolog/log"
@@ -17,7 +16,6 @@ import (
 type FtpGrab struct {
 	cfg     *config.Config
 	cron    *cron.Cron
-	srv     *server.Client
 	notif   *notif.Client
 	grabber *grabber.Client
 	jobID   cron.EntryID
@@ -53,7 +51,7 @@ func (fg *FtpGrab) Start() error {
 	// Start scheduler
 	fg.cron.Start()
 	log.Info().Msgf("Next run in %s (%s)",
-		durafmt.ParseShort(fg.cron.Entry(fg.jobID).Next.Sub(time.Now())).String(),
+		durafmt.ParseShort(time.Until(fg.cron.Entry(fg.jobID).Next)).String(),
 		fg.cron.Entry(fg.jobID).Next)
 
 	select {}
@@ -68,7 +66,7 @@ func (fg *FtpGrab) Run() {
 	defer atomic.StoreUint32(&fg.locker, 0)
 	if fg.jobID > 0 {
 		defer log.Info().Msgf("Next run in %s (%s)",
-			durafmt.ParseShort(fg.cron.Entry(fg.jobID).Next.Sub(time.Now())).String(),
+			durafmt.ParseShort(time.Until(fg.cron.Entry(fg.jobID).Next)).String(),
 			fg.cron.Entry(fg.jobID).Next)
 	}
 
