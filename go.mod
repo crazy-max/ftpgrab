@@ -14,12 +14,12 @@ require (
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/nlopes/slack v0.6.0
 	github.com/pkg/errors v0.9.1
-	github.com/pkg/sftp v1.12.0
+	github.com/pkg/sftp v1.13.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.20.0
 	github.com/stretchr/testify v1.7.0
 	go.etcd.io/bbolt v1.3.5
-	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
+	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 )
