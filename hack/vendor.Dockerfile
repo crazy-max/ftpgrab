@@ -18,7 +18,7 @@ FROM vendored AS validate
 RUN --mount=type=bind,target=.,rw \
   git add -A && cp -rf /out/* .; \
   if [ -n "$(git status --porcelain -- go.mod go.sum)" ]; then \
-    echo >&2 'ERROR: Vendor result differs. Please vendor your package with "docker buildx bake update-vendor"'; \
+    echo >&2 'ERROR: Vendor result differs. Please vendor your package with "docker buildx bake vendor-update"'; \
     git status --porcelain -- go.mod go.sum; \
     exit 1; \
   fi
