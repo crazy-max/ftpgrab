@@ -3,11 +3,11 @@
 ## 7.3.0 (2021/02/19)
 
 * Refactor CI and dev workflow with buildx bake (#161)
-  * Add `image-local` target
-  * Single job for artifacts and image
-  * Add `armv5`, `ppc64le` and `s390x` artifacts
-  * Upload artifacts
-  * Validate
+    * Add `image-local` target
+    * Single job for artifacts and image
+    * Add `armv5`, `ppc64le` and `s390x` artifacts
+    * Upload artifacts
+    * Validate
 * Remove `linux/s390x` Docker platform support for now
 * Bump github.com/stretchr/testify from 1.6.1 to 1.7.0 (#154)
   Bump github.com/alecthomas/kong from 0.2.12 to 0.2.15 (#160)
@@ -111,8 +111,8 @@
 * Log skip status
 * Set ServerName field if implicit TLS
 * Switch to [jlaffaye/ftp](https://github.com/jlaffaye/ftp) module
-  * Fix race condition
-  * Performance improvement
+    * Fix race condition
+    * Performance improvement
 
 ## 5.5.0 (2019/07/20)
 
