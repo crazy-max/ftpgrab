@@ -20,10 +20,16 @@ func Configure(cli config.Cli) {
 	var w io.Writer
 
 	if !cli.LogJSON {
-		w = ConsoleWriter{
-			Out:         os.Stdout,
-			TimeFormat:  time.RFC1123,
-			NoTimestamp: !cli.LogTimestamp,
+		var excludeParts []string
+		if !cli.LogTimestamp {
+			excludeParts = []string{
+				zerolog.TimestampFieldName,
+			}
+		}
+		w = zerolog.ConsoleWriter{
+			Out:          os.Stdout,
+			TimeFormat:   time.RFC1123,
+			PartsExclude: excludeParts,
 		}
 	} else {
 		w = os.Stdout
