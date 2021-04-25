@@ -16,6 +16,7 @@
         timeout: 5s
         disableUTF8: false
         disableEPSV: false
+        disableMLSD: false
         tls: false
         insecureSkipVerify: false
         logTrace: false
@@ -165,6 +166,21 @@ PASV successfully by themselves, resulting in hung connections. (default `false`
 
 !!! abstract "Environment variables"
     * `FTPGRAB_SERVER_FTP_DISABLEEPSV`
+
+### `disableMLSD`
+
+Disables MLSD can be useful for servers which advertise MLSD (e.g. some versions of Serv-U) but don't support it
+properly. (default `false`)
+
+!!! example "Config file"
+    ```yaml
+    server:
+      ftp:
+        disableMLSD: false
+    ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_DISABLEMLSD`
 
 ### `tls`
 

@@ -12,6 +12,7 @@ server:
     timeout: 5s
     disableUTF8: false
     disableEPSV: false
+    disableMLSD: false
     tls: false
     insecureSkipVerify: false
     logTrace: false

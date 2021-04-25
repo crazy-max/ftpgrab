@@ -31,6 +31,7 @@ func New(cfg *config.ServerFTP) (*server.Client, error) {
 		ftp.DialWithTimeout(*cfg.Timeout),
 		ftp.DialWithDisabledEPSV(*cfg.DisableEPSV),
 		ftp.DialWithDisabledUTF8(*cfg.DisableUTF8),
+		ftp.DialWithDisabledMLSD(*cfg.DisableMLSD),
 		ftp.DialWithDebugOutput(&logging.FtpWriter{
 			Enabled: *cfg.LogTrace,
 		}),

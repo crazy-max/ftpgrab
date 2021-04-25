@@ -18,6 +18,7 @@ type ServerFTP struct {
 	Timeout            *time.Duration `yaml:"timeout,omitempty" json:"timeout,omitempty"`
 	DisableUTF8        *bool          `yaml:"disableUTF8,omitempty" json:"disableUTF8,omitempty"`
 	DisableEPSV        *bool          `yaml:"disableEPSV,omitempty" json:"disableEPSV,omitempty"`
+	DisableMLSD        *bool          `yaml:"disableMLSD,omitempty" json:"disableMLSD,omitempty"`
 	TLS                *bool          `yaml:"tls,omitempty" json:"tls,omitempty"`
 	InsecureSkipVerify *bool          `yaml:"insecureSkipVerify,omitempty" json:"insecureSkipVerify,omitempty"`
 	LogTrace           *bool          `yaml:"logTrace,omitempty" json:"logTrace,omitempty"`
@@ -37,6 +38,7 @@ func (s *ServerFTP) SetDefaults() {
 	s.Timeout = utl.NewDuration(5 * time.Second)
 	s.DisableUTF8 = utl.NewFalse()
 	s.DisableEPSV = utl.NewFalse()
+	s.DisableMLSD = utl.NewFalse()
 	s.TLS = utl.NewFalse()
 	s.InsecureSkipVerify = utl.NewFalse()
 	s.LogTrace = utl.NewFalse()
