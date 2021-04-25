@@ -1,5 +1,18 @@
 # Changelog
 
+## 7.4.0 (2021/04/25)
+
+* Add `darwin/arm64` artifact (#175)
+* Bump github.com/go-playground/validator/v10 from 10.4.1 to 10.5.0 (#171)
+* Use logger `PartsExclude` (#174)
+* MkDocs Materials 7.1.3
+* Bump github.com/rs/zerolog from 1.20.0 to 1.21.0 (#166)
+* Go 1.16 (#167)
+* Deploy docs on workflow dispatch or tag
+* Bump github.com/alecthomas/kong from 0.2.15 to 0.2.16 (#165)
+* Bump github.com/pkg/sftp from 1.12.0 to 1.13.0 (#164)
+* Switch to goreleaser-xx (#163)
+
 ## 7.3.0 (2021/02/19)
 
 * Refactor CI and dev workflow with buildx bake (#161)
