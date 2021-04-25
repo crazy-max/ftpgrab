@@ -31,6 +31,9 @@ COPY --from=build /out/*.zip /
 FROM alpine
 LABEL maintainer="CrazyMax"
 
+ENV FTPGRAB_DB_PATH="/db/ftpgrab.db" \
+  FTPGRAB_DOWNLOAD_OUTPUT="/download"
+
 RUN apk --update --no-cache add ca-certificates libressl
 COPY --from=build /usr/local/bin/ftpgrab /usr/local/bin/ftpgrab
 RUN ftpgrab --version
