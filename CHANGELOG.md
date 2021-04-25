@@ -1,5 +1,10 @@
 # Changelog
 
+## 7.5.0 (2021/04/26)
+
+* Add `disableMLSD` ftp option (#176)
+* Fix Dockerfile
+
 ## 7.4.0 (2021/04/25)
 
 * Add `darwin/arm64` artifact (#175)
