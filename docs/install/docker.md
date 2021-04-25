@@ -16,7 +16,7 @@ It is possible to always use the latest stable tag or to use another service tha
 
 Following platforms for this image are available:
 
-```shell
+```
 $ docker run --rm mplatform/mquery crazymax/ftpgrab:latest
 Image: crazymax/ftpgrab:latest
  * Manifest List: Yes
@@ -78,43 +78,43 @@ services:
 Edit this example with your preferences and run the following commands to bring up FTPGrab:
 
 ```shell
-$ docker-compose up -d
-$ docker-compose logs -f
+docker-compose up -d
+docker-compose logs -f
 ```
 
 Or use the following command:
 
 ```shell
-$ docker run -d --name ftpgrab \
-    -e "TZ=Europe/Paris" \
-    -e "SCHEDULE=*/30 * * * *" \
-    -e "LOG_LEVEL=info" \
-    -e "LOG_JSON=false" \
-    -e "FTPGRAB_SERVER_FTP_HOST=test.rebex.net" \
-    -e "FTPGRAB_SERVER_FTP_PORT=21" \
-    -e "FTPGRAB_SERVER_FTP_USERNAME=demo" \
-    -e "FTPGRAB_SERVER_FTP_PASSWORD=password" \
-    -e "FTPGRAB_SERVER_FTP_SOURCES=/src1,/src2" \
-    -e "FTPGRAB_DOWNLOAD_GID=1000" \
-    -e "FTPGRAB_DOWNLOAD_UID=1000" \
-    -e "FTPGRAB_DOWNLOAD_INCLUDE=^Mr\.Robot\.S04.+(VOSTFR|SUBFRENCH).+(720p).+(HDTV|WEB-DL|WEBRip).+" \
-    -e "FTPGRAB_DOWNLOAD_EXCLUDE=\.nfo\$" \
-    -e "FTPGRAB_DOWNLOAD_SINCE=2019-02-01T18:50:05Z" \
-    -e "FTPGRAB_DOWNLOAD_RETRY=5" \
-    -e "FTPGRAB_NOTIF_MAIL_HOST=smtp.example.com" \
-    -e "FTPGRAB_NOTIF_MAIL_PORT=25" \
-    -e "FTPGRAB_NOTIF_MAIL_FROM=ftpgrab@example.com" \
-    -e "FTPGRAB_NOTIF_MAIL_TO=webmaster@example.com" \
-    -v "$(pwd)/db:/db:rw" \
-    -v "$(pwd)/download:/download:rw" \
-    crazymax/ftpgrab:latest
+docker run -d --name ftpgrab \
+  -e "TZ=Europe/Paris" \
+  -e "SCHEDULE=*/30 * * * *" \
+  -e "LOG_LEVEL=info" \
+  -e "LOG_JSON=false" \
+  -e "FTPGRAB_SERVER_FTP_HOST=test.rebex.net" \
+  -e "FTPGRAB_SERVER_FTP_PORT=21" \
+  -e "FTPGRAB_SERVER_FTP_USERNAME=demo" \
+  -e "FTPGRAB_SERVER_FTP_PASSWORD=password" \
+  -e "FTPGRAB_SERVER_FTP_SOURCES=/src1,/src2" \
+  -e "FTPGRAB_DOWNLOAD_GID=1000" \
+  -e "FTPGRAB_DOWNLOAD_UID=1000" \
+  -e "FTPGRAB_DOWNLOAD_INCLUDE=^Mr\.Robot\.S04.+(VOSTFR|SUBFRENCH).+(720p).+(HDTV|WEB-DL|WEBRip).+" \
+  -e "FTPGRAB_DOWNLOAD_EXCLUDE=\.nfo\$" \
+  -e "FTPGRAB_DOWNLOAD_SINCE=2019-02-01T18:50:05Z" \
+  -e "FTPGRAB_DOWNLOAD_RETRY=5" \
+  -e "FTPGRAB_NOTIF_MAIL_HOST=smtp.example.com" \
+  -e "FTPGRAB_NOTIF_MAIL_PORT=25" \
+  -e "FTPGRAB_NOTIF_MAIL_FROM=ftpgrab@example.com" \
+  -e "FTPGRAB_NOTIF_MAIL_TO=webmaster@example.com" \
+  -v "$(pwd)/db:/db:rw" \
+  -v "$(pwd)/download:/download:rw" \
+  crazymax/ftpgrab:latest
 ```
 
 To upgrade your installation to the latest release:
 
 ```shell
-$ docker-compose pull
-$ docker-compose up -d
+docker-compose pull
+docker-compose up -d
 ```
 
 If you prefer to rely on the [`configuration file](../config/index.md#configuration-file) instead of

@@ -5,25 +5,25 @@ like `seedbox.conf` in the below example.
 
 ```shell
 # Move to /opt
-$ mv /etc/ftp-sync /opt
-$ cd /opt/ftp-sync/
+mv /etc/ftp-sync /opt
+cd /opt/ftp-sync/
 
 # Create required folders
-$ mkdir conf
-$ mkdir hash
+mkdir conf
+mkdir hash
 
 # Move files
-$ mv ftp-sync.conf conf/seedbox.conf
-$ mv ftp-sync.txt conf/seedbox.txt
+mv ftp-sync.conf conf/seedbox.conf
+mv ftp-sync.txt conf/seedbox.txt
 
 # Download the latest script and dist config
-$ wget https://raw.github.com/ftp-sync/ftp-sync/master/ftp-sync.sh -O /etc/init.d/ftp-sync --no-check-certificate
-$ chmod +x /etc/init.d/ftp-sync
-$ wget https://raw.github.com/ftp-sync/ftp-sync/master/ftp-sync.conf -O /opt/ftp-sync/ftp-sync.conf --no-check-certificate
+wget https://raw.github.com/ftp-sync/ftp-sync/master/ftp-sync.sh -O /etc/init.d/ftp-sync --no-check-certificate
+chmod +x /etc/init.d/ftp-sync
+wget https://raw.github.com/ftp-sync/ftp-sync/master/ftp-sync.conf -O /opt/ftp-sync/ftp-sync.conf --no-check-certificate
 
 # Rename log files
-$ cd /var/log/ftp-sync/
-$ for FILENAME in *; do mv $FILENAME seedbox-$FILENAME; done
+cd /var/log/ftp-sync/
+for FILENAME in *; do mv $FILENAME seedbox-$FILENAME; done
 ```
 
 Next you will have to edit your config file `/opt/ftp-sync/conf/seedbox.conf` :

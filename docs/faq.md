@@ -8,7 +8,7 @@ Cron schedule may also override the timezone to be interpreted in by providing a
 at the beginning of the cron spec, of the form `CRON_TZ=<timezone>`:
 
 ```shell
-$ ftpgrab --schedule "CRON_TZ=Asia/Tokyo */30 * * * *"
+ftpgrab --schedule "CRON_TZ=Asia/Tokyo */30 * * * *"
 ```
 
 ## What kind of CRON expression can I use for scheduling?

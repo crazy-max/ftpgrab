@@ -3,7 +3,7 @@
 ## Usage
 
 ```shell
-$ ftpgrab [options]
+ftpgrab [options]
 ```
 
 ## Options

@@ -34,12 +34,12 @@ Change the user, group, and other required startup values following your needs.
 Enable and start FTPGrab at boot:
 
 ```shell
-$ sudo systemctl enable ftpgrab
-$ sudo systemctl start ftpgrab
+sudo systemctl enable ftpgrab
+sudo systemctl start ftpgrab
 ```
 
 To view logs:
 
 ```shell
-$ journalctl -fu ftpgrab.service
+journalctl -fu ftpgrab.service
 ```

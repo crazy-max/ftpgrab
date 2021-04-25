@@ -44,5 +44,5 @@ notif:
 That's it. Now you can launch FTPGrab with the following command:
 
 ```shell
-$ ftpgrab --config ./ftpgrab.yml
+ftpgrab --config ./ftpgrab.yml
 ```
