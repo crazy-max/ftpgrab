@@ -5,6 +5,10 @@ Hi there! I'm thrilled that you'd like to contribute to this project. Your help 
 Contributions to this project are [released](https://help.github.com/articles/github-terms-of-service/#6-contributions-under-repository-license)
 to the public under the [project's open source license](../LICENSE).
 
+## Submitting an issue
+
+See [SUPPORT](SUPPORT.md) guidelines.
+
 ## Submitting a pull request
 
 1. [Fork](https://github.com/crazy-max/ftpgrab/fork) and clone the repository
