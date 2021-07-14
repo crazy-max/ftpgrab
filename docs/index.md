@@ -21,7 +21,7 @@
 to grab your files from a remote FTP or SFTP server to your NAS, server or computer.
 
 With Go, this can be done with an independent binary distribution across all platforms and architectures that Go supports.
-This support includes Linux, macOS, and Windows, on architectures like amd64, i386, ARM, PowerPC, and others.
+This support includes Linux, macOS, and Windows, on architectures like amd64, 386, ARM, PowerPC, and others.
 
 Because FTPGrab is distributed as an independent binary, it is ideal for those with a seedbox to grab your files
 periodically to your Synology, Qnap, D-Link and others NAS.

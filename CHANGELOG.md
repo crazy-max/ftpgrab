@@ -183,7 +183,7 @@
 :warning: See **Migration notes** in the documentation for breaking changes.
 
 * BIG rewrite (#36)
-* Multiplatform : Linux, macOS and Windows on architectures like amd64, i386, ARM and others
+* Multiplatform : Linux, macOS and Windows on architectures like amd64, 386, ARM and others
 * Modern CLI interactions
 * Yaml Configuration file
 * Detect and merge configuration
