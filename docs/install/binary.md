@@ -6,25 +6,26 @@ FTPGrab binaries are available on [releases]({{ config.repo_url }}releases/lates
 
 Choose the archive matching the destination platform:
 
+* [`ftpgrab_{{ git.tag | trim('v') }}_darwin_amd64.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_darwin_amd64.tar.gz)
 * [`ftpgrab_{{ git.tag | trim('v') }}_darwin_arm64.tar.gz`]({{ config.repo_url }}releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_darwin_arm64.tar.gz)
-* [`ftpgrab_{{ git.tag | trim('v') }}_darwin_x86_64.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_darwin_x86_64.tar.gz)
-* [`ftpgrab_{{ git.tag | trim('v') }}_freebsd_i386.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_freebsd_i386.tar.gz)
-* [`ftpgrab_{{ git.tag | trim('v') }}_freebsd_x86_64.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_freebsd_x86_64.tar.gz)
+* [`ftpgrab_{{ git.tag | trim('v') }}_freebsd_386.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_freebsd_386.tar.gz)
+* [`ftpgrab_{{ git.tag | trim('v') }}_freebsd_amd64.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_freebsd_amd64.tar.gz)
+* [`ftpgrab_{{ git.tag | trim('v') }}_linux_386.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_linux_386.tar.gz)
+* [`ftpgrab_{{ git.tag | trim('v') }}_linux_amd64.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_linux_amd64.tar.gz)
 * [`ftpgrab_{{ git.tag | trim('v') }}_linux_arm64.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_linux_arm64.tar.gz)
 * [`ftpgrab_{{ git.tag | trim('v') }}_linux_armv5.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_linux_armv5.tar.gz)
 * [`ftpgrab_{{ git.tag | trim('v') }}_linux_armv6.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_linux_armv6.tar.gz)
 * [`ftpgrab_{{ git.tag | trim('v') }}_linux_armv7.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_linux_armv7.tar.gz)
 * [`ftpgrab_{{ git.tag | trim('v') }}_linux_ppc64le.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_linux_ppc64le.tar.gz)
+* [`ftpgrab_{{ git.tag | trim('v') }}_linux_riscv64.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_linux_riscv64.tar.gz)
 * [`ftpgrab_{{ git.tag | trim('v') }}_linux_s390x.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_linux_s390x.tar.gz)
-* [`ftpgrab_{{ git.tag | trim('v') }}_linux_i386.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_linux_i386.tar.gz)
-* [`ftpgrab_{{ git.tag | trim('v') }}_linux_x86_64.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_linux_x86_64.tar.gz)
-* [`ftpgrab_{{ git.tag | trim('v') }}_windows_i386.zip`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_windows_i386.zip)
-* [`ftpgrab_{{ git.tag | trim('v') }}_windows_x86_64.zip`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_windows_x86_64.zip)
+* [`ftpgrab_{{ git.tag | trim('v') }}_windows_386.zip`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_windows_386.zip)
+* [`ftpgrab_{{ git.tag | trim('v') }}_windows_amd64.zip`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_windows_amd64.zip)
 
 And extract FTPGrab:
 
 ```shell
-wget -qO- {{ config.repo_url }}releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_linux_x86_64.tar.gz | tar -zxvf - ftpgrab
+wget -qO- {{ config.repo_url }}releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_linux_amd64.tar.gz | tar -zxvf - ftpgrab
 ```
 
 After getting the binary, it can be tested with [`./ftpgrab --help`](../usage/cli.md) command and moved to a permanent
