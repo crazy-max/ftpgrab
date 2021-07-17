@@ -36,11 +36,16 @@ jobs:
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+        with:
+          version: v0.6.0
       -
         name: Test
         uses: docker/bake-action@v1
         with:
           targets: test
+          set: |
+            *.cache-from=type=gha,scope=ftpgrab-test
+            *.cache-to=type=gha,scope=ftpgrab-test
       -
         name: Upload coverage
         uses: codecov/codecov-action@v1
@@ -78,6 +83,8 @@ jobs:
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+        with:
+          version: v0.6.0
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request'
@@ -98,6 +105,9 @@ jobs:
         uses: docker/bake-action@v1
         with:
           targets: artifact-all
+          set: |
+            *.cache-from=type=gha,scope=ftpgrab-artifact
+            *.cache-to=type=gha,scope=ftpgrab-artifact
       -
         name: Move artifacts
         run: |
@@ -118,6 +128,10 @@ jobs:
             ${{ steps.meta.outputs.bake-file }}
           targets: image-all
           push: ${{ github.event_name != 'pull_request' }}
+          set: |
+            *.cache-from=type=gha,scope=ftpgrab-artifact
+            *.cache-from=type=gha,scope=ftpgrab-image
+            *.cache-to=type=gha,scope=ftpgrab-image
       -
         name: GitHub Release
         uses: softprops/action-gh-release@v1
