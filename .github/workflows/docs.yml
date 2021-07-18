@@ -31,11 +31,16 @@ jobs:
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+        with:
+          version: v0.6.0
       -
         name: Build docs
         uses: docker/bake-action@v1
         with:
           targets: docs
+          set: |
+            *.cache-from=type=gha,scope=ftpgrab-docs
+            *.cache-to=type=gha,scope=ftpgrab-docs
       -
         name: Check GitHub Pages status
         uses: crazy-max/ghaction-github-status@v2

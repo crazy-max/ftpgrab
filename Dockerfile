@@ -11,8 +11,8 @@ FROM base AS build
 ARG TARGETPLATFORM
 ARG GIT_REF
 RUN --mount=type=bind,target=/src,rw \
-  --mount=type=cache,target=/root/.cache/go-build \
-  --mount=target=/go/pkg/mod,type=cache \
+  --mount=type=cache,target=/root/.cache \
+  --mount=type=cache,target=/go/pkg/mod \
   goreleaser-xx --debug \
     --name "ftpgrab" \
     --dist "/out" \

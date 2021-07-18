@@ -20,8 +20,13 @@ jobs:
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+        with:
+          version: v0.6.0
       -
         name: Validate
         uses: docker/bake-action@v1
         with:
           targets: validate
+          set: |
+            *.cache-from=type=gha,scope=ftpgrab-validate
+            *.cache-to=type=gha,scope=ftpgrab-validate
