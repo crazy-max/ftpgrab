@@ -1,5 +1,19 @@
 # Changelog
 
+## 7.6.0 (2021/07/25)
+
+* Add `linux/riscv64` artifact
+* Alpine Linux 3.14
+* MkDocs Materials 7.2.0
+* Bump codecov/codecov-action from 1 to 2
+* GitHub Action cache backend (#198)
+* Enhance issue template
+* Bump github.com/pkg/sftp from 1.13.0 to 1.13.2 (#193 #196)
+* Bump github.com/go-playground/validator/v10 from 10.5.0 to 10.7.0 (#187 #195)
+* Bump go.etcd.io/bbolt from 1.3.5 to 1.3.6 (#190)
+* Bump github.com/rs/zerolog from 1.21.0 to 1.23.0 (#188 #194)
+* Bump github.com/alecthomas/kong from 0.2.16 to 0.2.17 (#191)
+
 ## 7.5.0 (2021/04/26)
 
 * Add `disableMLSD` ftp option (#176)
