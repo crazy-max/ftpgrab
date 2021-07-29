@@ -45,7 +45,7 @@ jobs:
           targets: test
           set: |
             *.cache-from=type=gha,scope=ftpgrab-test
-            *.cache-to=type=gha,scope=ftpgrab-test
+            *.cache-to=type=gha,scope=ftpgrab-test,mode=max
       -
         name: Upload coverage
         uses: codecov/codecov-action@v2
@@ -107,7 +107,7 @@ jobs:
           targets: artifact-all
           set: |
             *.cache-from=type=gha,scope=ftpgrab-artifact
-            *.cache-to=type=gha,scope=ftpgrab-artifact
+            *.cache-to=type=gha,scope=ftpgrab-artifact,mode=max
       -
         name: Move artifacts
         run: |
@@ -131,7 +131,7 @@ jobs:
           set: |
             *.cache-from=type=gha,scope=ftpgrab-artifact
             *.cache-from=type=gha,scope=ftpgrab-image
-            *.cache-to=type=gha,scope=ftpgrab-image
+            *.cache-to=type=gha,scope=ftpgrab-image,mode=max
       -
         name: GitHub Release
         uses: softprops/action-gh-release@v1

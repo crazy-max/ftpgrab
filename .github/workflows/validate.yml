@@ -29,4 +29,4 @@ jobs:
           targets: validate
           set: |
             *.cache-from=type=gha,scope=ftpgrab-validate
-            *.cache-to=type=gha,scope=ftpgrab-validate
+            *.cache-to=type=gha,scope=ftpgrab-validate,mode=max
