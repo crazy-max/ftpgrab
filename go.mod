@@ -7,7 +7,7 @@ require (
 	github.com/crazy-max/gonfig v0.4.0
 	github.com/docker/go-units v0.4.0
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
-	github.com/go-playground/validator/v10 v10.8.0
+	github.com/go-playground/validator/v10 v10.9.0
 	github.com/hako/durafmt v0.0.0-20210316092057-3a2c319c1acd
 	github.com/ilya1st/rotatewriter v0.0.0-20171126183947-3df0c1a3ed6d
 	github.com/jlaffaye/ftp v0.0.0-20210307004419-5d4190119067
