@@ -20,7 +20,7 @@ require (
 	github.com/google/uuid v1.0.0 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/gorilla/websocket v1.2.0 // indirect
-	github.com/hako/durafmt v0.0.0-20210316092057-3a2c319c1acd
+	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/huandu/xstrings v1.2.0 // indirect
 	github.com/ilya1st/rotatewriter v0.0.0-20171126183947-3df0c1a3ed6d
 	github.com/imdario/mergo v0.3.6 // indirect
