@@ -21,6 +21,7 @@ Choose the archive matching the destination platform:
 * [`ftpgrab_{{ git.tag | trim('v') }}_linux_s390x.tar.gz`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_linux_s390x.tar.gz)
 * [`ftpgrab_{{ git.tag | trim('v') }}_windows_386.zip`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_windows_386.zip)
 * [`ftpgrab_{{ git.tag | trim('v') }}_windows_amd64.zip`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_windows_amd64.zip)
+* [`ftpgrab_{{ git.tag | trim('v') }}_windows_arm64.zip`]({{ config.repo_url }}/releases/download/v{{ git.tag | trim('v') }}/ftpgrab_{{ git.tag | trim('v') }}_windows_arm64.zip)
 
 And extract FTPGrab:
 

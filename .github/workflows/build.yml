@@ -25,6 +25,22 @@ env:
   GHCR_SLUG: ghcr.io/crazy-max/ftpgrab
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Validate
+        uses: docker/bake-action@v1
+        with:
+          targets: validate
+          pull: true
+
   test:
     runs-on: ubuntu-latest
     steps:
@@ -36,16 +52,12 @@ jobs:
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-        with:
-          version: v0.6.0
       -
         name: Test
         uses: docker/bake-action@v1
         with:
           targets: test
-          set: |
-            *.cache-from=type=gha,scope=ftpgrab-test
-            *.cache-to=type=gha,scope=ftpgrab-test,mode=max
+          pull: true
       -
         name: Upload coverage
         uses: codecov/codecov-action@v2
@@ -54,7 +66,9 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    needs: [ test ]
+    needs:
+      - validate
+      - test
     steps:
       -
         name: Checkout
@@ -71,6 +85,8 @@ jobs:
             ${{ env.GHCR_SLUG }}
           tags: |
             type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
             type=ref,event=pr
             type=edge
           labels: |
@@ -83,8 +99,6 @@ jobs:
       -
         name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
-        with:
-          version: v0.6.0
       -
         name: Login to DockerHub
         if: github.event_name != 'pull_request'
@@ -105,9 +119,7 @@ jobs:
         uses: docker/bake-action@v1
         with:
           targets: artifact-all
-          set: |
-            *.cache-from=type=gha,scope=ftpgrab-artifact
-            *.cache-to=type=gha,scope=ftpgrab-artifact,mode=max
+          pull: true
       -
         name: Move artifacts
         run: |
@@ -116,22 +128,19 @@ jobs:
         name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: ftpgrab
+          name: diun
           path: ./dist/*
           if-no-files-found: error
       -
-        name: Build image
+        name: Build
         uses: docker/bake-action@v1
         with:
           files: |
             ./docker-bake.hcl
             ${{ steps.meta.outputs.bake-file }}
           targets: image-all
+          pull: true
           push: ${{ github.event_name != 'pull_request' }}
-          set: |
-            *.cache-from=type=gha,scope=ftpgrab-artifact
-            *.cache-from=type=gha,scope=ftpgrab-image
-            *.cache-to=type=gha,scope=ftpgrab-image,mode=max
       -
         name: GitHub Release
         uses: softprops/action-gh-release@v1
