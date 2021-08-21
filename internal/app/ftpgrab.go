@@ -51,7 +51,7 @@ func (fg *FtpGrab) Start() error {
 	// Start scheduler
 	fg.cron.Start()
 	log.Info().Msgf("Next run in %s (%s)",
-		durafmt.ParseShort(time.Until(fg.cron.Entry(fg.jobID).Next)).String(),
+		durafmt.Parse(time.Until(fg.cron.Entry(fg.jobID).Next)).LimitFirstN(2).String(),
 		fg.cron.Entry(fg.jobID).Next)
 
 	select {}
@@ -66,7 +66,7 @@ func (fg *FtpGrab) Run() {
 	defer atomic.StoreUint32(&fg.locker, 0)
 	if fg.jobID > 0 {
 		defer log.Info().Msgf("Next run in %s (%s)",
-			durafmt.ParseShort(time.Until(fg.cron.Entry(fg.jobID).Next)).String(),
+			durafmt.Parse(time.Until(fg.cron.Entry(fg.jobID).Next)).LimitFirstN(2).String(),
 			fg.cron.Entry(fg.jobID).Next)
 	}
 
