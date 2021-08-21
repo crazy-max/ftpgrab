@@ -90,6 +90,7 @@ target "artifact-all" {
     "linux/riscv64",
     "linux/s390x",
     "windows/386",
+    "windows/amd64",
     "windows/amd64"
   ]
 }

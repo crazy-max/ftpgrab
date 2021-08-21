@@ -38,9 +38,6 @@ jobs:
         uses: docker/bake-action@v1
         with:
           targets: docs
-          set: |
-            *.cache-from=type=gha,scope=ftpgrab-docs
-            *.cache-to=type=gha,scope=ftpgrab-docs,mode=max
       -
         name: Check GitHub Pages status
         uses: crazy-max/ghaction-github-status@v2
