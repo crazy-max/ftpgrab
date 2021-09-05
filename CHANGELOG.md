@@ -1,5 +1,16 @@
 # Changelog
 
+## 7.7.0 (2021/09/05)
+
+* Go 1.17 (#203)
+* Wrong remaining time displayed (#204)
+* Add `windows/arm64` artifact (#205)
+* MkDocs Material 7.2.6
+* Bump github.com/rs/zerolog from 1.23.0 to 1.24.0 (#207)
+* Bump github.com/crazy-max/gonfig from 0.4.0 to 0.5.0 (#206)
+* Bump github.com/gorilla/websocket to v1.4.2
+* Bump github.com/go-playground/validator/v10 from 10.7.0 to 10.9.0 (#200 #202)
+
 ## 7.6.0 (2021/07/25)
 
 * Add `linux/riscv64` artifact
@@ -47,8 +58,8 @@
 
 ## 7.2.0 (2020/11/29)
 
-* Allow to download files to a temp dir first (#149)
-* Allow to disable log timestamp (#148)
+* Allow downloading files to a temp dir first (#149)
+* Allow disabling log timestamp (#148)
 * Add script notification (#147)
 * Bump github.com/crazy-max/gonfig from 0.3.0 to 0.4.0 (#140)
 
@@ -61,7 +72,7 @@
 
 ## 7.1.0 (2020/10/04)
 
-* Allow to disable `OPTS UTF8 ON` command
+* Allow disabling `OPTS UTF8 ON` command
 * Refactor to start working on #48
 * Switch to Docker actions
 * Go 1.15
@@ -125,8 +136,8 @@
 * Switch to GitHub Actions
 * Add instructions to create a Linux service
 * Remove `--docker` flag
-* Allow to override database path through `FTPGRAB_DB` env var
-* Allow to override download output path through `FTPGRAB_DOWNLOAD_OUTPUT` env var
+* Allow overriding database path through `FTPGRAB_DB` env var
+* Allow overriding download output path through `FTPGRAB_DOWNLOAD_OUTPUT` env var
 
 ## 6.0.2 (2019/07/27)
 
