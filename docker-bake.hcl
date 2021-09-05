@@ -54,6 +54,13 @@ target "vendor-update" {
   output = ["."]
 }
 
+target "vendor-outdated" {
+  inherits = ["go-version"]
+  dockerfile = "./hack/vendor.Dockerfile"
+  target = "outdated"
+  output = ["type=cacheonly"]
+}
+
 target "test" {
   inherits = ["go-version"]
   dockerfile = "./hack/test.Dockerfile"
