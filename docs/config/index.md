@@ -48,8 +48,8 @@ You can override this using the [`--config` flag or `CONFIG` env var](../usage/c
       output: /download
       uid: 1000
       gid: 1000
-      chmodFile: 0644
-      chmodDir: 0755
+      chmodFile: 0o644
+      chmodDir: 0o755
       include:
         - ^Mr\.Robot\.S04.+(VOSTFR|SUBFRENCH).+(720p).+(HDTV|WEB-DL|WEBRip).+
       exclude:
@@ -106,8 +106,8 @@ All configuration from file can be transposed into environment variables. As an 
       output: /downloads
       uid: 1000
       gid: 1000
-      chmodFile: 0644
-      chmodDir: 0755
+      chmodFile: 0o644
+      chmodDir: 0o755
       include:
         - ^Mr\.Robot\.S04.+(VOSTFR|SUBFRENCH).+(720p).+(HDTV|WEB-DL|WEBRip).+
       exclude:
@@ -149,8 +149,8 @@ Can be transposed to:
     FTPGRAB_DOWNLOAD_OUTPUT=/downloads
     FTPGRAB_DOWNLOAD_GID=1000
     FTPGRAB_DOWNLOAD_UID=1000
-    FTPGRAB_DOWNLOAD_CHMODDIR=493
-    FTPGRAB_DOWNLOAD_CHMODFILE=420
+    FTPGRAB_DOWNLOAD_CHMODDIR=0o755
+    FTPGRAB_DOWNLOAD_CHMODFILE=0o644
     FTPGRAB_DOWNLOAD_INCLUDE=^Mr\.Robot\.S04.+(VOSTFR|SUBFRENCH).+(720p).+(HDTV|WEB-DL|WEBRip).+
     FTPGRAB_DOWNLOAD_EXCLUDE=\.nfo$
     FTPGRAB_DOWNLOAD_SINCE=2019-02-01T18:50:05Z

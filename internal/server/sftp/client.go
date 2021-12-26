@@ -3,7 +3,6 @@ package sftp
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
@@ -87,7 +86,7 @@ func (c *Client) readPublicKey(key string, password string) ([]ssh.AuthMethod, e
 	var signer ssh.Signer
 	var err error
 
-	buffer, err := ioutil.ReadFile(key)
+	buffer, err := os.ReadFile(key)
 	if err != nil {
 		return nil, err
 	}
