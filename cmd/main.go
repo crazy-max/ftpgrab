@@ -6,13 +6,13 @@ import (
 	"os/signal"
 	"runtime"
 	"strings"
-	"syscall"
 	_ "time/tzdata"
 
 	"github.com/alecthomas/kong"
 	"github.com/crazy-max/ftpgrab/v7/internal/app"
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/logging"
+	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/rs/zerolog/log"
 )
 
@@ -59,7 +59,7 @@ func main() {
 
 	// Handle os signals
 	channel := make(chan os.Signal)
-	signal.Notify(channel, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(channel, os.Interrupt, utl.SIGTERM)
 	go func() {
 		sig := <-channel
 		ftpgrab.Close()
