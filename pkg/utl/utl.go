@@ -3,7 +3,6 @@ package utl
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -24,7 +23,7 @@ func GetSecret(plaintext, filename string) (string, error) {
 	if plaintext != "" {
 		return plaintext, nil
 	} else if filename != "" {
-		b, err := ioutil.ReadFile(filename)
+		b, err := os.ReadFile(filename)
 		if err != nil {
 			return "", err
 		}

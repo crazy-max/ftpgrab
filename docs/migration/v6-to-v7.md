@@ -95,8 +95,8 @@ In order to enable transposition into environmental variables, all fields in con
       output: /download
       uid: 1000
       gid: 1000
-      chmodFile: 0644
-      chmodDir: 0755
+      chmodFile: 0o644
+      chmodDir: 0o755
       include:
         - ^Mr\.Robot\.S04.+(VOSTFR|SUBFRENCH).+(720p).+(HDTV|WEB-DL|WEBRip).+
       exclude:

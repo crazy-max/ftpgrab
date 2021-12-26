@@ -2,7 +2,6 @@ package grabber
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"time"
@@ -51,7 +50,7 @@ func New(dlConfig *config.Download, dbConfig *config.Db, serverConfig *config.Se
 	}
 
 	// Temp dir to download files
-	tempdir, err := ioutil.TempDir("", ".ftpgrab.*")
+	tempdir, err := os.MkdirTemp("", ".ftpgrab.*")
 	if err != nil {
 		return nil, errors.Wrap(err, "Cannot create temp dir")
 	}
@@ -192,7 +191,7 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 
 func (c *Client) createFile(filename string) (*os.File, error) {
 	if *c.config.TempFirst {
-		tempfile, err := ioutil.TempFile(c.tempdir, path.Base(filename))
+		tempfile, err := os.CreateTemp(c.tempdir, path.Base(filename))
 		if err != nil {
 			return nil, err
 		}

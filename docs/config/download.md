@@ -6,8 +6,8 @@
       output: /download
       uid: 1000
       gid: 1000
-      chmodFile: 0644
-      chmodDir: 0755
+      chmodFile: 0o644
+      chmodDir: 0o755
       include:
         - ^Mr\.Robot\.S04.+(VOSTFR|SUBFRENCH).+(720p).+(HDTV|WEB-DL|WEBRip).+
       exclude:
@@ -60,12 +60,12 @@ Owner group applied to downloaded files. (default to caller)
 
 ## `chmodFile`
 
-Permissions applied to files. (default: `0644`)
+Permissions applied to files. (default: `0o644`)
 
 !!! example "Config file"
     ```yaml
     download:
-      chmodFile: 0644
+      chmodFile: 0o644
     ```
 
 !!! abstract "Environment variables"
@@ -73,12 +73,12 @@ Permissions applied to files. (default: `0644`)
 
 ## `chmodDir`
 
-Permissions applied to folders. (default: `0755`)
+Permissions applied to folders. (default: `0o755`)
 
 !!! example "Config file"
     ```yaml
     download:
-      chmodDir: 0755
+      chmodDir: 0o755
     ```
 
 !!! abstract "Environment variables"

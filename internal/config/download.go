@@ -35,8 +35,8 @@ func (s *Download) GetDefaults() *Download {
 func (s *Download) SetDefaults() {
 	s.UID = os.Getuid()
 	s.GID = os.Getgid()
-	s.ChmodFile = 0644
-	s.ChmodDir = 0755
+	s.ChmodFile = 0o644
+	s.ChmodDir = 0o755
 	s.Retry = 3
 	s.HideSkipped = utl.NewFalse()
 	s.TempFirst = utl.NewFalse()
