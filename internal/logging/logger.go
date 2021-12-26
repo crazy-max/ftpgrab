@@ -5,10 +5,10 @@ import (
 	"os"
 	"os/signal"
 	"path"
-	"syscall"
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
+	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/ilya1st/rotatewriter"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -45,7 +45,7 @@ func Configure(cli config.Cli) {
 			log.Fatal().Err(err).Msgf("Cannot create log file writer")
 		}
 		sighupChan := make(chan os.Signal, 1)
-		signal.Notify(sighupChan, syscall.SIGHUP)
+		signal.Notify(sighupChan, utl.SIGHUP)
 		go func() {
 			for {
 				_, ok := <-sighupChan

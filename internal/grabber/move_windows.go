@@ -1,15 +1,20 @@
+//go:build windows
+// +build windows
+
 package grabber
 
-import "syscall"
+import (
+	"golang.org/x/sys/windows"
+)
 
 func moveFile(oldpath, newpath string) error {
-	from, err := syscall.UTF16PtrFromString(oldpath)
+	from, err := windows.UTF16PtrFromString(oldpath)
 	if err != nil {
 		return err
 	}
-	to, err := syscall.UTF16PtrFromString(newpath)
+	to, err := windows.UTF16PtrFromString(newpath)
 	if err != nil {
 		return err
 	}
-	return syscall.MoveFile(from, to)
+	return windows.MoveFile(from, to)
 }
