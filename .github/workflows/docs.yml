@@ -23,7 +23,7 @@ jobs:
           version: v0.6.0
       -
         name: Build docs
-        uses: docker/bake-action@v1
+        uses: docker/bake-action@v2
         with:
           targets: docs
       -
