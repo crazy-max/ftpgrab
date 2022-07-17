@@ -63,7 +63,7 @@ func (c *Client) Send(jnl journal.Journal) error {
 	}
 
 	return slack.PostWebhook(c.cfg.WebhookURL, &slack.WebhookMessage{
-		Attachments: []slack.Attachment{slack.Attachment{
+		Attachments: []slack.Attachment{{
 			Color:         color,
 			AuthorName:    c.meta.Name,
 			AuthorSubname: "github.com/crazy-max/ftpgrab",
