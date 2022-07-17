@@ -50,7 +50,7 @@ COPY --from=build /out/*.zip /
 FROM scratch AS binary
 COPY --from=build /usr/local/bin/ftpgrab* /
 
-FROM alpine:3.15
+FROM alpine:3.16
 RUN apk --update --no-cache add ca-certificates openssl
 COPY --from=build /usr/local/bin/ftpgrab /usr/local/bin/ftpgrab
 ENV FTPGRAB_DB_PATH="/db/ftpgrab.db" \
