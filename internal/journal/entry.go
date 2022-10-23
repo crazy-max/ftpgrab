@@ -8,7 +8,7 @@ type Entry struct {
 	Text   string      `json:"text,omitempty"`
 }
 
-//  EntryLevel represents an entry kevek
+// EntryLevel represents an entry kevek
 type EntryLevel string
 
 const (
