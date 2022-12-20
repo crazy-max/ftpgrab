@@ -4,7 +4,7 @@
   <a href="https://crazymax.dev/ftpgrab/"><img src="https://img.shields.io/badge/doc-mkdocs-02a6f2?style=flat-square&logo=read-the-docs" alt="Documentation"></a>
   <a href="https://github.com/crazy-max/ftpgrab/releases/latest"><img src="https://img.shields.io/github/release/crazy-max/ftpgrab.svg?style=flat-square" alt="GitHub release"></a>
   <a href="https://github.com/crazy-max/ftpgrab/releases/latest"><img src="https://img.shields.io/github/downloads/crazy-max/ftpgrab/total.svg?style=flat-square" alt="Total downloads"></a>
-  <a href="https://github.com/crazy-max/ftpgrab/actions?workflow=build"><img src="https://img.shields.io/github/workflow/status/crazy-max/ftpgrab/build?label=build&logo=github&style=flat-square" alt="Build Status"></a>
+  <a href="https://github.com/crazy-max/ftpgrab/actions?workflow=build"><img src="https://img.shields.io/github/actions/workflow/status/crazy-max/ftpgrab/build.yml?branch=master&label=build&logo=github&style=flat-square" alt="Build Status"></a>
   <a href="https://hub.docker.com/r/crazymax/ftpgrab/"><img src="https://img.shields.io/docker/stars/crazymax/ftpgrab.svg?style=flat-square&logo=docker" alt="Docker Stars"></a>
   <a href="https://hub.docker.com/r/crazymax/ftpgrab/"><img src="https://img.shields.io/docker/pulls/crazymax/ftpgrab.svg?style=flat-square&logo=docker" alt="Docker Pulls"></a>
   <br /><a href="https://goreportcard.com/report/github.com/crazy-max/ftpgrab"><img src="https://goreportcard.com/badge/github.com/crazy-max/ftpgrab?style=flat-square" alt="Go Report"></a>
