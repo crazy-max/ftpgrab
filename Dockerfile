@@ -80,7 +80,7 @@ RUN --mount=type=bind,target=/src \
   if [ "$TARGETOS" = "windows" ]; then
     zip -r "/out/ftpgrab_${version#v}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.zip" .
   else
-    tar -czvf "/out/ftpgrab_${version#v}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.tar.tgz" .
+    tar -czvf "/out/ftpgrab_${version#v}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.tar.gz" .
   fi
 EOT
 
