@@ -76,9 +76,13 @@ func (c *Client) Common() config.ServerCommon {
 }
 
 // ReadDir fetches the contents of a directory, returning a list of os.FileInfo's
-func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
+func (c *Client) ReadDir(dir string) ([]os.FileInfo, error) {
 	var files []*ftp.Entry
-	files, err := c.ftp.List(regexp.QuoteMeta(path))
+
+	if *c.cfg.EscapeRegexpMeta {
+		dir = regexp.QuoteMeta(dir)
+	}
+	files, err := c.ftp.List(dir)
 	if err != nil {
 		return nil, err
 	}
