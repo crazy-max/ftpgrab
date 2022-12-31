@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/alecthomas/kong v0.6.1
 	github.com/crazy-max/gonfig v0.6.0
-	github.com/docker/go-units v0.4.0
+	github.com/docker/go-units v0.5.0
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
 	github.com/go-playground/validator/v10 v10.11.0
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
