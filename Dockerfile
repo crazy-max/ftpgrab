@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 ARG GO_VERSION="1.19"
-ARG ALPINE_VERSION="3.16"
+ARG ALPINE_VERSION="3.17"
 ARG XX_VERSION="1.1.2"
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
@@ -80,7 +80,7 @@ RUN --mount=type=bind,target=/src \
   if [ "$TARGETOS" = "windows" ]; then
     zip -r "/out/ftpgrab_${version#v}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.zip" .
   else
-    tar -czvf "/out/ftpgrab_${version#v}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.tar.tgz" .
+    tar -czvf "/out/ftpgrab_${version#v}_${TARGETOS}_${TARGETARCH}${TARGETVARIANT}.tar.gz" .
   fi
 EOT
 
