@@ -1,5 +1,25 @@
 # Changelog
 
+## 7.8.0 (2022/12/31)
+
+* Option to escape all regular expression metacharacters (#270)
+* Fix file mode type (#269)
+* Move from `io/ioutil` to `io` and `os` packages (#219)
+* Move `syscall` to `golang.org/x/sys` (#220)
+* Go 1.19 (#262 #253)
+* Alpine Linux 3.17 (#268 #254 #223)
+* MkDocs Material 8.3.9 (#256)
+* Enhance workflow (#263 #218 #255)
+* Bump github.com/crazy-max/gonfig from 0.5.0 to 0.6.0 (#257)
+* Bump github.com/pkg/sftp from 1.13.2 to 1.13.5 (#208 #210 #246)
+* Bump github.com/rs/zerolog from 1.24.0 to 1.28.0 (#209 #211 #217 #245 #258)
+* Bump github.com/alecthomas/kong from 0.2.17 to 0.7.1 (#212 #215 #222 #230 #248 #266)
+* Bump github.com/go-playground/validator/v10 from 10.9.0 to 10.11.1 (#221 #229 #236 #261)
+* Bump github.com/stretchr/testify from 1.7.0 to 1.8.1 (#251 #264)
+* Bump github.com/docker/go-units from 0.4.0 to 0.5.0 (#259)
+* Bump golang.org/x/crypto to 0.4.0 (#272)
+* Bump golang.org/x/sys to 0.3.0 (#271)
+
 ## 7.7.0 (2021/09/05)
 
 * Go 1.17 (#203)
