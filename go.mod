@@ -7,7 +7,7 @@ require (
 	github.com/crazy-max/gonfig v0.6.0
 	github.com/docker/go-units v0.5.0
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
-	github.com/go-playground/validator/v10 v10.11.1
+	github.com/go-playground/validator/v10 v10.11.2
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/ilya1st/rotatewriter v0.0.0-20171126183947-3df0c1a3ed6d
 	github.com/jlaffaye/ftp v0.0.0-20210307004419-5d4190119067
@@ -19,8 +19,8 @@ require (
 	github.com/rs/zerolog v1.28.0
 	github.com/stretchr/testify v1.8.1
 	go.etcd.io/bbolt v1.3.6
-	golang.org/x/crypto v0.4.0
-	golang.org/x/sys v0.3.0
+	golang.org/x/crypto v0.5.0
+	golang.org/x/sys v0.4.0
 )
 
 require (
@@ -31,8 +31,8 @@ require (
 	github.com/andybalholm/cascadia v1.0.0 // indirect
 	github.com/aokoli/goutils v1.0.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/go-playground/locales v0.14.0 // indirect
-	github.com/go-playground/universal-translator v0.18.0 // indirect
+	github.com/go-playground/locales v0.14.1 // indirect
+	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/google/uuid v1.0.0 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
@@ -51,8 +51,8 @@ require (
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/vanng822/css v0.0.0-20190504095207-a21e860bcd04 // indirect
 	github.com/vanng822/go-premailer v0.0.0-20191214114701-be27abe028fe // indirect
-	golang.org/x/net v0.3.0 // indirect
-	golang.org/x/text v0.5.0 // indirect
+	golang.org/x/net v0.5.0 // indirect
+	golang.org/x/text v0.6.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
