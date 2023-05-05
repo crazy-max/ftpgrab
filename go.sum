@@ -15,8 +15,8 @@ github.com/andybalholm/cascadia v1.0.0/go.mod h1:GsXiBklL0woXo1j/WYWtSYYC4ouU9Pq
 github.com/aokoli/goutils v1.0.1 h1:7fpzNGoJ3VA8qcrm++XEE1QUe0mIwNeLa02Nwq7RDkg=
 github.com/aokoli/goutils v1.0.1/go.mod h1:SijmP0QR8LtwsmDs8Yii5Z/S4trXFGFC2oO5g9DP+DQ=
 github.com/coreos/go-systemd/v22 v22.3.3-0.20220203105225-a9a7ef127534/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
-github.com/crazy-max/gonfig v0.7.0 h1:CW3h1S8VwBSBwEO0xMSuJDLlSo67ggRic4Nms61dYL4=
-github.com/crazy-max/gonfig v0.7.0/go.mod h1:csPFrGh/m0nIamCJbah1ZN2/+5s510nQQ7szHsk8HZ0=
+github.com/crazy-max/gonfig v0.7.1 h1:cT+Wj7syVnsxmjl+u+Fs/cwZEcorHdGdHgcp3UZNWDE=
+github.com/crazy-max/gonfig v0.7.1/go.mod h1:csPFrGh/m0nIamCJbah1ZN2/+5s510nQQ7szHsk8HZ0=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
