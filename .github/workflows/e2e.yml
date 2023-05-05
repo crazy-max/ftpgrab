@@ -1,0 +1,102 @@
+name: e2e
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - 'master'
+      - 'v*'
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+env:
+  BUILD_TAG: 'ftpgrab:local'
+  CONTAINER_NAME: 'ftpgrab'
+  RUNNING_TIMEOUT: '240'
+  RUNNING_LOG_CHECK: 'Finished'
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+      -
+        name: Build
+        uses: docker/bake-action@v3
+        with:
+          targets: image-local
+          pull: true
+      -
+        name: Create network
+        run: |
+          docker network create -d bridge ${{ env.CONTAINER_NAME }}
+      -
+        name: Start Pure-FTPd container
+        run: |
+          echo "foo:\$2a\$08\$H2v8vXFqPddF1jHU1tN2vurj./NBDmReoNEl7iY.WgEGzF/NCTBjK:$(id -u):$(id -g)::/home/foo/./::::::::::::" > /tmp/pureftpd.passwd
+          echo "-d -d" > /tmp/pureftpd.flags
+          cat /tmp/pureftpd.passwd
+
+          docker run -d --name pureftpd --hostname pureftpd \
+            --network ${{ env.CONTAINER_NAME }} \
+            -e "AUTH_METHOD=puredb" \
+            -e "SECURE_MODE=false" \
+            -v "${HOME}/warmup:/home/foo" \
+            -v "/tmp/pureftpd.passwd:/data/pureftpd.passwd" \
+            -v "/tmp/pureftpd.flags:/data/pureftpd.flags" \
+            crazymax/pure-ftpd:latest
+
+          sleep 5
+          docker exec -i pureftpd pure-pw show foo
+      -
+        name: Start container
+        run: |
+          docker run -d --name ${{ env.CONTAINER_NAME }} \
+            --link pureftpd \
+            --network ${{ env.CONTAINER_NAME }} \
+            -e "SCHEDULE=*/30 * * * *" \
+            -e "LOG_LEVEL=debug" \
+            -e "LOG_NOCOLOR=true" \
+            -v "$(pwd)/.res/ftpgrab.test.yml:/ftpgrab.yml:ro" \
+            ${{ env.BUILD_TAG }}
+      -
+        name: Test run
+        run: |
+          TIMEOUT=$((SECONDS + ${{ env.RUNNING_TIMEOUT }}))
+          while read LOGLINE; do
+            echo ${LOGLINE}
+            if [[ ${LOGLINE} == *"${{ env.RUNNING_LOG_CHECK }}"* ]]; then
+              echo "🎉 Container up!"
+              break
+            fi
+            if [[ $SECONDS -gt ${TIMEOUT} ]]; then
+              >&2 echo "❌ Failed to run ${{ env.CONTAINER_NAME }} container"
+              exit 1
+            fi
+          done < <(docker logs -f ${{ env.CONTAINER_NAME }} 2>&1)
+
+          CONTAINER_STATUS=$(docker container inspect --format "{{.State.Status}}" ${{ env.CONTAINER_NAME }})
+          if [[ ${CONTAINER_STATUS} != "running" ]]; then
+            >&2 echo "❌ Container ${{ env.CONTAINER_NAME }} returned status '$CONTAINER_STATUS'"
+            exit 1
+          fi
+      -
+        name: Pure-FTPd logs
+        if: always()
+        run: |
+          docker logs pureftpd
+          docker rm -f pureftpd > /dev/null 2>&1 || true
+      -
+        name: Container logs
+        if: always()
+        run: |
+          docker logs ${{ env.CONTAINER_NAME }}
+          docker rm -f ${{ env.CONTAINER_NAME }} > /dev/null 2>&1 || true
