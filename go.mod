@@ -10,14 +10,14 @@ require (
 	github.com/go-playground/validator/v10 v10.13.0
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/ilya1st/rotatewriter v0.0.0-20171126183947-3df0c1a3ed6d
-	github.com/jlaffaye/ftp v0.1.1-0.20230214004652-d84bf4be2b6e
+	github.com/jlaffaye/ftp v0.2.0
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/nlopes/slack v0.6.0
 	github.com/pkg/errors v0.9.1
 	github.com/pkg/sftp v1.13.5
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.29.1
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.3
 	go.etcd.io/bbolt v1.3.7
 	golang.org/x/crypto v0.8.0
 	golang.org/x/sys v0.8.0
