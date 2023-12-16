@@ -19,8 +19,8 @@ require (
 	github.com/rs/zerolog v1.29.1
 	github.com/stretchr/testify v1.8.3
 	go.etcd.io/bbolt v1.3.7
-	golang.org/x/crypto v0.8.0
-	golang.org/x/sys v0.8.0
+	golang.org/x/crypto v0.12.0
+	golang.org/x/sys v0.11.0
 )
 
 require (
@@ -53,8 +53,8 @@ require (
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/vanng822/css v0.0.0-20190504095207-a21e860bcd04 // indirect
 	github.com/vanng822/go-premailer v0.0.0-20191214114701-be27abe028fe // indirect
-	golang.org/x/net v0.9.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/text v0.12.0 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
