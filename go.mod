@@ -20,7 +20,7 @@ require (
 	github.com/stretchr/testify v1.8.3
 	go.etcd.io/bbolt v1.3.7
 	golang.org/x/crypto v0.14.0
-	golang.org/x/sys v0.13.0
+	golang.org/x/sys v0.15.0
 )
 
 require (
