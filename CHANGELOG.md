@@ -1,5 +1,20 @@
 # Changelog
 
+## 7.9.0 (2023/12/16)
+
+* Go 1.21 (#322)
+* Bump github.com/alecthomas/kong from 0.7.1 to 0.8.0 (#306
+* Bump github.com/crazy-max/gonfig from 0.6.0 to 0.7.0 (#291
+* Bump github.com/jlaffaye/ftp to 0.2.0 (#297 #301)
+* Bump github.com/go-playground/validator/v10 from 10.11.1 to 10.16.0 (#295 #321)
+* Bump github.com/rs/zerolog from 1.28.0 to 1.31.0 (#294 #320)
+* Bump github.com/stretchr/testify from 1.8.1 to 1.8.4 (#283 #302)
+* Bump golang.org/x/crypto from 0.4.0 to 0.8.0 (#293 #310)
+* Bump golang.org/x/net from 0.9.0 to 0.17.0 (#318)
+* Bump golang.org/x/sys from 0.3.0 to 0.8.0 (#287 #292)
+* Bump golang.org/x/sys from 0.11.0 to 0.15.0 (#319)
+* Bump go.etcd.io/bbolt from 1.3.6 to 1.3.7 (#277)
+
 ## 7.8.0 (2022/12/31)
 
 * Option to escape all regular expression metacharacters (#270)
