@@ -63,6 +63,8 @@ FROM binary-unix AS binary-darwin
 FROM binary-unix AS binary-freebsd
 FROM binary-unix AS binary-linux
 FROM binary-$TARGETOS AS binary
+# enable scanning for this stage
+ARG BUILDKIT_SBOM_SCAN_STAGE=true
 
 FROM --platform=$BUILDPLATFORM alpine:${ALPINE_VERSION} AS build-artifact
 RUN apk add --no-cache bash tar zip
