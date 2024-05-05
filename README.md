@@ -22,8 +22,7 @@ to your NAS, server or computer.
 
 ![](.res/screenshot.png)
 
-> **Note**
-> 
+> [!TIP]
 > Want to be notified of new releases? Check out 🔔 [Diun (Docker Image Update Notifier)](https://github.com/crazy-max/diun)
 > project!
 
