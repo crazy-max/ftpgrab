@@ -1,8 +1,22 @@
 # Changelog
 
+## 7.10.0 (2024/12/20)
+
+* Go 1.23 (#397)
+* Alpine Linux 3.21 (#397)
+* Bump github.com/alecthomas/kong from 0.8.0 to 1.6.0 (#323 #354 #393)
+* Bump github.com/go-playground/validator/v10 from 10.16.0 to 10.23.0 (#350 #370 #394)
+* Bump github.com/pkg/sftp from 1.13.5 to 1.13.7 (#326 #395)
+* Bump github.com/rs/zerolog from 1.31.0 to 1.33.0 (#344 #366)
+* Bump github.com/stretchr/testify from 1.8.4 to 1.10.0 (#351 #396)
+* Bump go.etcd.io/bbolt from 1.3.7 to 1.3.11 (#325 #348 #365 #377)
+* Bump golang.org/x/crypto from 0.14.0 to 0.31.0 (#324 #337 #352 #391)
+* Bump golang.org/x/net from 0.21.0 to 0.28.0 (#360 #353 #392)
+
 ## 7.9.0 (2023/12/16)
 
 * Go 1.21 (#322)
+* Alpine Linux 3.18 (#322)
 * Bump github.com/alecthomas/kong from 0.7.1 to 0.8.0 (#306
 * Bump github.com/crazy-max/gonfig from 0.6.0 to 0.7.0 (#291
 * Bump github.com/jlaffaye/ftp to 0.2.0 (#297 #301)
@@ -11,8 +25,7 @@
 * Bump github.com/stretchr/testify from 1.8.1 to 1.8.4 (#283 #302)
 * Bump golang.org/x/crypto from 0.4.0 to 0.8.0 (#293 #310)
 * Bump golang.org/x/net from 0.9.0 to 0.17.0 (#318)
-* Bump golang.org/x/sys from 0.3.0 to 0.8.0 (#287 #292)
-* Bump golang.org/x/sys from 0.11.0 to 0.15.0 (#319)
+* Bump golang.org/x/sys from 0.3.0 to 0.15.0 (#287 #292 #319)
 * Bump go.etcd.io/bbolt from 1.3.6 to 1.3.7 (#277)
 
 ## 7.8.0 (2022/12/31)
