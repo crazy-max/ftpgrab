@@ -25,5 +25,5 @@ func (c *Client) Add(entry Entry) {
 
 // IsEmpty checks if journal is empty
 func (c *Client) IsEmpty() bool {
-	return c.Entries == nil || len(c.Entries) == 0
+	return len(c.Entries) == 0
 }

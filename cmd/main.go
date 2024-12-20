@@ -35,7 +35,7 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	meta.Version = version
-	meta.UserAgent = fmt.Sprintf("%s/%s go/%s %s", meta.ID, meta.Version, runtime.Version()[2:], strings.Title(runtime.GOOS))
+	meta.UserAgent = fmt.Sprintf("%s/%s go/%s %s", meta.ID, meta.Version, runtime.Version()[2:], strings.Title(runtime.GOOS)) //nolint:staticcheck // ignoring "SA1019: strings.Title is deprecated", as for our use we don't need full unicode support
 	if meta.Hostname, err = os.Hostname(); err != nil {
 		log.Fatal().Err(err).Msg("Cannot resolve hostname")
 	}
