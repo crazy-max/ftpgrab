@@ -33,5 +33,5 @@ func (j Journal) MarshalJSON() ([]byte, error) {
 
 // IsEmpty checks if journal is empty
 func (j Journal) IsEmpty() bool {
-	return j.Entries == nil || len(j.Entries) == 0
+	return len(j.Entries) == 0
 }
