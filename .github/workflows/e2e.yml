@@ -20,6 +20,7 @@ env:
   CONTAINER_NAME: 'ftpgrab'
   RUNNING_TIMEOUT: '240'
   RUNNING_LOG_CHECK: 'Finished'
+  DOCKER_BUILD_SUMMARY: false
 
 jobs:
   e2e:
@@ -32,6 +33,7 @@ jobs:
         name: Build
         uses: docker/bake-action@v5
         with:
+          provenance: false
           targets: image-local
           pull: true
       -
