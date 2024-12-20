@@ -1,0 +1,10 @@
+language: go
+go: 1.9.2
+script: 
+  - go get -u 
+  - go test -race
+sudo: false
+notifications:
+  email:
+    on_success: never
+    on_failure: never

@@ -9,6 +9,7 @@ FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS base
 COPY --from=xx / /
 ENV CGO_ENABLED=0
+ENV GOFLAGS="-mod=vendor"
 RUN apk add --no-cache file git
 WORKDIR /src
 
@@ -23,12 +24,7 @@ RUN --mount=target=. <<EOT
   echo "$version" | tee /tmp/.version
 EOT
 
-FROM base AS vendored
-COPY go.mod go.sum ./
-RUN --mount=type=cache,target=/go/pkg/mod \
-  go mod download
-
-FROM vendored AS test
+FROM base AS test
 ENV CGO_ENABLED=1
 RUN apk add --no-cache gcc linux-headers musl-dev
 RUN --mount=type=bind,target=. \
@@ -42,7 +38,7 @@ EOT
 FROM scratch AS test-coverage
 COPY --from=test /tmp/coverage.txt /coverage.txt
 
-FROM vendored AS build
+FROM base AS build
 ARG TARGETPLATFORM
 RUN --mount=type=bind,target=. \
     --mount=type=bind,from=version,source=/tmp/.version,target=/tmp/.version \
