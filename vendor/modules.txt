@@ -156,12 +156,11 @@ github.com/vanng822/go-premailer/premailer
 # go.etcd.io/bbolt v1.3.10
 ## explicit; go 1.21
 go.etcd.io/bbolt
-# golang.org/x/crypto v0.21.0
-## explicit; go 1.18
+# golang.org/x/crypto v0.31.0
+## explicit; go 1.20
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/chacha20
 golang.org/x/crypto/curve25519
-golang.org/x/crypto/curve25519/internal/field
 golang.org/x/crypto/internal/alias
 golang.org/x/crypto/internal/poly1305
 golang.org/x/crypto/pbkdf2
@@ -178,7 +177,7 @@ golang.org/x/net/html/atom
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.14.0
+# golang.org/x/text v0.21.0
 ## explicit; go 1.18
 golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact
