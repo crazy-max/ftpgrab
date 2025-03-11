@@ -3,7 +3,7 @@ module github.com/crazy-max/ftpgrab/v7
 go 1.23.0
 
 require (
-	github.com/alecthomas/kong v1.6.0
+	github.com/alecthomas/kong v1.9.0
 	github.com/crazy-max/gonfig v0.7.1
 	github.com/docker/go-units v0.5.0
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
