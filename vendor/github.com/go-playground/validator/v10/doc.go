@@ -188,7 +188,7 @@ Same as structonly tag except that any struct level validations will not run.
 
 # Omit Empty
 
-Allows conditional validation, for example if a field is not set with
+Allows conditional validation, for example, if a field is not set with
 a value (Determined by the "required" validator) then other validation
 such as min or max won't run, but if a value is set validation will run.
 
@@ -200,6 +200,15 @@ Allows to skip the validation if the value is nil (same as omitempty, but
 only for the nil-values).
 
 	Usage: omitnil
+
+# Omit Zero
+
+Allows to skip the validation if the value is a zero value.
+For pointers, it checks if the pointer is nil or the underlying value is a zero value.
+For slices and maps, it checks if the value is nil or empty.
+Otherwise, behaves the same as omitempty.
+
+	Usage: omitzero
 
 # Dive
 
@@ -264,6 +273,7 @@ The field under validation must be present and not empty only if all
 the other specified fields are equal to the value following the specified
 field. For strings ensures value is not "". For slices, maps, pointers,
 interfaces, channels and functions ensures the value is not nil. For structs ensures value is not the zero value.
+Using the same field name multiple times in the parameters will result in a panic at runtime.
 
 	Usage: required_if
 
@@ -756,17 +766,43 @@ in a field of the struct specified via a parameter.
 	// For slices of struct:
 	Usage: unique=field
 
+# ValidateFn
+
+This validates that an object responds to a method that can return error or bool.
+By default it expects an interface `Validate() error` and check that the method
+does not return an error. Other methods can be specified using two signatures:
+If the method returns an error, it check if the return value is nil.
+If the method returns a boolean, it checks if the value is true.
+
+	// to use the default method Validate() error
+	Usage: validateFn
+
+	// to use the custom method IsValid() bool (or error)
+	Usage: validateFn=IsValid
+
 # Alpha Only
 
 This validates that a string value contains ASCII alpha characters only
 
 	Usage: alpha
 
+# Alpha Space
+
+This validates that a string value contains ASCII alpha characters and spaces only
+
+	Usage: alphaspace
+
 # Alphanumeric
 
 This validates that a string value contains ASCII alphanumeric characters only
 
 	Usage: alphanum
+
+# Alphanumeric Space
+
+This validates that a string value contains ASCII alphanumeric characters and spaces only
+
+	Usage: alphanumspace
 
 # Alpha Unicode
 
@@ -959,7 +995,7 @@ Although an empty string is a valid base64 URL safe value, this will report
 an empty string as an error, if you wish to accept an empty string as valid
 you can use this with the omitempty tag.
 
-	Usage: base64url
+	Usage: base64rawurl
 
 # Bitcoin Address
 
@@ -1133,6 +1169,12 @@ This validates that a string value contains a valid latitude.
 This validates that a string value contains a valid longitude.
 
 	Usage: longitude
+
+# Employeer Identification Number EIN
+
+This validates that a string value contains a valid U.S. Employer Identification Number.
+
+	Usage: ein
 
 # Social Security Number SSN
 
@@ -1310,6 +1352,12 @@ can be used to validate fields typically passed to sockets and connections.
 
 	Usage: hostname_port
 
+# Port
+
+This validates that the value falls within the valid port number range of 1 to 65,535.
+
+	Usage: port
+
 # Datetime
 
 This validates that a string value is a valid datetime based on the supplied datetime format.
@@ -1345,12 +1393,19 @@ More information on https://pkg.go.dev/golang.org/x/text/language
 
 	Usage: bcp47_language_tag
 
-BIC (SWIFT code)
+BIC (SWIFT code - 2022 standard)
 
-This validates that a string value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362.
-More information on https://www.iso.org/standard/60390.html
+This validates that a string value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362:2022.
+More information on https://www.iso.org/standard/84108.html
 
 	Usage: bic
+
+BIC (SWIFT code - 2014 standard)
+
+This validates that a string value is a valid Business Identifier Code (SWIFT code), defined in ISO 9362:2014.
+More information on https://www.iso.org/standard/60390.html
+
+	Usage: bic_iso_9362_2014
 
 # RFC 1035 label
 
@@ -1486,7 +1541,7 @@ This package panics when bad input is provided, this is by design, bad code like
 that should not make it to production.
 
 	type Test struct {
-		TestField string `validate:"nonexistantfunction=1"`
+		TestField string `validate:"nonexistentfunction=1"`
 	}
 
 	t := &Test{
