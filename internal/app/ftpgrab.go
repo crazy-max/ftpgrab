@@ -75,12 +75,14 @@ func (fg *FtpGrab) Run() {
 
 	// Notification client
 	if fg.notif, err = notif.New(fg.cfg.Notif, fg.cfg.Meta); err != nil {
-		log.Fatal().Err(err).Msg("Cannot create notifiers")
+		log.Error().Err(err).Msg("Cannot create notifiers")
+		return
 	}
 
 	// Grabber client
 	if fg.grabber, err = grabber.New(fg.cfg.Download, fg.cfg.Db, fg.cfg.Server); err != nil {
-		log.Fatal().Err(err).Msg("Cannot create grabber")
+		log.Error().Err(err).Msg("Cannot create grabber")
+		return
 	}
 	defer fg.grabber.Close()
 

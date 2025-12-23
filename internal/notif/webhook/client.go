@@ -9,6 +9,7 @@ import (
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/notifier"
+	"github.com/pkg/errors"
 )
 
 // Client represents an active webhook notification object
@@ -50,11 +51,12 @@ func (c *Client) Send(jnl journal.Journal) error {
 		return err
 	}
 
-	hc := http.Client{}
-	ctx, cancel := context.WithTimeout(context.Background(), *c.cfg.Timeout)
-	defer cancel()
+	cancelCtx, cancel := context.WithCancelCause(context.Background())
+	timeoutCtx, _ := context.WithTimeoutCause(cancelCtx, *c.cfg.Timeout, errors.WithStack(context.DeadlineExceeded)) //nolint:govet // no need to manually cancel this context as we already rely on parent
+	defer func() { cancel(errors.WithStack(context.Canceled)) }()
 
-	req, err := http.NewRequestWithContext(ctx, c.cfg.Method, c.cfg.Endpoint, bytes.NewBuffer(body))
+	hc := http.Client{}
+	req, err := http.NewRequestWithContext(timeoutCtx, c.cfg.Method, c.cfg.Endpoint, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
