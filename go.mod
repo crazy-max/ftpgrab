@@ -14,7 +14,7 @@ require (
 	github.com/matcornic/hermes/v2 v2.1.0
 	github.com/nlopes/slack v0.6.0
 	github.com/pkg/errors v0.9.1
-	github.com/pkg/sftp v1.13.7
+	github.com/pkg/sftp v1.13.10
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.33.0
 	github.com/stretchr/testify v1.11.1
