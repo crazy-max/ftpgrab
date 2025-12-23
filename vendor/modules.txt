@@ -11,7 +11,7 @@ github.com/Masterminds/sprig
 # github.com/PuerkitoBio/goquery v1.5.0
 ## explicit
 github.com/PuerkitoBio/goquery
-# github.com/alecthomas/kong v1.6.0
+# github.com/alecthomas/kong v1.13.0
 ## explicit; go 1.20
 github.com/alecthomas/kong
 # github.com/andybalholm/cascadia v1.0.0
