@@ -1,6 +1,6 @@
 module github.com/crazy-max/ftpgrab/v7
 
-go 1.23.0
+go 1.24.0
 
 require (
 	github.com/alecthomas/kong v1.6.0
@@ -20,7 +20,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	go.etcd.io/bbolt v1.3.11
 	golang.org/x/crypto v0.31.0
-	golang.org/x/sys v0.28.0
+	golang.org/x/sys v0.39.0
 )
 
 require (
