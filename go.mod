@@ -17,7 +17,7 @@ require (
 	github.com/pkg/sftp v1.13.7
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.33.0
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	go.etcd.io/bbolt v1.3.11
 	golang.org/x/crypto v0.46.0
 	golang.org/x/sys v0.39.0
