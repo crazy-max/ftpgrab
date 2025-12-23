@@ -22,8 +22,6 @@ on:
 env:
   BUILD_TAG: 'ftpgrab:local'
   CONTAINER_NAME: 'ftpgrab'
-  RUNNING_TIMEOUT: '240'
-  RUNNING_LOG_CHECK: 'Finished'
   DOCKER_BUILD_SUMMARY: false
 
 jobs:
@@ -55,7 +53,7 @@ jobs:
             --network ${{ env.CONTAINER_NAME }} \
             -e "AUTH_METHOD=puredb" \
             -e "SECURE_MODE=false" \
-            -v "${HOME}/warmup:/home/foo" \
+            -v "$(pwd)/test/foo:/home/foo" \
             -v "/tmp/pureftpd.passwd:/data/pureftpd.passwd" \
             -v "/tmp/pureftpd.flags:/data/pureftpd.flags" \
             crazymax/pure-ftpd:latest
@@ -71,29 +69,15 @@ jobs:
             -e "SCHEDULE=*/30 * * * *" \
             -e "LOG_LEVEL=debug" \
             -e "LOG_NOCOLOR=true" \
-            -v "$(pwd)/.res/ftpgrab.test.yml:/ftpgrab.yml:ro" \
+            -v "$(pwd)/test/ftpgrab.yml:/ftpgrab.yml:ro" \
             ${{ env.BUILD_TAG }}
       -
-        name: Test run
-        run: |
-          TIMEOUT=$((SECONDS + ${{ env.RUNNING_TIMEOUT }}))
-          while read LOGLINE; do
-            echo ${LOGLINE}
-            if [[ ${LOGLINE} == *"${{ env.RUNNING_LOG_CHECK }}"* ]]; then
-              echo "🎉 Container up!"
-              break
-            fi
-            if [[ $SECONDS -gt ${TIMEOUT} ]]; then
-              >&2 echo "❌ Failed to run ${{ env.CONTAINER_NAME }} container"
-              exit 1
-            fi
-          done < <(docker logs -f ${{ env.CONTAINER_NAME }} 2>&1)
-
-          CONTAINER_STATUS=$(docker container inspect --format "{{.State.Status}}" ${{ env.CONTAINER_NAME }})
-          if [[ ${CONTAINER_STATUS} != "running" ]]; then
-            >&2 echo "❌ Container ${{ env.CONTAINER_NAME }} returned status '$CONTAINER_STATUS'"
-            exit 1
-          fi
+        name: Check container logs
+        uses: crazy-max/.github/.github/actions/container-logs-check@main
+        with:
+          container_name: ${{ env.CONTAINER_NAME }}
+          log_check: "Finished"
+          timeout: 240
       -
         name: Pure-FTPd logs
         if: always()
