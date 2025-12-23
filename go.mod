@@ -18,7 +18,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.34.0
 	github.com/stretchr/testify v1.11.1
-	go.etcd.io/bbolt v1.3.11
+	go.etcd.io/bbolt v1.4.3
 	golang.org/x/crypto v0.46.0
 	golang.org/x/sys v0.39.0
 )
