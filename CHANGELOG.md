@@ -1,5 +1,18 @@
 # Changelog
 
+## 7.11.0 (2025/12/24)
+
+* Go 1.25 (#443)
+* Alpine Linux 3.23 (#444)
+* MkDocs Materials 9.6.20 (#428)
+* Bump github.com/alecthomas/kong from 1.6.0 to 1.13.0 (#438)
+* Bump github.com/go-playground/validator/v10 from 10.23.0 to 10.30.0 (#440)
+* Bump github.com/pkg/sftp from 1.13.7 to 1.13.10 (#437)
+* Bump github.com/rs/zerolog from 1.33.0 to 1.34.0 (#422)
+* Bump github.com/stretchr/testify from 1.10.0 to 1.11.1 (#439)
+* Bump golang.org/x/crypto from 0.31.0 to 0.46.0 (#432)
+* Bump go.etcd.io/bbolt from 1.3.11 to 1.4.3 (#434)
+
 ## 7.10.0 (2024/12/20)
 
 * Go 1.23 (#397)
