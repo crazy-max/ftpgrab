@@ -163,7 +163,7 @@ go.etcd.io/bbolt
 go.etcd.io/bbolt/errors
 go.etcd.io/bbolt/internal/common
 go.etcd.io/bbolt/internal/freelist
-# golang.org/x/crypto v0.46.0
+# golang.org/x/crypto v0.48.0
 ## explicit; go 1.24.0
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/chacha20
@@ -175,16 +175,16 @@ golang.org/x/crypto/scrypt
 golang.org/x/crypto/sha3
 golang.org/x/crypto/ssh
 golang.org/x/crypto/ssh/internal/bcrypt_pbkdf
-# golang.org/x/net v0.47.0
+# golang.org/x/net v0.49.0
 ## explicit; go 1.24.0
 golang.org/x/net/html
 golang.org/x/net/html/atom
-# golang.org/x/sys v0.39.0
+# golang.org/x/sys v0.41.0
 ## explicit; go 1.24.0
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/text v0.32.0
+# golang.org/x/text v0.34.0
 ## explicit; go 1.24.0
 golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact
