@@ -4,8 +4,10 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"regexp"
+	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/logging"
@@ -45,9 +47,14 @@ func getTLSMode(cfg *config.ServerFTP) tlsMode {
 func New(cfg *config.ServerFTP) (*server.Client, error) {
 	var err error
 	var client = &Client{cfg: cfg}
+	mode := getTLSMode(cfg)
 
+	tlsConfig := &tls.Config{
+		ServerName:         cfg.Host,
+		InsecureSkipVerify: *cfg.InsecureSkipVerify,
+	}
 	ftpConfig := []ftp.DialOption{
-		ftp.DialWithTimeout(*cfg.Timeout),
+		ftp.DialWithDialFunc(newTimeoutDialFunc(*cfg.Timeout, mode, tlsConfig)),
 		ftp.DialWithDisabledEPSV(*cfg.DisableEPSV),
 		ftp.DialWithDisabledUTF8(*cfg.DisableUTF8),
 		ftp.DialWithDisabledMLSD(*cfg.DisableMLSD),
@@ -56,11 +63,7 @@ func New(cfg *config.ServerFTP) (*server.Client, error) {
 		}),
 	}
 
-	tlsConfig := &tls.Config{
-		ServerName:         cfg.Host,
-		InsecureSkipVerify: *cfg.InsecureSkipVerify,
-	}
-	switch getTLSMode(cfg) {
+	switch mode {
 	case tlsModeImplicit:
 		ftpConfig = append(ftpConfig, ftp.DialWithTLS(tlsConfig))
 	case tlsModeExplicit:
@@ -87,6 +90,23 @@ func New(cfg *config.ServerFTP) (*server.Client, error) {
 	}
 
 	return &server.Client{Handler: client}, err
+}
+
+func newTimeoutDialFunc(timeout time.Duration, mode tlsMode, tlsConfig *tls.Config) func(network, address string) (net.Conn, error) {
+	dialer := &net.Dialer{Timeout: timeout}
+	useTLS := mode == tlsModeImplicit
+	return func(network, address string) (net.Conn, error) {
+		conn, err := dialer.Dial(network, address)
+		if err != nil {
+			return nil, err
+		}
+		conn = server.NewTimeoutConn(conn, timeout)
+		if useTLS {
+			return tls.Client(conn, tlsConfig), nil
+		}
+		useTLS = mode == tlsModeExplicit
+		return conn, nil
+	}
 }
 
 // Common return common configuration

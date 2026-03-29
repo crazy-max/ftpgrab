@@ -3,6 +3,7 @@ package sftp
 import (
 	"fmt"
 	"io"
+	"net"
 	"os"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
@@ -61,7 +62,7 @@ func New(config *config.ServerSFTP) (*server.Client, error) {
 	}
 
 	sshConf.SetDefaults()
-	client.ssh, err = ssh.Dial("tcp", fmt.Sprintf("%s:%d", config.Host, config.Port), sshConf)
+	client.ssh, err = dialSSH("tcp", fmt.Sprintf("%s:%d", config.Host, config.Port), sshConf)
 	if err != nil {
 		return nil, errors.Wrap(err, "Cannot open ssh connection")
 	}
@@ -101,6 +102,19 @@ func (c *Client) readPublicKey(key string, password string) ([]ssh.AuthMethod, e
 	}
 
 	return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
+}
+
+func dialSSH(network, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
+	conn, err := net.DialTimeout(network, addr, config.Timeout)
+	if err != nil {
+		return nil, err
+	}
+	conn = server.NewTimeoutConn(conn, config.Timeout)
+	c, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
+	if err != nil {
+		return nil, err
+	}
+	return ssh.NewClient(c, chans, reqs), nil
 }
 
 // ReadDir fetches the contents of a directory, returning a list of os.FileInfo's
