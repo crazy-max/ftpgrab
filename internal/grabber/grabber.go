@@ -21,10 +21,11 @@ import (
 
 // Client represents an active grabber object
 type Client struct {
-	config     *config.Download
-	db         *db.Client
-	server     *server.Client
-	tempdirRun string
+	config       *config.Download
+	db           *db.Client
+	server       *server.Client
+	serverConfig *config.Server
+	tempdirRun   string
 }
 
 // New creates new grabber instance
@@ -63,9 +64,10 @@ func New(dlConfig *config.Download, dbConfig *config.Db, serverConfig *config.Se
 	}
 
 	client = &Client{
-		config: dlConfig,
-		db:     dbCli,
-		server: serverctl,
+		config:       dlConfig,
+		db:           dbCli,
+		server:       serverctl,
+		serverConfig: serverConfig,
 	}
 
 	if *dlConfig.TempFirst {
@@ -75,6 +77,30 @@ func New(dlConfig *config.Download, dbConfig *config.Db, serverConfig *config.Se
 	}
 
 	return client, nil
+}
+
+func (c *Client) reconnect() error {
+	if err := c.server.Close(); err != nil {
+		log.Warn().Err(err).Msg("Cannot close server connection during reconnect")
+	}
+
+	var serverCli *server.Client
+	var err error
+
+	if c.serverConfig.FTP != nil {
+		serverCli, err = ftp.New(c.serverConfig.FTP)
+	} else if c.serverConfig.SFTP != nil {
+		serverCli, err = sftp.New(c.serverConfig.SFTP)
+	} else {
+		return errors.New("No server defined")
+	}
+
+	if err != nil {
+		return err
+	}
+
+	c.server = serverCli
+	return nil
 }
 
 func (c *Client) Grab(files []File) journal.Journal {
@@ -156,6 +182,16 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 			entry.Level = journal.EntryLevelError
 			entry.Text = fmt.Sprintf("Cannot download file: %v", err)
 		} else {
+			// If transfer was aborted due to slow speed, reconnect
+			if err == ftp.ErrSlowTransfer {
+				sublogger.Warn().Msg("Transfer aborted due to slow speed, reconnecting to server")
+				if reconnectErr := c.reconnect(); reconnectErr != nil {
+					sublogger.Error().Err(reconnectErr).Msg("Cannot reconnect to server")
+					entry.Level = journal.EntryLevelError
+					entry.Text = fmt.Sprintf("Cannot reconnect to server: %v", reconnectErr)
+					return entry
+				}
+			}
 			return c.download(file, retry)
 		}
 	} else {

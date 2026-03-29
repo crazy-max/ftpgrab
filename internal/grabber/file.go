@@ -4,6 +4,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/crazy-max/ftpgrab/v7/internal/server/ftp"
 	"github.com/rs/zerolog/log"
 )
 
@@ -28,17 +29,33 @@ func (c *Client) ListFiles() []File {
 			dest = path.Join(dest, src)
 		}
 
-		files = append(files, c.readDir(src, src, dest)...)
+		files = append(files, c.readDir(src, src, dest, 0)...)
 	}
 
 	return files
 }
 
-func (c *Client) readDir(base string, srcdir string, destdir string) []File {
+func (c *Client) readDir(base string, srcdir string, destdir string, retry int) []File {
 	var files []File
 
 	items, err := c.server.ReadDir(srcdir)
 	if err != nil {
+		// If list operation timed out, reconnect and retry
+		if err == ftp.ErrListTimeout {
+			retry++
+			log.Warn().Str("source", base).Msgf("List operation timed out, retry %d/%d", retry, c.config.Retry)
+			if retry == c.config.Retry {
+				log.Error().Str("source", base).Msgf("Cannot read directory %s after %d retries", srcdir, retry)
+				return []File{}
+			}
+			log.Warn().Str("source", base).Msg("Reconnecting to server after list timeout")
+			if reconnectErr := c.reconnect(); reconnectErr != nil {
+				log.Error().Err(reconnectErr).Str("source", base).Msg("Cannot reconnect to server")
+				return []File{}
+			}
+			// Retry with incremented retry count
+			return c.readDir(base, srcdir, destdir, retry)
+		}
 		log.Error().Err(err).Str("source", base).Msgf("Cannot read directory %s", srcdir)
 		return []File{}
 	}
@@ -55,7 +72,7 @@ func (c *Client) readFile(base string, srcdir string, destdir string, file os.Fi
 	destfile := path.Join(destdir, file.Name())
 
 	if file.IsDir() {
-		return c.readDir(base, srcfile, destfile)
+		return c.readDir(base, srcfile, destfile, 0)
 	}
 
 	return []File{

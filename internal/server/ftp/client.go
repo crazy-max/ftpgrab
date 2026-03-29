@@ -2,6 +2,7 @@ package ftp
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -16,6 +17,68 @@ import (
 	"github.com/jlaffaye/ftp"
 	"github.com/rs/zerolog/log"
 )
+
+const (
+	// checkInterval is how often to check download speed during transfers.
+	checkInterval = 30 * time.Second
+	// minSlowChecks is the number of consecutive slow checks before aborting.
+	minSlowChecks = 2
+)
+
+var (
+	// ErrSlowTransfer is returned when sustained throughput drops below the minimum speed.
+	ErrSlowTransfer = errors.New("transfer speed too slow, reconnecting")
+	// ErrListTimeout is returned when a List operation exceeds the configured timeout.
+	ErrListTimeout = errors.New("list operation timed out")
+)
+
+// speedMonitor wraps an io.Reader to abort transfers whose sustained
+// throughput drops below minSpeed. Unlike TimeoutConn (which catches
+// complete stalls at the TCP level), this detects slow trickles that
+// would otherwise keep the connection alive indefinitely.
+type speedMonitor struct {
+	reader          io.Reader
+	lastCheck       time.Time
+	lastBytes       int64
+	totalBytes      int64
+	minSpeed        int64
+	interval        time.Duration
+	consecutiveSlow int
+}
+
+func (s *speedMonitor) Read(p []byte) (n int, err error) {
+	n, err = s.reader.Read(p)
+	s.totalBytes += int64(n)
+
+	now := time.Now()
+	if now.Sub(s.lastCheck) >= s.interval {
+		elapsed := now.Sub(s.lastCheck).Seconds()
+		bytesSinceCheck := s.totalBytes - s.lastBytes
+
+		if elapsed > 0 {
+			speed := float64(bytesSinceCheck) / elapsed
+			if speed < float64(s.minSpeed) && s.lastBytes > 0 {
+				s.consecutiveSlow++
+				log.Warn().
+					Float64("speed_bps", speed).
+					Int64("min_speed_bps", s.minSpeed).
+					Int("consecutive_slow", s.consecutiveSlow).
+					Msgf("Transfer speed below threshold (%d/%d)", s.consecutiveSlow, minSlowChecks)
+
+				if s.consecutiveSlow >= minSlowChecks {
+					return n, ErrSlowTransfer
+				}
+			} else {
+				s.consecutiveSlow = 0
+			}
+		}
+
+		s.lastCheck = now
+		s.lastBytes = s.totalBytes
+	}
+
+	return n, err
+}
 
 type ftpConn interface {
 	Login(username, password string) error
@@ -126,9 +189,30 @@ func (c *Client) ReadDir(dir string) ([]os.FileInfo, error) {
 	if *c.cfg.EscapeRegexpMeta {
 		dir = regexp.QuoteMeta(dir)
 	}
-	files, err := c.ftp.List(dir)
-	if err != nil {
-		return nil, err
+
+	// Add timeout to List operation to prevent hanging
+	type listResult struct {
+		files []*ftp.Entry
+		err   error
+	}
+	resultCh := make(chan listResult, 1)
+
+	go func() {
+		f, e := c.ftp.List(dir)
+		resultCh <- listResult{files: f, err: e}
+	}()
+
+	select {
+	case result := <-resultCh:
+		files = result.files
+		if err := result.err; err != nil {
+			return nil, err
+		}
+	case <-time.After(*c.cfg.Timeout):
+		log.Warn().
+			Dur("timeout", *c.cfg.Timeout).
+			Msg("Cannot list directory, timeout reached")
+		return nil, ErrListTimeout
 	}
 
 	var entries []os.FileInfo
@@ -163,7 +247,17 @@ func (c *Client) Retrieve(path string, dest io.Writer) error {
 	}
 	defer resp.Close()
 
-	_, err = io.Copy(dest, resp)
+	var src io.Reader = resp
+	if *c.cfg.MinSpeed > 0 {
+		src = &speedMonitor{
+			reader:    resp,
+			lastCheck: time.Now(),
+			minSpeed:  *c.cfg.MinSpeed * 1024, // convert KB/s to bytes/s
+			interval:  checkInterval,
+		}
+	}
+
+	_, err = io.Copy(dest, src)
 	return err
 }
 

@@ -24,6 +24,7 @@ type ServerFTP struct {
 	ExplicitTLS        *bool          `yaml:"explicitTLS,omitempty" json:"explicitTLS,omitempty"`
 	InsecureSkipVerify *bool          `yaml:"insecureSkipVerify,omitempty" json:"insecureSkipVerify,omitempty"`
 	LogTrace           *bool          `yaml:"logTrace,omitempty" json:"logTrace,omitempty"`
+	MinSpeed           *int64         `yaml:"minSpeed,omitempty" json:"minSpeed,omitempty"`
 }
 
 // GetDefaults gets the default values
@@ -46,4 +47,5 @@ func (s *ServerFTP) SetDefaults() {
 	s.ExplicitTLS = utl.NewFalse()
 	s.InsecureSkipVerify = utl.NewFalse()
 	s.LogTrace = utl.NewFalse()
+	s.MinSpeed = utl.NewInt64(0)
 }

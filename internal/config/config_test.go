@@ -59,6 +59,7 @@ func TestLoadFile(t *testing.T) {
 						ExplicitTLS:        utl.NewFalse(),
 						InsecureSkipVerify: utl.NewFalse(),
 						LogTrace:           utl.NewFalse(),
+						MinSpeed:           utl.NewInt64(0),
 					},
 				},
 				Download: &Download{
@@ -166,6 +167,7 @@ func TestLoadEnv(t *testing.T) {
 						ExplicitTLS:        utl.NewFalse(),
 						InsecureSkipVerify: utl.NewFalse(),
 						LogTrace:           utl.NewFalse(),
+						MinSpeed:           utl.NewInt64(0),
 					},
 				},
 				Download: &Download{
@@ -338,6 +340,7 @@ func TestLoadMixed(t *testing.T) {
 						ExplicitTLS:        utl.NewFalse(),
 						InsecureSkipVerify: utl.NewFalse(),
 						LogTrace:           utl.NewFalse(),
+						MinSpeed:           utl.NewInt64(0),
 					},
 				},
 				Download: &Download{

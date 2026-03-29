@@ -78,6 +78,11 @@ func NewTrue() *bool {
 	return &b
 }
 
+// NewInt64 returns an int64 pointer
+func NewInt64(n int64) *int64 {
+	return &n
+}
+
 // NewDuration returns a duration pointer
 func NewDuration(duration time.Duration) *time.Duration {
 	return &duration

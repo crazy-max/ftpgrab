@@ -252,6 +252,23 @@ Controls whether a client verifies the server’s certificate chain and host nam
 !!! abstract "Environment variables"
     * `FTPGRAB_SERVER_FTP_INSECURESKIPVERIFY`
 
+### `minSpeed`
+
+Minimum acceptable sustained download speed in KB/s (kilobytes per second). After an initial
+warmup interval, transfers whose throughput drops below this threshold for two consecutive
+30-second check intervals are aborted and retried with a fresh connection. Set to `0` to
+disable. For reference: `1024` = 1 MB/s, `128` ≈ 1 Mbit/s. (default `0` / disabled)
+
+!!! example "Config file"
+    ```yaml
+    server:
+      ftp:
+        minSpeed: 1024
+    ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_MINSPEED`
+
 ### `logTrace`
 
 Enable low-level FTP log. Works only if global log level is debug. (default `false`)
