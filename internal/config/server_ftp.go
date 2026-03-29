@@ -21,6 +21,7 @@ type ServerFTP struct {
 	DisableMLSD        *bool          `yaml:"disableMLSD,omitempty" json:"disableMLSD,omitempty"`
 	EscapeRegexpMeta   *bool          `yaml:"escapeRegexpMeta,omitempty" json:"escapeRegexpMeta,omitempty"`
 	TLS                *bool          `yaml:"tls,omitempty" json:"tls,omitempty"`
+	ExplicitTLS        *bool          `yaml:"explicitTLS,omitempty" json:"explicitTLS,omitempty"`
 	InsecureSkipVerify *bool          `yaml:"insecureSkipVerify,omitempty" json:"insecureSkipVerify,omitempty"`
 	LogTrace           *bool          `yaml:"logTrace,omitempty" json:"logTrace,omitempty"`
 }
@@ -42,6 +43,7 @@ func (s *ServerFTP) SetDefaults() {
 	s.DisableMLSD = utl.NewFalse()
 	s.EscapeRegexpMeta = utl.NewFalse()
 	s.TLS = utl.NewFalse()
+	s.ExplicitTLS = utl.NewFalse()
 	s.InsecureSkipVerify = utl.NewFalse()
 	s.LogTrace = utl.NewFalse()
 }

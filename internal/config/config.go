@@ -85,6 +85,9 @@ func (cfg *Config) validate() error {
 			if len(cfg.Server.FTP.Sources) == 0 {
 				return errors.New("At least one FTP source is required")
 			}
+			if *cfg.Server.FTP.TLS && *cfg.Server.FTP.ExplicitTLS {
+				return errors.New("FTP tls and explicitTLS are mutually exclusive")
+			}
 		}
 		if cfg.Server.SFTP != nil {
 			if len(cfg.Server.SFTP.Sources) == 0 {

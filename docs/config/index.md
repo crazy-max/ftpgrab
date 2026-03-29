@@ -41,6 +41,7 @@ You can override this using the [`--config` flag or `CONFIG` env var](../usage/c
         disableUTF8: false
         disableEPSV: false
         tls: false
+        explicitTLS: false
         insecureSkipVerify: false
         logTrace: false
     
@@ -99,6 +100,7 @@ All configuration from file can be transposed into environment variables. As an 
         disableUTF8: false
         disableEPSV: false
         tls: false
+        explicitTLS: false
         insecureSkipVerify: false
         logTrace: false
     
@@ -143,6 +145,7 @@ Can be transposed to:
     FTPGRAB_SERVER_FTP_DISABLEUTF8=false
     FTPGRAB_SERVER_FTP_DISABLEEPSV=false
     FTPGRAB_SERVER_FTP_TLS=false
+    FTPGRAB_SERVER_FTP_EXPLICITTLS=false
     FTPGRAB_SERVER_FTP_INSECURESKIPVERIFY=false
     FTPGRAB_SERVER_FTP_LOGTRACE=false
     

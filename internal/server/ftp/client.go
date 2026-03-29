@@ -22,6 +22,25 @@ type Client struct {
 	ftp *ftp.ServerConn
 }
 
+type tlsMode uint8
+
+const (
+	tlsModeDisabled tlsMode = iota
+	tlsModeImplicit
+	tlsModeExplicit
+)
+
+func getTLSMode(cfg *config.ServerFTP) tlsMode {
+	switch {
+	case *cfg.ExplicitTLS:
+		return tlsModeExplicit
+	case *cfg.TLS:
+		return tlsModeImplicit
+	default:
+		return tlsModeDisabled
+	}
+}
+
 // New creates new ftp instance
 func New(cfg *config.ServerFTP) (*server.Client, error) {
 	var err error
@@ -37,11 +56,15 @@ func New(cfg *config.ServerFTP) (*server.Client, error) {
 		}),
 	}
 
-	if *cfg.TLS {
-		ftpConfig = append(ftpConfig, ftp.DialWithTLS(&tls.Config{
-			ServerName:         cfg.Host,
-			InsecureSkipVerify: *cfg.InsecureSkipVerify,
-		}))
+	tlsConfig := &tls.Config{
+		ServerName:         cfg.Host,
+		InsecureSkipVerify: *cfg.InsecureSkipVerify,
+	}
+	switch getTLSMode(cfg) {
+	case tlsModeImplicit:
+		ftpConfig = append(ftpConfig, ftp.DialWithTLS(tlsConfig))
+	case tlsModeExplicit:
+		ftpConfig = append(ftpConfig, ftp.DialWithExplicitTLS(tlsConfig))
 	}
 
 	if client.ftp, err = ftp.Dial(fmt.Sprintf("%s:%d", cfg.Host, cfg.Port), ftpConfig...); err != nil {

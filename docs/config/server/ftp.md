@@ -19,6 +19,7 @@
         disableMLSD: false
         escapeRegexpMeta: false
         tls: false
+        explicitTLS: false
         insecureSkipVerify: false
         logTrace: false
     ```
@@ -206,6 +207,9 @@ Escapes all regular expression metacharacters in the source path. (default `fals
 
 Use implicit FTP over TLS. (default `false`)
 
+!!! warning
+    `tls` and `explicitTLS` are mutually exclusive.
+
 !!! example "Config file"
     ```yaml
     server:
@@ -215,6 +219,23 @@ Use implicit FTP over TLS. (default `false`)
 
 !!! abstract "Environment variables"
     * `FTPGRAB_SERVER_FTP_TLS`
+
+### `explicitTLS`
+
+Use explicit FTP over TLS, which upgrades a plain FTP connection with `AUTH TLS`. (default `false`)
+
+!!! warning
+    `explicitTLS` and `tls` are mutually exclusive.
+
+!!! example "Config file"
+    ```yaml
+    server:
+      ftp:
+        explicitTLS: false
+    ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_EXPLICITTLS`
 
 ### `insecureSkipVerify`
 
