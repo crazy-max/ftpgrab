@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	_ "time/tzdata"
 
 	"github.com/alecthomas/kong"
@@ -17,7 +18,7 @@ import (
 )
 
 var (
-	ftpgrab *app.FtpGrab
+	ftpgrab atomic.Pointer[app.FtpGrab]
 	cli     config.Cli
 	version = "dev"
 	meta    = config.Meta{
@@ -62,7 +63,9 @@ func main() {
 	signal.Notify(channel, os.Interrupt, utl.SIGTERM)
 	go func() {
 		sig := <-channel
-		ftpgrab.Close()
+		if fg := ftpgrab.Load(); fg != nil {
+			fg.Close()
+		}
 		log.Warn().Msgf("Caught signal %v", sig)
 		os.Exit(0)
 	}()
@@ -75,12 +78,14 @@ func main() {
 	log.Debug().Msg(cfg.String())
 
 	// Init
-	if ftpgrab, err = app.New(cfg); err != nil {
+	fg, err := app.New(cfg)
+	if err != nil {
 		log.Fatal().Err(err).Msgf("Cannot initialize %s", meta.Name)
 	}
+	ftpgrab.Store(fg)
 
 	// Start
-	if err = ftpgrab.Start(); err != nil {
+	if err = fg.Start(); err != nil {
 		log.Fatal().Err(err).Msgf("Cannot start %s", meta.Name)
 	}
 }
