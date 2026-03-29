@@ -10,6 +10,7 @@ server:
     disableUTF8: true
     disableEPSV: false
     tls: false
+    explicitTLS: false
     insecureSkipVerify: false
     logTrace: false
 
