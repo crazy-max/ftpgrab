@@ -1,0 +1,23 @@
+server:
+  ftp:
+    host: pureftpd
+    port: 2100
+    username: foo
+    password: bar
+    sources:
+      - /
+    timeout: 5s
+    disableUTF8: true
+    disableEPSV: false
+    tls: false
+    explicitTLS: false
+    insecureSkipVerify: false
+    logTrace: false
+
+download:
+  chmodFile: 0o644
+  chmodDir: 0o755
+  retry: 3
+  hideSkipped: false
+  tempFirst: false
+  createBaseDir: false
