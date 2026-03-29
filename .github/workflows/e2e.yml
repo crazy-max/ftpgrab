@@ -30,10 +30,10 @@ jobs:
     steps:
       -
         name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       -
         name: Build
-        uses: docker/bake-action@v6
+        uses: docker/bake-action@5be5f02ff8819ecd3092ea6b2e6261c31774f2b4 # v6.10.0
         with:
           source: .
           provenance: false
@@ -73,7 +73,7 @@ jobs:
             ${{ env.BUILD_TAG }}
       -
         name: Check container logs
-        uses: crazy-max/.github/.github/actions/container-logs-check@main
+        uses: crazy-max/.github/.github/actions/container-logs-check@bbd31df64ee0f097a02f12495f541f9236f18c46 # v1.2.0
         with:
           container_name: ${{ env.CONTAINER_NAME }}
           log_check: "Finished"
