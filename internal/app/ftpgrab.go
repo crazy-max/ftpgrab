@@ -113,7 +113,12 @@ func (fg *FtpGrab) Run() {
 
 // Close closes ftpgrab
 func (fg *FtpGrab) Close() {
-	fg.grabber.Close()
+	if fg == nil {
+		return
+	}
+	if fg.grabber != nil {
+		fg.grabber.Close()
+	}
 	if fg.cron != nil {
 		fg.cron.Stop()
 	}
