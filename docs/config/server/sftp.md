@@ -166,7 +166,7 @@ List of sources paths to grab from SFTP server.
 
 ### `timeout`
 
-Timeout is the maximum amount of time for the TCP connection to establish. `0s` means no timeout. (default `30s`)
+Timeout for opening connections and each read/write on the SSH transport. `0s` means no timeout. (default `30s`)
 
 !!! example "Config file"
     ```yaml

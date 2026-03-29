@@ -1,11 +1,15 @@
 package ftp
 
 import (
+	"crypto/tls"
+	"net"
 	"testing"
+	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetTLSMode(t *testing.T) {
@@ -24,5 +28,91 @@ func TestGetTLSMode(t *testing.T) {
 		cfg := (&config.ServerFTP{}).GetDefaults()
 		cfg.ExplicitTLS = utl.NewTrue()
 		assert.Equal(t, tlsModeExplicit, getTLSMode(cfg))
+	})
+}
+
+func TestNewTimeoutDialFunc(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = ln.Close()
+	})
+
+	accepted := make(chan net.Conn, 4)
+	go func() {
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				close(accepted)
+				return
+			}
+			accepted <- conn
+		}
+	}()
+
+	tlsConfig := &tls.Config{InsecureSkipVerify: true}
+
+	t.Run("disabled", func(t *testing.T) {
+		dial := newTimeoutDialFunc(50*time.Millisecond, tlsModeDisabled, tlsConfig)
+		conn, err := dial("tcp", ln.Addr().String())
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_ = conn.Close()
+		})
+
+		_, isTLS := conn.(*tls.Conn)
+		assert.False(t, isTLS)
+
+		serverConn := <-accepted
+		t.Cleanup(func() {
+			_ = serverConn.Close()
+		})
+	})
+
+	t.Run("implicit", func(t *testing.T) {
+		dial := newTimeoutDialFunc(50*time.Millisecond, tlsModeImplicit, tlsConfig)
+		conn, err := dial("tcp", ln.Addr().String())
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_ = conn.Close()
+		})
+
+		_, isTLS := conn.(*tls.Conn)
+		assert.True(t, isTLS)
+
+		serverConn := <-accepted
+		t.Cleanup(func() {
+			_ = serverConn.Close()
+		})
+	})
+
+	t.Run("explicit", func(t *testing.T) {
+		dial := newTimeoutDialFunc(50*time.Millisecond, tlsModeExplicit, tlsConfig)
+
+		controlConn, err := dial("tcp", ln.Addr().String())
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_ = controlConn.Close()
+		})
+		_, isTLS := controlConn.(*tls.Conn)
+		assert.False(t, isTLS)
+
+		serverControlConn := <-accepted
+		t.Cleanup(func() {
+			_ = serverControlConn.Close()
+		})
+
+		dataConn, err := dial("tcp", ln.Addr().String())
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_ = dataConn.Close()
+		})
+		_, isTLS = dataConn.(*tls.Conn)
+		assert.True(t, isTLS)
+
+		serverDataConn := <-accepted
+		t.Cleanup(func() {
+			_ = serverDataConn.Close()
+		})
 	})
 }
