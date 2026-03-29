@@ -17,11 +17,18 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type ftpConn interface {
+	Login(username, password string) error
+	List(path string) ([]*ftp.Entry, error)
+	Retr(path string) (*ftp.Response, error)
+	Quit() error
+}
+
 // Client represents an active ftp object
 type Client struct {
 	*server.Client
 	cfg *config.ServerFTP
-	ftp *ftp.ServerConn
+	ftp ftpConn
 }
 
 type tlsMode uint8
@@ -83,30 +90,24 @@ func New(cfg *config.ServerFTP) (*server.Client, error) {
 		log.Warn().Err(err).Msg("Cannot retrieve password secret for ftp server")
 	}
 
-	if len(username) > 0 {
-		if err = client.ftp.Login(username, password); err != nil {
-			return nil, err
-		}
+	if err = client.login(username, password); err != nil {
+		return nil, err
 	}
 
 	return &server.Client{Handler: client}, err
 }
 
-func newTimeoutDialFunc(timeout time.Duration, mode tlsMode, tlsConfig *tls.Config) func(network, address string) (net.Conn, error) {
-	dialer := &net.Dialer{Timeout: timeout}
-	useTLS := mode == tlsModeImplicit
-	return func(network, address string) (net.Conn, error) {
-		conn, err := dialer.Dial(network, address)
-		if err != nil {
-			return nil, err
-		}
-		conn = server.NewTimeoutConn(conn, timeout)
-		if useTLS {
-			return tls.Client(conn, tlsConfig), nil
-		}
-		useTLS = mode == tlsModeExplicit
-		return conn, nil
+func (c *Client) login(username, password string) error {
+	if len(username) == 0 {
+		return nil
 	}
+	if err := c.ftp.Login(username, password); err != nil {
+		if closeErr := c.ftp.Quit(); closeErr != nil {
+			log.Warn().Err(closeErr).Msg("Cannot close ftp connection after login failure")
+		}
+		return err
+	}
+	return nil
 }
 
 // Common return common configuration
@@ -169,4 +170,21 @@ func (c *Client) Retrieve(path string, dest io.Writer) error {
 // Close closes ftp connection
 func (c *Client) Close() error {
 	return c.ftp.Quit()
+}
+
+func newTimeoutDialFunc(timeout time.Duration, mode tlsMode, tlsConfig *tls.Config) func(network, address string) (net.Conn, error) {
+	dialer := &net.Dialer{Timeout: timeout}
+	useTLS := mode == tlsModeImplicit
+	return func(network, address string) (net.Conn, error) {
+		conn, err := dialer.Dial(network, address)
+		if err != nil {
+			return nil, err
+		}
+		conn = server.NewTimeoutConn(conn, timeout)
+		if useTLS {
+			return tls.Client(conn, tlsConfig), nil
+		}
+		useTLS = mode == tlsModeExplicit
+		return conn, nil
+	}
 }

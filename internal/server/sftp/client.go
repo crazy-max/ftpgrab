@@ -15,12 +15,15 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
+var newSFTPClient = sftp.NewClient
+
 // Client represents an active sftp object
 type Client struct {
 	*server.Client
 	config *config.ServerSFTP
 	sftp   *sftp.Client
 	ssh    *ssh.Client
+	closer io.Closer
 }
 
 // New creates new ftp instance
@@ -66,12 +69,27 @@ func New(config *config.ServerSFTP) (*server.Client, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Cannot open ssh connection")
 	}
+	client.closer = client.ssh
 
-	if client.sftp, err = sftp.NewClient(client.ssh, sftp.MaxPacket(config.MaxPacketSize)); err != nil {
+	if err = client.openSFTP(); err != nil {
 		return nil, err
 	}
 
 	return &server.Client{Handler: client}, err
+}
+
+func (c *Client) openSFTP() error {
+	sftpClient, err := newSFTPClient(c.ssh, sftp.MaxPacket(c.config.MaxPacketSize))
+	if err != nil {
+		if c.closer != nil {
+			if closeErr := c.closer.Close(); closeErr != nil {
+				log.Warn().Err(closeErr).Msg("Cannot close ssh connection after sftp client initialization failure")
+			}
+		}
+		return err
+	}
+	c.sftp = sftpClient
+	return nil
 }
 
 // Common return common configuration
@@ -104,19 +122,6 @@ func (c *Client) readPublicKey(key string, password string) ([]ssh.AuthMethod, e
 	return []ssh.AuthMethod{ssh.PublicKeys(signer)}, nil
 }
 
-func dialSSH(network, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
-	conn, err := net.DialTimeout(network, addr, config.Timeout)
-	if err != nil {
-		return nil, err
-	}
-	conn = server.NewTimeoutConn(conn, config.Timeout)
-	c, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
-	if err != nil {
-		return nil, err
-	}
-	return ssh.NewClient(c, chans, reqs), nil
-}
-
 // ReadDir fetches the contents of a directory, returning a list of os.FileInfo's
 func (c *Client) ReadDir(path string) ([]os.FileInfo, error) {
 	return c.sftp.ReadDir(path)
@@ -146,4 +151,18 @@ func (c *Client) Close() error {
 		return err
 	}
 	return nil
+}
+
+func dialSSH(network, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
+	conn, err := net.DialTimeout(network, addr, config.Timeout)
+	if err != nil {
+		return nil, err
+	}
+	conn = server.NewTimeoutConn(conn, config.Timeout)
+	c, chans, reqs, err := ssh.NewClientConn(conn, addr, config)
+	if err != nil {
+		_ = conn.Close()
+		return nil, err
+	}
+	return ssh.NewClient(c, chans, reqs), nil
 }

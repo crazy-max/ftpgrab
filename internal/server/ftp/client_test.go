@@ -2,15 +2,40 @@ package ftp
 
 import (
 	"crypto/tls"
+	"errors"
 	"net"
 	"testing"
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
+	ftplib "github.com/jlaffaye/ftp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+type stubFTPConn struct {
+	loginErr error
+	quitErr  error
+	quitCall int
+}
+
+func (c *stubFTPConn) Login(_, _ string) error {
+	return c.loginErr
+}
+
+func (c *stubFTPConn) List(string) ([]*ftplib.Entry, error) {
+	return nil, nil
+}
+
+func (c *stubFTPConn) Retr(string) (*ftplib.Response, error) {
+	return nil, nil
+}
+
+func (c *stubFTPConn) Quit() error {
+	c.quitCall++
+	return c.quitErr
+}
 
 func TestGetTLSMode(t *testing.T) {
 	t.Run("disabled", func(t *testing.T) {
@@ -114,5 +139,29 @@ func TestNewTimeoutDialFunc(t *testing.T) {
 		t.Cleanup(func() {
 			_ = serverDataConn.Close()
 		})
+	})
+}
+
+func TestClientLogin(t *testing.T) {
+	t.Run("skips login without username", func(t *testing.T) {
+		conn := &stubFTPConn{}
+		client := &Client{ftp: conn}
+		require.NoError(t, client.login("", "secret"))
+		assert.Equal(t, 0, conn.quitCall)
+	})
+
+	t.Run("closes connection when login fails", func(t *testing.T) {
+		conn := &stubFTPConn{loginErr: errors.New("boom")}
+		client := &Client{ftp: conn}
+		err := client.login("user", "secret")
+		require.EqualError(t, err, "boom")
+		assert.Equal(t, 1, conn.quitCall)
+	})
+
+	t.Run("does not close connection on successful login", func(t *testing.T) {
+		conn := &stubFTPConn{}
+		client := &Client{ftp: conn}
+		require.NoError(t, client.login("user", "secret"))
+		assert.Equal(t, 0, conn.quitCall)
 	})
 }
