@@ -14,26 +14,30 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+func newLogWriter(out io.Writer, logJSON bool, logTimestamp bool, noColor bool) io.Writer {
+	if logJSON {
+		return out
+	}
+
+	var excludeParts []string
+	if !logTimestamp {
+		excludeParts = []string{
+			zerolog.TimestampFieldName,
+		}
+	}
+
+	return zerolog.ConsoleWriter{
+		Out:          out,
+		NoColor:      noColor,
+		TimeFormat:   time.RFC1123,
+		PartsExclude: excludeParts,
+	}
+}
+
 // Configure configures logger
 func Configure(cli config.Cli) {
 	var err error
-	var w io.Writer
-
-	if !cli.LogJSON {
-		var excludeParts []string
-		if !cli.LogTimestamp {
-			excludeParts = []string{
-				zerolog.TimestampFieldName,
-			}
-		}
-		w = zerolog.ConsoleWriter{
-			Out:          os.Stdout,
-			TimeFormat:   time.RFC1123,
-			PartsExclude: excludeParts,
-		}
-	} else {
-		w = os.Stdout
-	}
+	w := newLogWriter(os.Stdout, cli.LogJSON, cli.LogTimestamp, false)
 
 	if len(cli.LogFile) > 0 {
 		logFile := path.Clean(cli.LogFile)
@@ -57,7 +61,7 @@ func Configure(cli config.Cli) {
 				}
 			}
 		}()
-		w = zerolog.MultiLevelWriter(w, rwriter)
+		w = zerolog.MultiLevelWriter(w, newLogWriter(rwriter, cli.LogJSON, cli.LogTimestamp, true))
 	}
 
 	log.Logger = zerolog.New(w)
