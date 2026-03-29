@@ -169,7 +169,18 @@ func (c *Client) Retrieve(path string, dest io.Writer) error {
 
 // Close closes ftp connection
 func (c *Client) Close() error {
-	return c.ftp.Quit()
+	done := make(chan error, 1)
+	go func() {
+		done <- c.ftp.Quit()
+	}()
+
+	select {
+	case err := <-done:
+		return err
+	case <-time.After(*c.cfg.Timeout):
+		log.Warn().Dur("timeout", *c.cfg.Timeout).Msg("Cannot close ftp connection, quit timed out")
+		return fmt.Errorf("quit timed out after %s", *c.cfg.Timeout)
+	}
 }
 
 func newTimeoutDialFunc(timeout time.Duration, mode tlsMode, tlsConfig *tls.Config) func(network, address string) (net.Conn, error) {
