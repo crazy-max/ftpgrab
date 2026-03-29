@@ -19,4 +19,5 @@ download:
   chmodDir: 0o755
   retry: 3
   hideSkipped: false
+  tempFirst: true
   createBaseDir: false

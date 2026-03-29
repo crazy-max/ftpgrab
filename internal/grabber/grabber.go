@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
@@ -20,28 +21,40 @@ import (
 
 // Client represents an active grabber object
 type Client struct {
-	config  *config.Download
-	db      *db.Client
-	server  *server.Client
-	tempdir string
+	config     *config.Download
+	db         *db.Client
+	server     *server.Client
+	tempdirRun string
 }
 
 // New creates new grabber instance
-func New(dlConfig *config.Download, dbConfig *config.Db, serverConfig *config.Server) (*Client, error) {
+func New(dlConfig *config.Download, dbConfig *config.Db, serverConfig *config.Server) (client *Client, err error) {
 	var dbCli *db.Client
-	var serverCli *server.Client
-	var err error
+	var serverctl *server.Client
 
-	// DB client
 	if dbCli, err = db.New(dbConfig); err != nil {
 		return nil, errors.Wrap(err, "Cannot open database")
 	}
+	defer func() {
+		if err == nil {
+			return
+		}
+		if client != nil {
+			client.Close()
+			return
+		}
+		if serverctl != nil {
+			_ = serverctl.Close()
+		}
+		if dbCli != nil {
+			_ = dbCli.Close()
+		}
+	}()
 
-	// Server client
 	if serverConfig.FTP != nil {
-		serverCli, err = ftp.New(serverConfig.FTP)
+		serverctl, err = ftp.New(serverConfig.FTP)
 	} else if serverConfig.SFTP != nil {
-		serverCli, err = sftp.New(serverConfig.SFTP)
+		serverctl, err = sftp.New(serverConfig.SFTP)
 	} else {
 		return nil, errors.New("No server defined")
 	}
@@ -49,18 +62,19 @@ func New(dlConfig *config.Download, dbConfig *config.Db, serverConfig *config.Se
 		return nil, errors.Wrap(err, "Cannot connect to server")
 	}
 
-	// Temp dir to download files
-	tempdir, err := os.MkdirTemp("", ".ftpgrab.*")
-	if err != nil {
-		return nil, errors.Wrap(err, "Cannot create temp dir")
+	client = &Client{
+		config: dlConfig,
+		db:     dbCli,
+		server: serverctl,
 	}
 
-	return &Client{
-		config:  dlConfig,
-		db:      dbCli,
-		server:  serverCli,
-		tempdir: tempdir,
-	}, nil
+	if *dlConfig.TempFirst {
+		if err := client.initTempDir(); err != nil {
+			return nil, errors.Wrap(err, "Cannot create temporary destination dir")
+		}
+	}
+
+	return client, nil
 }
 
 func (c *Client) Grab(files []File) journal.Journal {
@@ -78,7 +92,7 @@ func (c *Client) Grab(files []File) journal.Journal {
 
 func (c *Client) download(file File, retry int) *journal.Entry {
 	srcpath := path.Join(file.SrcDir, file.Info.Name())
-	destpath := path.Join(file.DestDir, file.Info.Name())
+	destpath := filepath.Join(file.DestDir, file.Info.Name())
 
 	entry := &journal.Entry{
 		File:   srcpath,
@@ -111,7 +125,7 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 
 	retrieveStart := time.Now()
 
-	destfolder := path.Dir(destpath)
+	destfolder := filepath.Dir(destpath)
 	if err := os.MkdirAll(destfolder, os.ModePerm); err != nil {
 		sublogger.Error().Err(err).Msg("Cannot create destination dir")
 		entry.Level = journal.EntryLevelError
@@ -122,17 +136,19 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 		sublogger.Warn().Err(err).Msg("Cannot fix parent folder permissions")
 	}
 
-	destfile, err := c.createFile(destpath)
+	destfile, err := c.createDownloadFile(destpath)
 	if err != nil {
 		sublogger.Error().Err(err).Msg("Cannot create destination file")
 		entry.Level = journal.EntryLevelError
 		entry.Text = fmt.Sprintf("Cannot create destination file: %v", err)
 		return entry
 	}
-	defer destfile.Close()
 
 	err = c.server.Retrieve(srcpath, destfile)
 	if err != nil {
+		if cleanupErr := c.closeAndRemoveTempFile(destfile); cleanupErr != nil {
+			sublogger.Warn().Err(cleanupErr).Str("path", destfile.Name()).Msg("Cannot clean destination file after download failure")
+		}
 		retry++
 		sublogger.Error().Err(err).Msgf("Error downloading, retry %d/%d", retry, c.config.Retry)
 		if retry == c.config.Retry {
@@ -143,7 +159,10 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 			return c.download(file, retry)
 		}
 	} else {
-		if err = destfile.Close(); err != nil {
+		if err := destfile.Close(); err != nil {
+			if cleanupErr := c.removeTempPath(destfile.Name()); cleanupErr != nil {
+				sublogger.Warn().Err(cleanupErr).Str("path", destfile.Name()).Msg("Cannot clean temporary destination file")
+			}
 			sublogger.Error().Err(err).Msg("Cannot close destination file")
 			entry.Level = journal.EntryLevelError
 			entry.Text = fmt.Sprintf("Cannot close destination file: %v", err)
@@ -155,8 +174,10 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 				Str("tempfile", destfile.Name()).
 				Str("destfile", destpath).
 				Msgf("Move temp file")
-			err := moveFile(destfile.Name(), destpath)
-			if err != nil {
+			if err := moveFile(destfile.Name(), destpath); err != nil {
+				if cleanupErr := c.removeTempPath(destfile.Name()); cleanupErr != nil {
+					sublogger.Warn().Err(cleanupErr).Str("path", destfile.Name()).Msg("Cannot clean temporary destination file")
+				}
 				sublogger.Error().Err(err).Msg("Cannot move file")
 				entry.Level = journal.EntryLevelError
 				entry.Text = fmt.Sprintf("Cannot move file: %v", err)
@@ -189,20 +210,19 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 	return entry
 }
 
-func (c *Client) createFile(filename string) (*os.File, error) {
-	if *c.config.TempFirst {
-		tempfile, err := os.CreateTemp(c.tempdir, path.Base(filename))
-		if err != nil {
-			return nil, err
-		}
-		return tempfile, nil
+func (c *Client) createDownloadFile(filename string) (*os.File, error) {
+	if !*c.config.TempFirst {
+		return os.Create(filename)
 	}
-
-	destfile, err := os.Create(filename)
-	if err != nil {
+	tempfilepath := c.tempFilePath(filename)
+	tempdir := filepath.Dir(tempfilepath)
+	if err := os.MkdirAll(tempdir, os.ModePerm); err != nil {
 		return nil, err
 	}
-	return destfile, nil
+	if err := c.fixPerms(tempdir); err != nil {
+		log.Warn().Err(err).Str("path", tempdir).Msg("Cannot fix temporary destination folder permissions")
+	}
+	return os.Create(tempfilepath)
 }
 
 func (c *Client) getStatus(file File) journal.EntryStatus {
@@ -255,7 +275,66 @@ func (c *Client) Close() {
 	if err := c.server.Close(); err != nil {
 		log.Warn().Err(err).Msg("Cannot close server connection")
 	}
-	if err := os.RemoveAll(c.tempdir); err != nil {
-		log.Warn().Err(err).Msg("Cannot remove temp folder")
+	if *c.config.TempFirst {
+		if c.tempdirRun != "" {
+			if err := os.RemoveAll(c.tempdirRun); err != nil && !os.IsNotExist(err) {
+				log.Warn().Err(err).Str("path", c.tempdirRun).Msg("Cannot remove temporary session folder")
+			}
+		}
+		tempRootDir := c.tempRootDir()
+		if err := os.Remove(tempRootDir); err != nil && !os.IsNotExist(err) {
+			log.Debug().Err(err).Str("path", tempRootDir).Msg("Temporary root folder not removed")
+		}
 	}
+}
+
+func (c *Client) initTempDir() error {
+	tempRootDir := c.tempRootDir()
+	if err := os.MkdirAll(tempRootDir, os.ModePerm); err != nil {
+		return err
+	}
+	if err := c.fixPerms(tempRootDir); err != nil {
+		log.Warn().Err(err).Str("path", tempRootDir).Msg("Cannot fix temporary root folder permissions")
+	}
+
+	tempdirRun, err := os.MkdirTemp(tempRootDir, "")
+	if err != nil {
+		return err
+	}
+	c.tempdirRun = tempdirRun
+	if err := c.fixPerms(c.tempdirRun); err != nil {
+		log.Warn().Err(err).Str("path", c.tempdirRun).Msg("Cannot fix temporary session folder permissions")
+	}
+	return nil
+}
+
+func (c *Client) tempRootDir() string {
+	return filepath.Join(c.config.Output, ".ftpgrab-tmp")
+}
+
+func (c *Client) tempFilePath(filename string) string {
+	relpath, err := filepath.Rel(c.config.Output, filename)
+	if err != nil || relpath == "." || relpath == "" {
+		return filepath.Join(c.tempdirRun, filepath.Base(filename))
+	}
+	return filepath.Join(c.tempdirRun, relpath)
+}
+
+func (c *Client) closeAndRemoveTempFile(file *os.File) error {
+	closeErr := file.Close()
+	removeErr := c.removeTempPath(file.Name())
+	if closeErr != nil {
+		return closeErr
+	}
+	return removeErr
+}
+
+func (c *Client) removeTempPath(filename string) error {
+	if !*c.config.TempFirst {
+		return nil
+	}
+	if err := os.Remove(filename); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
 }

@@ -27,6 +27,12 @@ env:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - basic
+          - tempFirst
     steps:
       -
         name: Checkout
@@ -69,7 +75,7 @@ jobs:
             -e "SCHEDULE=*/30 * * * *" \
             -e "LOG_LEVEL=debug" \
             -e "LOG_NOCOLOR=true" \
-            -v "$(pwd)/test/ftpgrab.yml:/ftpgrab.yml:ro" \
+            -v "$(pwd)/test/ftpgrab.${{ matrix.config }}.yml:/ftpgrab.yml:ro" \
             ${{ env.BUILD_TAG }}
       -
         name: Check container logs
