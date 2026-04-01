@@ -7,9 +7,7 @@ import (
 
 // FlagLoader is the structure representring a flag loader.
 type FlagLoader struct {
-	//nolint:structcheck,unused
-	filename string
-	cfg      FlagLoaderConfig
+	cfg FlagLoaderConfig
 }
 
 // FlagLoaderConfig loads a configuration from flags.
@@ -18,7 +16,7 @@ type FlagLoaderConfig struct {
 	Args []string
 }
 
-// New creates a new Loader from the FlagLoaderConfig cfg.
+// NewFlagLoader creates a new Loader from the FlagLoaderConfig cfg.
 func NewFlagLoader(cfg FlagLoaderConfig) *FlagLoader {
 	return &FlagLoader{
 		cfg: cfg,

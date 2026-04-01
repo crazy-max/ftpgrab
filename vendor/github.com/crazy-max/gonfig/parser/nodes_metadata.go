@@ -75,19 +75,20 @@ func (m metadata) add(rootType reflect.Type, node *Node) error {
 	fType := field.Type
 	node.Kind = fType.Kind()
 	node.Tag = field.Tag
+	tagValue := field.Tag.Get(m.TagName)
 
 	if fType != reflect.TypeOf(time.Time{}) {
 		if fType.Kind() == reflect.Struct || fType.Kind() == reflect.Pointer && fType.Elem().Kind() == reflect.Struct ||
 			fType.Kind() == reflect.Map {
-			if len(node.Children) == 0 && !(field.Tag.Get(m.TagName) == TagLabelAllowEmpty || field.Tag.Get(m.TagName) == "-") {
+			if len(node.Children) == 0 && tagValue != TagLabelAllowEmpty && tagValue != "-" {
 				return fmt.Errorf("%s cannot be a standalone element (type %s)", node.Name, fType)
 			}
 
-			node.Disabled = len(node.Value) > 0 && !strings.EqualFold(node.Value, "true") && field.Tag.Get(m.TagName) == TagLabelAllowEmpty
+			node.Disabled = len(node.Value) > 0 && !strings.EqualFold(node.Value, "true") && tagValue == TagLabelAllowEmpty
 		}
 	}
 
-	node.Disabled = node.Disabled || field.Tag.Get(m.TagName) == "-"
+	node.Disabled = node.Disabled || tagValue == "-"
 
 	if len(node.Children) == 0 {
 		return nil

@@ -10,13 +10,13 @@ type FileLoader struct {
 	cfg      FileLoaderConfig
 }
 
-// FileLoader loads a configuration from a file.
+// FileLoaderConfig loads a configuration from a file.
 type FileLoaderConfig struct {
 	Filename string
 	Finder   Finder
 }
 
-// New creates a new Loader fromt the FileLoaderConfig cfg.
+// NewFileLoader creates a new Loader fromt the FileLoaderConfig cfg.
 func NewFileLoader(cfg FileLoaderConfig) *FileLoader {
 	return &FileLoader{
 		cfg: cfg,

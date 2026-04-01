@@ -39,12 +39,10 @@ func (f Finder) getPaths(configFile string) []string {
 	if strings.TrimSpace(configFile) != "" {
 		paths = append(paths, configFile)
 	}
-
 	for _, basePath := range f.BasePaths {
 		for _, ext := range f.Extensions {
 			paths = append(paths, basePath+"."+ext)
 		}
 	}
-
 	return paths
 }
