@@ -14,7 +14,11 @@ import (
 	"github.com/crazy-max/ftpgrab/v7/internal/server"
 	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/jlaffaye/ftp"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
+	"golang.org/x/text/encoding"
+	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/transform"
 )
 
 type ftpConn interface {
@@ -27,8 +31,9 @@ type ftpConn interface {
 // Client represents an active ftp object
 type Client struct {
 	*server.Client
-	cfg *config.ServerFTP
-	ftp ftpConn
+	cfg     *config.ServerFTP
+	ftp     ftpConn
+	pathenc pathEncoder
 }
 
 type tlsMode uint8
@@ -53,8 +58,11 @@ func getTLSMode(cfg *config.ServerFTP) tlsMode {
 // New creates new ftp instance
 func New(cfg *config.ServerFTP) (*server.Client, error) {
 	var err error
-	var client = &Client{cfg: cfg}
+	client := &Client{cfg: cfg}
 	mode := getTLSMode(cfg)
+	if client.pathenc, err = newPathEnc(cfg.PathEncoding); err != nil {
+		return nil, err
+	}
 
 	tlsConfig := &tls.Config{
 		ServerName:         cfg.Host,
@@ -98,7 +106,7 @@ func New(cfg *config.ServerFTP) (*server.Client, error) {
 }
 
 func (c *Client) login(username, password string) error {
-	if len(username) == 0 {
+	if username == "" {
 		return nil
 	}
 	if err := c.ftp.Login(username, password); err != nil {
@@ -121,10 +129,12 @@ func (c *Client) Common() config.ServerCommon {
 
 // ReadDir fetches the contents of a directory, returning a list of os.FileInfo's
 func (c *Client) ReadDir(dir string) ([]os.FileInfo, error) {
-	var files []*ftp.Entry
-
 	if *c.cfg.EscapeRegexpMeta {
 		dir = regexp.QuoteMeta(dir)
+	}
+	dir, err := c.pathenc.Encode(dir)
+	if err != nil {
+		return nil, err
 	}
 	files, err := c.ftp.List(dir)
 	if err != nil {
@@ -136,6 +146,10 @@ func (c *Client) ReadDir(dir string) ([]os.FileInfo, error) {
 		if file.Name == "." || file.Name == ".." {
 			continue
 		}
+		name, err := c.pathenc.Decode(file.Name)
+		if err != nil {
+			return nil, err
+		}
 		var mode os.FileMode
 		switch file.Type {
 		case ftp.EntryTypeFolder:
@@ -143,13 +157,12 @@ func (c *Client) ReadDir(dir string) ([]os.FileInfo, error) {
 		case ftp.EntryTypeLink:
 			mode |= os.ModeSymlink
 		}
-		fileInfo := &fileInfo{
-			name:  file.Name,
+		entries = append(entries, &fileInfo{
+			name:  name,
 			mode:  mode,
 			mtime: file.Time,
 			size:  int64(file.Size),
-		}
-		entries = append(entries, fileInfo)
+		})
 	}
 
 	return entries, nil
@@ -157,6 +170,10 @@ func (c *Client) ReadDir(dir string) ([]os.FileInfo, error) {
 
 // Retrieve file "path" from server and write bytes to "dest".
 func (c *Client) Retrieve(path string, dest io.Writer) error {
+	path, err := c.pathenc.Encode(path)
+	if err != nil {
+		return err
+	}
 	resp, err := c.ftp.Retr(path)
 	if err != nil {
 		return err
@@ -187,4 +204,76 @@ func newTimeoutDialFunc(timeout time.Duration, mode tlsMode, tlsConfig *tls.Conf
 		useTLS = mode == tlsModeExplicit
 		return conn, nil
 	}
+}
+
+type pathEncoder struct {
+	name     string
+	encoding encoding.Encoding
+}
+
+func newPathEnc(pathEncoding string) (pathEncoder, error) {
+	switch pathEncoding {
+	case "", "utf-8":
+		return pathEncoder{}, nil
+	case "windows-1251":
+		return pathEncoder{
+			name:     pathEncoding,
+			encoding: charmap.Windows1251,
+		}, nil
+	default:
+		return pathEncoder{}, errors.Errorf("unsupported FTP path encoding %q", pathEncoding)
+	}
+}
+
+func (c pathEncoder) Encode(value string) (string, error) {
+	if c.encoding == nil {
+		return value, nil
+	}
+	encoded, _, err := transform.String(c.encoding.NewEncoder(), value)
+	if err != nil {
+		return "", errors.Wrapf(err, "encode FTP path using %s", c.name)
+	}
+	return encoded, nil
+}
+
+func (c pathEncoder) Decode(value string) (string, error) {
+	if c.encoding == nil {
+		return value, nil
+	}
+	decoded, _, err := transform.String(c.encoding.NewDecoder(), value)
+	if err != nil {
+		return "", errors.Wrapf(err, "decode FTP path using %s", c.name)
+	}
+	return decoded, nil
+}
+
+type fileInfo struct {
+	name  string
+	size  int64
+	mode  os.FileMode
+	mtime time.Time
+}
+
+func (f *fileInfo) Name() string {
+	return f.name
+}
+
+func (f *fileInfo) Size() int64 {
+	return f.size
+}
+
+func (f *fileInfo) Mode() os.FileMode {
+	return f.mode
+}
+
+func (f *fileInfo) ModTime() time.Time {
+	return f.mtime
+}
+
+func (f *fileInfo) IsDir() bool {
+	return f.mode.IsDir()
+}
+
+func (f *fileInfo) Sys() interface{} {
+	return nil
 }

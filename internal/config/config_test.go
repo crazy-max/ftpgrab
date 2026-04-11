@@ -51,6 +51,7 @@ func TestLoadFile(t *testing.T) {
 							"/",
 						},
 						Timeout:            utl.NewDuration(5 * time.Second),
+						PathEncoding:       "utf-8",
 						DisableUTF8:        utl.NewFalse(),
 						DisableEPSV:        utl.NewFalse(),
 						DisableMLSD:        utl.NewFalse(),
@@ -158,6 +159,7 @@ func TestLoadEnv(t *testing.T) {
 							"/",
 						},
 						Timeout:            utl.NewDuration(5 * time.Second),
+						PathEncoding:       "utf-8",
 						DisableUTF8:        utl.NewFalse(),
 						DisableEPSV:        utl.NewFalse(),
 						DisableMLSD:        utl.NewFalse(),
@@ -331,6 +333,7 @@ func TestLoadMixed(t *testing.T) {
 							"/",
 						},
 						Timeout:            utl.NewDuration(5 * time.Second),
+						PathEncoding:       "utf-8",
 						DisableUTF8:        utl.NewFalse(),
 						DisableEPSV:        utl.NewFalse(),
 						DisableMLSD:        utl.NewFalse(),
@@ -433,6 +436,32 @@ func TestLoadMixed(t *testing.T) {
 
 			require.NoError(t, err)
 			assert.Equal(t, tt.expected, cfg)
+		})
+	}
+}
+
+func TestNormalizeFTPPathEncoding(t *testing.T) {
+	testCases := []struct {
+		name    string
+		value   string
+		want    string
+		wantErr bool
+	}{
+		{name: "default", value: "", want: "utf-8"},
+		{name: "utf8 alias", value: "utf8", want: "utf-8"},
+		{name: "cp1251 alias", value: "cp1251", want: "windows-1251"},
+		{name: "windows1251 alias", value: "windows1251", want: "windows-1251"},
+		{name: "invalid", value: "koi8-r", wantErr: true},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := normalizeFTPPathEncoding(tt.value)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

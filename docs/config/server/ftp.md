@@ -14,6 +14,7 @@
         sources:
           - /
         timeout: 5s
+        pathEncoding: utf-8
         disableUTF8: false
         disableEPSV: false
         disableMLSD: false
@@ -139,6 +140,21 @@ Timeout for opening connections, sending control commands, and each read/write o
 
 !!! abstract "Environment variables"
     * `FTPGRAB_SERVER_FTP_TIMEOUT`
+
+### `pathEncoding`
+
+Encoding used for FTP command paths and directory entry names. Use `windows-1251` for legacy servers that do not
+operate in UTF-8. (default `utf-8`)
+
+!!! example "Config file"
+    ```yaml
+    server:
+      ftp:
+        pathEncoding: utf-8
+    ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_FTP_PATHENCODING`
 
 ### `disableUTF8`
 
