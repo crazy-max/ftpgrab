@@ -194,6 +194,7 @@ func TestLoadEnv(t *testing.T) {
 			expected: &Config{
 				Db: (&Db{}).GetDefaults(),
 				Server: &Server{
+					//nolint:gosec // Test fixture paths below point to secret files, they are not embedded credentials.
 					SFTP: &ServerSFTP{
 						Host:         "10.0.0.1",
 						Port:         22,

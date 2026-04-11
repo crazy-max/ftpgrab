@@ -4,6 +4,7 @@ run:
   modules-download-mode: vendor
 
 linters:
+  default: none
   enable:
     - bodyclose
     - depguard
@@ -22,16 +23,6 @@ linters:
     - unused
     - whitespace
   settings:
-    gocritic:
-      disabled-checks:
-        - "ifElseChain"
-        - "assignOp"
-        - "appendAssign"
-        - "singleCaseSwitch"
-    govet:
-      enable:
-        - nilness
-        - unusedwrite
     depguard:
       rules:
         main:
@@ -45,20 +36,41 @@ linters:
         - pattern: ^context\.WithTimeout(# use context\.WithTimeoutCause instead)?$
         - pattern: ^ctx\.Err(# use context\.Cause instead)?$
         - pattern: ^fmt\.Errorf(# use errors\.Errorf instead)?$
+    gocritic:
+      disabled-checks:
+        - "ifElseChain"
+        - "assignOp"
+        - "appendAssign"
+        - "singleCaseSwitch"
     gosec:
       excludes:
-        - G106
         - G115
         - G204
         - G402
       config:
         G306: "0644"
+    govet:
+      enable:
+        - nilness
+        - unusedwrite
+    importas:
+      alias:
+        - pkg: "errors"
+          alias: "stderrors"
+        - pkg: "github.com/containerd/errdefs"
+          alias: "cerrdefs"
+        - pkg: "github.com/moby/moby/client"
+          alias: "dockerclient"
+        - pkg: "github.com/opencontainers/image-spec/specs-go/v1"
+          alias: "ocispecs"
+        - pkg: "github.com/opencontainers/go-digest"
+          alias: "digest"
     testifylint:
       disable:
-        - "empty"
-        - "bool-compare"
-        - "len"
-        - "negative-positive"
+        - empty
+        - bool-compare
+        - len
+        - negative-positive
   exclusions:
     generated: lax
     presets:
@@ -67,28 +79,25 @@ linters:
       - legacy
       - std-error-handling
     rules:
-      -
-        linters:
+      - linters:
           - revive
         text: stutters
-      -
-        linters:
+      - linters:
+          - revive
+        text: var-naming
+      - linters:
           - revive
         text: empty-block
-      -
-        linters:
+      - linters:
           - revive
         text: superfluous-else
-      -
-        linters:
+      - linters:
           - revive
         text: unused-parameter
-      -
-        linters:
+      - linters:
           - revive
         text: redefines-builtin-id
-      -
-        linters:
+      - linters:
           - revive
         text: if-return
 
