@@ -1,6 +1,6 @@
 # Support [![](https://isitmaintained.com/badge/resolution/crazy-max/ftpgrab.svg)](https://isitmaintained.com/project/crazy-max/ftpgrab)
 
-First, [be a good guy](https://github.com/kossnocorp/etiquette/blob/master/README.md).
+First, [be a good guy](https://github.com/kossnocorp/opensource.how/blob/classic/README.md).
 
 ## Reporting an issue
 
