@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/crazy-max/gonfig"
@@ -68,7 +69,7 @@ func (cfg *Config) validate() error {
 	var err error
 
 	if cfg.Db != nil {
-		if len(cfg.Db.Path) > 0 {
+		if cfg.Db.Path != "" {
 			if err := os.MkdirAll(path.Dir(cfg.Db.Path), os.ModePerm); err != nil {
 				return errors.Wrap(err, "Cannot create database destination folder")
 			}
@@ -88,6 +89,11 @@ func (cfg *Config) validate() error {
 			if *cfg.Server.FTP.TLS && *cfg.Server.FTP.ExplicitTLS {
 				return errors.New("FTP tls and explicitTLS are mutually exclusive")
 			}
+			pathEncoding, err := normalizeFTPPathEncoding(cfg.Server.FTP.PathEncoding)
+			if err != nil {
+				return err
+			}
+			cfg.Server.FTP.PathEncoding = pathEncoding
 		}
 		if cfg.Server.SFTP != nil {
 			if len(cfg.Server.SFTP.Sources) == 0 {
@@ -110,7 +116,7 @@ func (cfg *Config) validate() error {
 				return errors.Wrapf(err, "Exclude regex '%s' cannot compile", exclude)
 			}
 		}
-		if len(cfg.Download.Since) > 0 {
+		if cfg.Download.Since != "" {
 			cfg.Download.SinceTime, err = time.Parse("2006-01-02T15:04:05Z", cfg.Download.Since)
 			if err != nil {
 				return err
@@ -125,4 +131,15 @@ func (cfg *Config) validate() error {
 func (cfg *Config) String() string {
 	b, _ := json.MarshalIndent(cfg, "", "  ")
 	return string(b)
+}
+
+func normalizeFTPPathEncoding(value string) (string, error) {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "", "utf-8", "utf8":
+		return "utf-8", nil
+	case "windows-1251", "windows1251", "cp1251":
+		return "windows-1251", nil
+	default:
+		return "", errors.Errorf("Unsupported FTP pathEncoding %q", value)
+	}
 }

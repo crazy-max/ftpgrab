@@ -16,6 +16,7 @@ type ServerFTP struct {
 	PasswordFile       string         `yaml:"passwordFile,omitempty" json:"passwordFile,omitempty" validate:"omitempty,file"`
 	Sources            []string       `yaml:"sources,omitempty" json:"sources,omitempty"`
 	Timeout            *time.Duration `yaml:"timeout,omitempty" json:"timeout,omitempty"`
+	PathEncoding       string         `yaml:"pathEncoding,omitempty" json:"pathEncoding,omitempty"`
 	DisableUTF8        *bool          `yaml:"disableUTF8,omitempty" json:"disableUTF8,omitempty"`
 	DisableEPSV        *bool          `yaml:"disableEPSV,omitempty" json:"disableEPSV,omitempty"`
 	DisableMLSD        *bool          `yaml:"disableMLSD,omitempty" json:"disableMLSD,omitempty"`
@@ -38,6 +39,7 @@ func (s *ServerFTP) SetDefaults() {
 	s.Port = 21
 	s.Sources = []string{}
 	s.Timeout = utl.NewDuration(5 * time.Second)
+	s.PathEncoding = "utf-8"
 	s.DisableUTF8 = utl.NewFalse()
 	s.DisableEPSV = utl.NewFalse()
 	s.DisableMLSD = utl.NewFalse()

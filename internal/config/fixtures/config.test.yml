@@ -7,6 +7,7 @@ server:
     sources:
       - /
     timeout: 5s
+    pathEncoding: utf-8
     disableUTF8: false
     disableEPSV: false
     disableMLSD: false
