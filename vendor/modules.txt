@@ -34,7 +34,7 @@ github.com/davecgh/go-spew/spew
 # github.com/docker/go-units v0.5.0
 ## explicit
 github.com/docker/go-units
-# github.com/gabriel-vasile/mimetype v1.4.12
+# github.com/gabriel-vasile/mimetype v1.4.13
 ## explicit; go 1.21
 github.com/gabriel-vasile/mimetype
 github.com/gabriel-vasile/mimetype/internal/charset
@@ -53,8 +53,8 @@ github.com/go-playground/locales/currency
 # github.com/go-playground/universal-translator v0.18.1
 ## explicit; go 1.18
 github.com/go-playground/universal-translator
-# github.com/go-playground/validator/v10 v10.30.1
-## explicit; go 1.24.0
+# github.com/go-playground/validator/v10 v10.30.2
+## explicit; go 1.25.0
 github.com/go-playground/validator/v10
 # github.com/google/uuid v1.0.0
 ## explicit
