@@ -2,6 +2,7 @@ package script
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -39,7 +40,7 @@ func (c *Client) Name() string {
 
 // Send creates and sends a script notification with journal entries
 func (c *Client) Send(jnl journal.Journal) error {
-	cmd := exec.Command(c.cfg.Cmd, c.cfg.Args...)
+	cmd := exec.CommandContext(context.Background(), c.cfg.Cmd, c.cfg.Args...)
 	setSysProcAttr(cmd)
 
 	// Capture output

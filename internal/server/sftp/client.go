@@ -1,6 +1,7 @@
 package sftp
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net"
@@ -60,7 +61,7 @@ func New(config *config.ServerSFTP) (*server.Client, error) {
 	sshConf = &ssh.ClientConfig{
 		User:            username,
 		Auth:            sshAuth,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // Host key verification is not configurable yet, preserve current behavior.
 		Timeout:         *config.Timeout,
 	}
 
@@ -154,7 +155,8 @@ func (c *Client) Close() error {
 }
 
 func dialSSH(network, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
-	conn, err := net.DialTimeout(network, addr, config.Timeout)
+	dialer := &net.Dialer{Timeout: config.Timeout}
+	conn, err := dialer.DialContext(context.Background(), network, addr)
 	if err != nil {
 		return nil, err
 	}
