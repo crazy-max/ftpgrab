@@ -9,13 +9,13 @@
 
 ## About
 
-This library is heavily inspired by the traefik config package. It offers a simple and performant config handling with:
+This library is heavily inspired by the traefik [config package](https://github.com/traefik/traefik/tree/1f812606940d1b3d4b6511d56f313c7a5e24895b/pkg/config)
+(now moved to https://github.com/traefik/paerser). It offers a simple config
+handling with:
 
 * Configuration files in YAML or TOML format
 * Environment variables
 * Flag arguments
-
-An example is available [here](_example).
 
 ## Installation
 

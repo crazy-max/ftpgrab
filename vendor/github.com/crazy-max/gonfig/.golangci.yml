@@ -1,36 +1,93 @@
-run:
-  timeout: 10m
+version: "2"
 
 linters:
   enable:
+    - bodyclose
     - depguard
+    - forbidigo
+    - gocritic
+    - gosec
+    - govet
+    - ineffassign
+    - makezero
+    - misspell
+    - noctx
+    - nolintlint
+    - revive
+    - staticcheck
+    - testifylint
+    - unused
+    - whitespace
+  settings:
+    gocritic:
+      disabled-checks:
+        - "ifElseChain"
+        - "assignOp"
+        - "appendAssign"
+        - "singleCaseSwitch"
+    govet:
+      enable:
+        - nilness
+        - unusedwrite
+    depguard:
+      rules:
+        main:
+          deny:
+            - pkg: "io/ioutil"
+              desc: The io/ioutil package has been deprecated.
+    gosec:
+      excludes:
+        - G204
+        - G402
+        - G115
+      config:
+        G306: "0644"
+    testifylint:
+      disable:
+        - "empty"
+        - "bool-compare"
+        - "len"
+        - "negative-positive"
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      -
+        linters:
+          - revive
+        text: stutters
+      -
+        linters:
+          - revive
+        text: empty-block
+      -
+        linters:
+          - revive
+        text: superfluous-else
+      -
+        linters:
+          - revive
+        text: unused-parameter
+      -
+        linters:
+          - revive
+        text: redefines-builtin-id
+      -
+        linters:
+          - revive
+        text: if-return
+
+formatters:
+  enable:
     - gofmt
     - goimports
-    - revive
-    - govet
-    - importas
-    - ineffassign
-    - misspell
-    - typecheck
-    - errname
-    - makezero
-    - whitespace
-    - unused
-  disable-all: true
-
-linters-settings:
-  depguard:
-    list-type: blacklist
-    include-go-root: true
-    packages:
-      # The io/ioutil package has been deprecated.
-      # https://go.dev/doc/go1.16#ioutil
-      - io/ioutil
-  importas:
-    no-unaliased: true
+  exclusions:
+    generated: lax
 
 issues:
-  exclude-rules:
-    - linters:
-        - revive
-      text: "stutters"
+  max-issues-per-linter: 0
+  max-same-issues: 0

@@ -68,4 +68,5 @@
 //		b, _ := json.MarshalIndent(cfg, "", "  ")
 //		fmt.Println(string(b))
 //	}
+
 package gonfig

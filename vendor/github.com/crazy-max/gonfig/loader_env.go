@@ -19,7 +19,7 @@ type EnvLoaderConfig struct {
 	Prefix string
 }
 
-// New creates a new Loader from the EnvLoaderConfig cfg.
+// NewEnvLoader creates a new Loader from the EnvLoaderConfig cfg.
 func NewEnvLoader(cfg EnvLoaderConfig) *EnvLoader {
 	return &EnvLoader{
 		cfg: cfg,
