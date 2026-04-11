@@ -2,127 +2,125 @@
 
 ## 7.11.0 (2025/12/24)
 
-* Go 1.25 (#443)
-* Alpine Linux 3.23 (#444)
-* MkDocs Materials 9.6.20 (#428)
-* Bump github.com/alecthomas/kong from 1.6.0 to 1.13.0 (#438)
-* Bump github.com/go-playground/validator/v10 from 10.23.0 to 10.30.0 (#440)
-* Bump github.com/pkg/sftp from 1.13.7 to 1.13.10 (#437)
-* Bump github.com/rs/zerolog from 1.33.0 to 1.34.0 (#422)
-* Bump github.com/stretchr/testify from 1.10.0 to 1.11.1 (#439)
-* Bump golang.org/x/crypto from 0.31.0 to 0.46.0 (#432)
-* Bump go.etcd.io/bbolt from 1.3.11 to 1.4.3 (#434)
+* Go 1.25 by @crazy-max in #443
+* Alpine Linux 3.23 by @crazy-max in #444
+* MkDocs Materials 9.6.20 by @crazy-max in #428
+* Bump github.com/alecthomas/kong to 1.13.0 in #438
+* Bump github.com/go-playground/validator/v10 to 10.30.0 in #440
+* Bump github.com/pkg/sftp to 1.13.10 in #437
+* Bump github.com/rs/zerolog to 1.34.0 in #422
+* Bump github.com/stretchr/testify to 1.11.1 in #439
+* Bump golang.org/x/crypto to 0.46.0 in #432
+* Bump go.etcd.io/bbolt to 1.4.3 in #434
 
 ## 7.10.0 (2024/12/20)
 
-* Go 1.23 (#397)
-* Alpine Linux 3.21 (#397)
-* Bump github.com/alecthomas/kong from 0.8.0 to 1.6.0 (#323 #354 #393)
-* Bump github.com/go-playground/validator/v10 from 10.16.0 to 10.23.0 (#350 #370 #394)
-* Bump github.com/pkg/sftp from 1.13.5 to 1.13.7 (#326 #395)
-* Bump github.com/rs/zerolog from 1.31.0 to 1.33.0 (#344 #366)
-* Bump github.com/stretchr/testify from 1.8.4 to 1.10.0 (#351 #396)
-* Bump go.etcd.io/bbolt from 1.3.7 to 1.3.11 (#325 #348 #365 #377)
-* Bump golang.org/x/crypto from 0.14.0 to 0.31.0 (#324 #337 #352 #391)
-* Bump golang.org/x/net from 0.21.0 to 0.28.0 (#360 #353 #392)
+* Go 1.23 by @crazy-max in #397
+* Alpine Linux 3.21 by @crazy-max in #397
+* Bump github.com/alecthomas/kong to 1.6.0 in #323 #354 #393
+* Bump github.com/go-playground/validator/v10 to 10.23.0 in #350 #370 #394
+* Bump github.com/pkg/sftp to 1.13.7 in #326 #395
+* Bump github.com/rs/zerolog to 1.33.0 in #344 #366
+* Bump github.com/stretchr/testify to 1.10.0 in #351 #396
+* Bump go.etcd.io/bbolt to 1.3.11 in #325 #348 #365 #377
+* Bump golang.org/x/crypto to 0.31.0 in #324 #337 #352 #391
+* Bump golang.org/x/net to 0.28.0 in #360 #353 #392
 
 ## 7.9.0 (2023/12/16)
 
-* Go 1.21 (#322)
-* Alpine Linux 3.18 (#322)
-* Bump github.com/alecthomas/kong from 0.7.1 to 0.8.0 (#306
-* Bump github.com/crazy-max/gonfig from 0.6.0 to 0.7.0 (#291
-* Bump github.com/jlaffaye/ftp to 0.2.0 (#297 #301)
-* Bump github.com/go-playground/validator/v10 from 10.11.1 to 10.16.0 (#295 #321)
-* Bump github.com/rs/zerolog from 1.28.0 to 1.31.0 (#294 #320)
-* Bump github.com/stretchr/testify from 1.8.1 to 1.8.4 (#283 #302)
-* Bump golang.org/x/crypto from 0.4.0 to 0.8.0 (#293 #310)
-* Bump golang.org/x/net from 0.9.0 to 0.17.0 (#318)
-* Bump golang.org/x/sys from 0.3.0 to 0.15.0 (#287 #292 #319)
-* Bump go.etcd.io/bbolt from 1.3.6 to 1.3.7 (#277)
+* Go 1.21 by @crazy-max in #322
+* Alpine Linux 3.18 by @crazy-max in #322
+* Bump github.com/alecthomas/kong to 0.8.0 in #306
+* Bump github.com/crazy-max/gonfig to 0.7.0 in #291
+* Bump github.com/jlaffaye/ftp to 0.2.0 by @crazy-max in #297 #301
+* Bump github.com/go-playground/validator/v10 to 10.16.0 in #295 #321
+* Bump github.com/rs/zerolog to 1.31.0 in #294 #320
+* Bump github.com/stretchr/testify to 1.8.4 in #283 #302
+* Bump golang.org/x/crypto to 0.8.0 in #293 #310
+* Bump golang.org/x/net to 0.17.0 in #318
+* Bump golang.org/x/sys to 0.15.0 in #287 #292 #319
+* Bump go.etcd.io/bbolt to 1.3.7 in #277
 
 ## 7.8.0 (2022/12/31)
 
-* Option to escape all regular expression metacharacters (#270)
-* Fix file mode type (#269)
-* Move from `io/ioutil` to `io` and `os` packages (#219)
-* Move `syscall` to `golang.org/x/sys` (#220)
-* Go 1.19 (#262 #253)
-* Alpine Linux 3.17 (#268 #254 #223)
-* MkDocs Material 8.3.9 (#256)
-* Enhance workflow (#263 #218 #255)
-* Bump github.com/crazy-max/gonfig from 0.5.0 to 0.6.0 (#257)
-* Bump github.com/pkg/sftp from 1.13.2 to 1.13.5 (#208 #210 #246)
-* Bump github.com/rs/zerolog from 1.24.0 to 1.28.0 (#209 #211 #217 #245 #258)
-* Bump github.com/alecthomas/kong from 0.2.17 to 0.7.1 (#212 #215 #222 #230 #248 #266)
-* Bump github.com/go-playground/validator/v10 from 10.9.0 to 10.11.1 (#221 #229 #236 #261)
-* Bump github.com/stretchr/testify from 1.7.0 to 1.8.1 (#251 #264)
-* Bump github.com/docker/go-units from 0.4.0 to 0.5.0 (#259)
-* Bump golang.org/x/crypto to 0.4.0 (#272)
-* Bump golang.org/x/sys to 0.3.0 (#271)
+* Option to escape all regular expression metacharacters by @crazy-max in #270
+* Fix file mode type by @crazy-max in #269
+* Move from `io/ioutil` to `io` and `os` packages by @crazy-max in #219
+* Move `syscall` to `golang.org/x/sys` by @crazy-max in #220
+* Go 1.19 by @crazy-max in #262 #253
+* Alpine Linux 3.17 by @crazy-max in #268 #254 #223
+* MkDocs Material 8.3.9 by @crazy-max in #256
+* Enhance workflow by @crazy-max in #263 #218 #255
+* Bump github.com/crazy-max/gonfig to 0.6.0 in #257
+* Bump github.com/pkg/sftp to 1.13.5 in #208 #210 #246
+* Bump github.com/rs/zerolog to 1.28.0 in #209 #211 #217 #245 #258
+* Bump github.com/alecthomas/kong to 0.7.1 in #212 #215 #222 #230 #248 #266
+* Bump github.com/go-playground/validator/v10 to 10.11.1 in #221 #229 #236 #261
+* Bump github.com/stretchr/testify to 1.8.1 in #251 #264
+* Bump github.com/docker/go-units to 0.5.0 in #259
+* Bump golang.org/x/crypto to 0.4.0 by @crazy-max in #272
+* Bump golang.org/x/sys to 0.3.0 by @crazy-max in #271
 
 ## 7.7.0 (2021/09/05)
 
-* Go 1.17 (#203)
-* Wrong remaining time displayed (#204)
-* Add `windows/arm64` artifact (#205)
+* Go 1.17 by @crazy-max in #203
+* Wrong remaining time displayed by @crazy-max in #204
+* Add `windows/arm64` artifact by @crazy-max in #205
 * MkDocs Material 7.2.6
-* Bump github.com/rs/zerolog from 1.23.0 to 1.24.0 (#207)
-* Bump github.com/crazy-max/gonfig from 0.4.0 to 0.5.0 (#206)
+* Bump github.com/rs/zerolog to 1.24.0 in #207
+* Bump github.com/crazy-max/gonfig to 0.5.0 in #206
 * Bump github.com/gorilla/websocket to v1.4.2
-* Bump github.com/go-playground/validator/v10 from 10.7.0 to 10.9.0 (#200 #202)
+* Bump github.com/go-playground/validator/v10 to 10.9.0 in #200 #202
 
 ## 7.6.0 (2021/07/25)
 
 * Add `linux/riscv64` artifact
 * Alpine Linux 3.14
 * MkDocs Materials 7.2.0
-* Bump codecov/codecov-action from 1 to 2
-* GitHub Action cache backend (#198)
+* GitHub Action cache backend by @crazy-max in #198
 * Enhance issue template
-* Bump github.com/pkg/sftp from 1.13.0 to 1.13.2 (#193 #196)
-* Bump github.com/go-playground/validator/v10 from 10.5.0 to 10.7.0 (#187 #195)
-* Bump go.etcd.io/bbolt from 1.3.5 to 1.3.6 (#190)
-* Bump github.com/rs/zerolog from 1.21.0 to 1.23.0 (#188 #194)
-* Bump github.com/alecthomas/kong from 0.2.16 to 0.2.17 (#191)
+* Bump github.com/pkg/sftp to 1.13.2 in #193 #196
+* Bump github.com/go-playground/validator/v10 to 10.7.0 in #187 #195
+* Bump go.etcd.io/bbolt to 1.3.6 in #190
+* Bump github.com/rs/zerolog to 1.23.0 in #188 #194
+* Bump github.com/alecthomas/kong to 0.2.17 in #191
 
 ## 7.5.0 (2021/04/26)
 
-* Add `disableMLSD` ftp option (#176)
+* Add `disableMLSD` ftp option by @crazy-max in #176
 * Fix Dockerfile
 
 ## 7.4.0 (2021/04/25)
 
-* Add `darwin/arm64` artifact (#175)
-* Bump github.com/go-playground/validator/v10 from 10.4.1 to 10.5.0 (#171)
-* Use logger `PartsExclude` (#174)
+* Add `darwin/arm64` artifact by @crazy-max in #175
+* Bump github.com/go-playground/validator/v10 to 10.5.0 in #171
+* Use logger `PartsExclude` by @crazy-max in #174
+* Go 1.16 by @crazy-max in #167
+* Switch to goreleaser-xx by @crazy-max in #163
 * MkDocs Materials 7.1.3
-* Bump github.com/rs/zerolog from 1.20.0 to 1.21.0 (#166)
-* Go 1.16 (#167)
-* Deploy docs on workflow dispatch or tag
-* Bump github.com/alecthomas/kong from 0.2.15 to 0.2.16 (#165)
-* Bump github.com/pkg/sftp from 1.12.0 to 1.13.0 (#164)
-* Switch to goreleaser-xx (#163)
+* Bump github.com/alecthomas/kong to 0.2.16 in #165
+* Bump github.com/pkg/sftp to 1.13.0 in #164
+* Bump github.com/rs/zerolog to 1.21.0 in #166
 
 ## 7.3.0 (2021/02/19)
 
-* Refactor CI and dev workflow with buildx bake (#161)
+* Refactor CI and dev workflow with buildx bake by @crazy-max in #161
     * Add `image-local` target
     * Single job for artifacts and image
     * Add `armv5`, `ppc64le` and `s390x` artifacts
     * Upload artifacts
     * Validate
 * Remove `linux/s390x` Docker platform support for now
-* Bump github.com/stretchr/testify from 1.6.1 to 1.7.0 (#154)
-  Bump github.com/alecthomas/kong from 0.2.12 to 0.2.15 (#160)
 * MkDocs Materials 6.2.8
+* Bump github.com/stretchr/testify to 1.7.0 in #154
+  Bump github.com/alecthomas/kong to 0.2.15 in #160
 
 ## 7.2.0 (2020/11/29)
 
-* Allow downloading files to a temp dir first (#149)
-* Allow disabling log timestamp (#148)
-* Add script notification (#147)
-* Bump github.com/crazy-max/gonfig from 0.3.0 to 0.4.0 (#140)
+* Allow downloading files to a temp dir first by @crazy-max in #149
+* Allow disabling log timestamp by @crazy-max in #148
+* Add script notification by @crazy-max in #147
+* Bump github.com/crazy-max/gonfig to 0.4.0 in #140
 
 ## 7.1.1 (2020/11/02)
 
@@ -150,7 +148,7 @@
 
 * Repository moved to [crazy-max/ftpgrab](https://github.com/crazy-max/ftpgrab)
 * DockerHub repository moved to [crazymax/ftpgrab](https://hub.docker.com/r/crazymax/ftpgrab)
-* Configuration transposed into environment variables (#90)
+* Configuration transposed into environment variables by @crazy-max in #90
 * `FTPGRAB_DB` env var renamed `FTPGRAB_DB_PATH`
 * `key` field for SFTP authentication has been renamed `keyFile`
 * Add `keyPassphrase` to provide a passphrase linked to `keyFile`
@@ -177,7 +175,7 @@
 
 ## 6.3.0 (2020/01/19)
 
-* Only accept duration as timeout value for FTP, SFTP and Webhook notif config (#69)
+* Only accept duration as timeout value for FTP, SFTP and Webhook notif config in #69
 * Update [pkg/sftp](https://github.com/pkg/sftp) module
 
 ## 6.2.0 (2019/12/19)
@@ -220,7 +218,7 @@
 
 ## 5.5.0 (2019/07/20)
 
-* Switch to [crazy-max/goftp](https://github.com/crazy-max/goftp) (#55)
+* Switch to [crazy-max/goftp](https://github.com/crazy-max/goftp) in #55
 
 ## 5.4.1 (2019/07/18)
 
@@ -236,7 +234,7 @@
 
 ## 5.3.0 (2019/05/04)
 
-* Escape all regexp metacharacters on read dir (#49)
+* Escape all regexp metacharacters on read dir in #49
 * Remove unused field
 * Go 1.12
 * Update deps
@@ -246,7 +244,7 @@
 :warning: See **Migration notes** in the documentation for breaking changes.
 
 * Add webhook notification method
-* Remove unnecessary `connections_per_host` field (#48)
+* Remove unnecessary `connections_per_host` field in #48
 * Fix log folder creation
 
 ## 5.1.1 (2019/02/18)
@@ -257,7 +255,7 @@
 
 :warning: See **Migration notes** in the documentation for breaking changes.
 
-* Add SFTP support (#42)
+* Add SFTP support in #42
 
 ## 5.0.1 (2019/02/13)
 
@@ -268,7 +266,7 @@
 
 :warning: See **Migration notes** in the documentation for breaking changes.
 
-* BIG rewrite (#36)
+* BIG rewrite in #36
 * Multiplatform : Linux, macOS and Windows on architectures like amd64, 386, ARM and others
 * Modern CLI interactions
 * Yaml Configuration file
@@ -286,7 +284,7 @@
 * Manage base dir
 * Set original modtime
 * Include/exclude based on regexp
-* Ignore files by date (#39)
+* Ignore files by date in #39
 * Handle mutex
 
 ## 4.3.5 (2019/02/04)
@@ -295,23 +293,23 @@
 
 ## 4.3.4 (2018/08/15)
 
-* Empty folder leeds to spinlock (#33)
+* Empty folder leeds to spinlock in #33
 
 ## 4.3.3 (2018/05/14)
 
-* nawk and gawk not required anymore (#38)
+* nawk and gawk not required anymore in #38
 
 ## 4.3.2 (2018/04/20)
 
-* Detect if file size is currently changing and hold for download (#37)
+* Detect if file size is currently changing and hold for download in #37
 
 ## 4.3.1 (2018/01/15)
 
-* Fix issue while checking source hash (#35)
+* Fix issue while checking source hash in #35
 
 ## 4.3.0 (2017/12/26)
 
-* Add an exclude filter for files through `DL_EXCLUDE_REGEX` (#27)
+* Add an exclude filter for files through `DL_EXCLUDE_REGEX` in #27
 
 ## 4.2.4 (2017/11/01)
 
@@ -319,7 +317,7 @@
 
 ## 4.2.3 (2017/10/30)
 
-* Fix files download again (#32)
+* Fix files download again in #32
 
 ## 4.2.2 (2017/10/29)
 
@@ -342,8 +340,8 @@
 
 ## 4.1.1 (2017/04/26)
 
-* Add tests (#30)
-* Use type instead of which (#29)
+* Add tests in #30
+* Use type instead of which in #29
 * Fix error prone and performance issues
 * Coding style
 * Add default config
@@ -353,38 +351,36 @@
 
 :warning: See **Migration notes** in the documentation for breaking changes.
 
-* Rename the project ftpgrab ! (#28)
+* Rename the project ftpgrab ! in #28
 
 ## 4.0 (2017/03/14)
 
 :warning: See **Migration notes** in the documentation for breaking changes.
 
-* Shuffle file/folder listing (#25)
-* Allow multiple instances (#22)
+* Shuffle file/folder listing by @bwibwi13 in #25
+* Allow multiple instances in #22
 
 ## 3.2 (2016/06/20)
 
-* Add messages for permission issue (#19)
-* Move some instructions to Wiki (#18)
-* Update `ISSUE_TEMPLATE.md`
-* Add [.editorconfig](http://editorconfig.org/)
+* Add messages for permission issue in #19
+* Move some instructions to Wiki in #18
 * MIT License
 
 ## 3.1 (2016/03/27)
 
 **You have to edit the config file `ftp-sync.conf` if you upgrade from a previous release!**
 
-* Add multiple ftp sources paths (#18)
-* Sed not escaping & char (#17)
+* Add multiple ftp sources paths in #18
+* Sed not escaping `&` char in #17
 * Add `DL_CREATE_BASEDIR` option to create basename of a ftp source path in the destination folder.
 
 ## 3.0 (2016/03/20)
 
 **You have to edit the config file `ftp-sync.conf` if you upgrade from a previous release!**
 
-* MD5 file not created with text mode (#16)
-* Implement FTPS support for Curl (#15)
-* Implement resume downloads support (#14)
+* MD5 file not created with text mode in #16
+* Implement FTPS support for Curl in #15
+* Implement resume downloads support in #14
 * Add DEBUG option
 * Full Curl implementation when selected for file size and list files
 * Bug with ftpsyncGetHumanSize function
@@ -392,8 +388,6 @@
 * Add sha1 hash type
 * Bug with special chars for curl method
 * Bug with bash condition
-* Add `Found a bug?` section in README.md
-* Add `ISSUE_TEMPLATE.md`
 
 ## 2.03 (2015/03/22)
 
@@ -401,19 +395,19 @@
 
 ## 2.02 (2015/03/21)
 
-* Bug checking MD5 (#11)
+* Bug checking MD5 in #11
 
 ## 2.01 (2015/03/20)
 
-* Bug download with sqlite3 (#10)
+* Bug download with sqlite3 in #10
 
 ## 2.00 (2015/03/19)
 
-* Add SQLite method to store MD5 hash (#8)
+* Add SQLite method to store MD5 hash in #8
 
 ## 1.95 (2014/08/09)
 
-* Bug trailing slash  (#6)
+* Bug trailing slash in #6
 
 ## 1.94 (2014/05/22)
 
@@ -421,8 +415,6 @@
 
 ## 1.93 (2014/02/16)
 
-* Update README.md and .gitignore
-* New year!
 * Adding hide progress option
 
 ## 1.92 (2013/12/01)
@@ -439,7 +431,6 @@
 
 ## 1.8 (2013/10/12)
 
-* Update README.md
 * Bug with empty folders
 
 ## 1.7 (2013/10/06)
@@ -457,7 +448,6 @@
 
 ## 1.5 (2013/06/10)
 
-* Update README.md
 * Add synology example
 
 ## 1.4 (2013/06/05)
@@ -481,5 +471,4 @@
 
 ## 1.0 (2013/05/24)
 
-* Update README.md
 * Initial version
