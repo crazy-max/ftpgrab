@@ -23,7 +23,7 @@ completes, fails, or needs attention, which makes it easier to trust scheduled t
 
 It is a good fit for seedboxes, NAS setups, and small automation jobs where files need to move
 reliably from remote storage to your own machine. FTPGrab is available as a
-[single executable]({{ config.repo_url }}releases/latest) and as a [container image](install/docker.md).
+[single executable]({{ config.repo_url }}/releases/latest) and as a [container image](install/docker.md).
 
 ## Features
 
