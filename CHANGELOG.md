@@ -1,5 +1,23 @@
 # Changelog
 
+## 7.12.0 (2026/04/12)
+
+* Explicit TLS support by @crazy-max in #477
+* FTP path encoding option support for legacy servers by @crazy-max in #498
+* Honor FTP and SFTP timeouts during stalled transfers by @crazy-max in #478
+* Stage `tempFirst` downloads under a destination-local directory by @crazy-max in #481
+* Close FTP and SFTP connections on init failures by @crazy-max in #480
+* Make log file output follow the `log-json` setting by @crazy-max in #476
+* Make shutdown safe before initialization by @crazy-max in #479
+* Go 1.26 by @crazy-max in #497
+* MkDocs Materials 9.7.5 by @crazy-max in #499
+* Bump github.com/alecthomas/kong to 1.15.0 in #490
+* Bump github.com/crazy-max/gonfig to 0.8.0 in #489
+* Bump github.com/go-playground/validator/v10 to 10.30.2 in #445 #488
+* Bump github.com/rs/zerolog to 1.35.0 in #485
+* Bump golang.org/x/crypto to 0.49.0 in #464
+* Bump golang.org/x/sys to 0.43.0 in #494
+
 ## 7.11.0 (2025/12/24)
 
 * Go 1.25 by @crazy-max in #443
