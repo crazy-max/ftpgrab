@@ -15,31 +15,31 @@
 
 ## What is FTPGrab?
 
-**FTPGrab** :zap: is a CLI application written in [Go](https://golang.org/) and delivered as a
-[single executable]({{ config.repo_url }}releases/latest) (and a [Docker image](install/docker.md))
-to grab your files from a remote FTP or SFTP server to your NAS, server or computer.
+**FTPGrab** :zap: is a CLI tool for pulling files from remote FTP and SFTP servers to your NAS,
+server, or computer. It is designed for repeatable, unattended transfers: define one or more
+remote sources, run it on a schedule, filter by name or date, and keep track of what has already
+been downloaded so later runs only fetch what is new. It can also send notifications when a job
+completes, fails, or needs attention, which makes it easier to trust scheduled transfers.
 
-With Go, this can be done with an independent binary distribution across all platforms and architectures that Go supports.
-This support includes Linux, macOS, and Windows, on architectures like amd64, 386, ARM, PowerPC, and others.
-
-Because FTPGrab is distributed as an independent binary, it is ideal for those with a seedbox to grab your files
-periodically to your Synology, Qnap, D-Link and others NAS.
+It is a good fit for seedboxes, NAS setups, and small automation jobs where files need to move
+reliably from remote storage to your own machine. FTPGrab is available as a
+[single executable]({{ config.repo_url }}releases/latest) and as a [container image](install/docker.md).
 
 ## Features
 
-* Multiple sources
-* SFTP support
-* Prevent re-download through a hash
-* Efficient key/value store database to audit files already downloaded
-* Internal cron implementation through go routines
-* Include and exclude filters with regular expression
-* Date filter
-* Retry on failed download
-* Change file/folder permissions and owner
-* Translate modtimes on downloaded files
-* Get notified through Mail, Slack, Webhook and [more](config/index.md#reference)
+* FTP and SFTP support
+* Multiple remote sources per job
+* Prevent re-downloads by tracking files that were already grabbed
+* Efficient key/value store to audit downloaded files
+* Built-in scheduling with cron expressions
+* Include and exclude filters with regular expressions
+* Date-based filtering
+* Retry failed downloads
+* Change file and folder permissions and ownership
+* Preserve translated modification times on downloaded files
+* Notifications through Mail, Slack, Webhook, scripts, and [more](config/index.md#reference)
 * Enhanced logging
-* Official [Docker image available](install/docker.md)
+* Official [container image available](install/docker.md)
 
 ## License
 
