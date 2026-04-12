@@ -15,10 +15,16 @@
 
 ## About
 
-**FTPGrab** is a CLI application written in [Go](https://golang.org/) and delivered as a
-[single executable](https://github.com/crazy-max/ftpgrab/releases/latest) (and a
-[Docker image](https://hub.docker.com/r/crazymax/ftpgrab/)) to grab your files from a remote FTP or SFTP server
-to your NAS, server or computer.
+**FTPGrab** is a command-line tool for pulling files from remote FTP and SFTP servers to your
+NAS, server, or computer. It is built for unattended transfers: you can point it at one or more
+remote sources, run it on a schedule, filter what should be downloaded, and avoid re-downloading
+files that were already grabbed. It can also send notifications after runs, so you can keep track
+of successful downloads, failures, and other activity without babysitting the job.
+
+It works well for seedboxes, home servers, and any setup where files need to move reliably from a
+remote server to local storage. FTPGrab is available as a
+[single executable](https://github.com/crazy-max/ftpgrab/releases/latest) and as a
+[container image](https://hub.docker.com/r/crazymax/ftpgrab/).
 
 ![](.res/screenshot.png)
 

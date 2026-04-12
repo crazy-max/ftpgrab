@@ -117,7 +117,7 @@ docker-compose pull
 docker-compose up -d
 ```
 
-If you prefer to rely on the [`configuration file](../config/index.md#configuration-file) instead of
+If you prefer to rely on the [`configuration file`](../config/index.md#configuration-file) instead of
 environment variables:
 
 ```yaml
