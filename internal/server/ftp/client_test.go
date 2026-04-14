@@ -1,15 +1,18 @@
 package ftp
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"errors"
+	"io"
 	"net"
 	"testing"
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
+	"github.com/hashicorp/go-multierror"
 	ftplib "github.com/jlaffaye/ftp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,6 +29,7 @@ type stubFTPConn struct {
 	quitCall    int
 	retrErr     error
 	retrPath    string
+	retrResp    io.ReadCloser
 }
 
 func (c *stubFTPConn) Login(_, _ string) error {
@@ -37,14 +41,44 @@ func (c *stubFTPConn) List(path string) ([]*ftplib.Entry, error) {
 	return c.listEntries, c.listErr
 }
 
-func (c *stubFTPConn) Retr(path string) (*ftplib.Response, error) {
+func (c *stubFTPConn) Retr(path string) (io.ReadCloser, error) {
 	c.retrPath = path
-	return nil, c.retrErr
+	return c.retrResp, c.retrErr
 }
 
 func (c *stubFTPConn) Quit() error {
 	c.quitCall++
 	return c.quitErr
+}
+
+type stubReadCloser struct {
+	readErr  error
+	closeErr error
+	data     *bytes.Buffer
+}
+
+func (r *stubReadCloser) Read(p []byte) (int, error) {
+	if r.readErr != nil {
+		return 0, r.readErr
+	}
+	if r.data == nil {
+		return 0, io.EOF
+	}
+	return r.data.Read(p)
+}
+
+func (r *stubReadCloser) Close() error {
+	return r.closeErr
+}
+
+type timeoutError struct{}
+
+func (timeoutError) Error() string {
+	return "i/o timeout"
+}
+
+func (timeoutError) Timeout() bool {
+	return true
 }
 
 func TestGetTLSMode(t *testing.T) {
@@ -152,27 +186,49 @@ func TestNewTimeoutDialFunc(t *testing.T) {
 	})
 }
 
-func TestClientLogin(t *testing.T) {
+func TestClientConnect(t *testing.T) {
 	t.Run("skips login without username", func(t *testing.T) {
 		conn := &stubFTPConn{}
-		client := &Client{ftp: conn}
-		require.NoError(t, client.login("", "secret"))
+		client := &Client{
+			addr: "ftp.example:21",
+			dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
+				return conn, nil
+			},
+		}
+		require.NoError(t, client.connect())
 		assert.Equal(t, 0, conn.quitCall)
+		assert.Equal(t, conn, client.ftp)
 	})
 
 	t.Run("closes connection when login fails", func(t *testing.T) {
 		conn := &stubFTPConn{loginErr: errors.New("boom")}
-		client := &Client{ftp: conn}
-		err := client.login("user", "secret")
+		client := &Client{
+			addr:     "ftp.example:21",
+			username: "user",
+			password: "secret",
+			dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
+				return conn, nil
+			},
+		}
+		err := client.connect()
 		require.EqualError(t, err, "boom")
 		assert.Equal(t, 1, conn.quitCall)
+		assert.Nil(t, client.ftp)
 	})
 
 	t.Run("does not close connection on successful login", func(t *testing.T) {
 		conn := &stubFTPConn{}
-		client := &Client{ftp: conn}
-		require.NoError(t, client.login("user", "secret"))
+		client := &Client{
+			addr:     "ftp.example:21",
+			username: "user",
+			password: "secret",
+			dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
+				return conn, nil
+			},
+		}
+		require.NoError(t, client.connect())
 		assert.Equal(t, 0, conn.quitCall)
+		assert.Equal(t, conn, client.ftp)
 	})
 }
 
@@ -239,6 +295,95 @@ func TestRetrieveEncodesPath(t *testing.T) {
 	err = client.Retrieve("/Проекты/Инструкция.txt", nil)
 	require.EqualError(t, err, "stop")
 	assert.Equal(t, mustEncodeWindows1251(t, "/Проекты/Инструкция.txt"), conn.retrPath)
+}
+
+func TestReadDirReconnectsAfterTimeout(t *testing.T) {
+	firstConn := &stubFTPConn{
+		listErr: multierror.Append(errors.New("data stalled"), timeoutError{}),
+	}
+	secondConn := &stubFTPConn{
+		listEntries: []*ftplib.Entry{
+			{Name: "ok.txt", Type: ftplib.EntryTypeFile},
+		},
+	}
+
+	dialCalls := 0
+	client := &Client{
+		cfg: &config.ServerFTP{EscapeRegexpMeta: utl.NewFalse()},
+		ftp: firstConn,
+		dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
+			dialCalls++
+			if dialCalls == 1 {
+				return secondConn, nil
+			}
+			return nil, errors.New("unexpected dial")
+		},
+	}
+
+	_, err := client.ReadDir("/source")
+	require.Error(t, err)
+	assert.Equal(t, 1, firstConn.quitCall)
+	assert.Nil(t, client.ftp)
+
+	entries, err := client.ReadDir("/source")
+	require.NoError(t, err)
+	require.Len(t, entries, 1)
+	assert.Equal(t, "ok.txt", entries[0].Name())
+	assert.Equal(t, 1, dialCalls)
+	assert.Equal(t, secondConn, client.ftp)
+}
+
+func TestReadDirKeepsConnectionAfterNonTimeoutError(t *testing.T) {
+	conn := &stubFTPConn{listErr: errors.New("permission denied")}
+	client := &Client{
+		cfg: &config.ServerFTP{EscapeRegexpMeta: utl.NewFalse()},
+		ftp: conn,
+	}
+
+	_, err := client.ReadDir("/source")
+	require.EqualError(t, err, "permission denied")
+	assert.Equal(t, 0, conn.quitCall)
+	assert.Equal(t, conn, client.ftp)
+}
+
+func TestRetrieveReconnectsAfterTimeoutClose(t *testing.T) {
+	firstConn := &stubFTPConn{
+		retrResp: &stubReadCloser{
+			data:     bytes.NewBufferString("payload"),
+			closeErr: timeoutError{},
+		},
+	}
+	secondConn := &stubFTPConn{
+		retrResp: &stubReadCloser{
+			data: bytes.NewBufferString("fresh"),
+		},
+	}
+
+	dialCalls := 0
+	client := &Client{
+		ftp: firstConn,
+		dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
+			dialCalls++
+			if dialCalls == 1 {
+				return secondConn, nil
+			}
+			return nil, errors.New("unexpected dial")
+		},
+	}
+
+	var firstDest bytes.Buffer
+	err := client.Retrieve("/file.txt", &firstDest)
+	require.Error(t, err)
+	assert.Equal(t, "payload", firstDest.String())
+	assert.Equal(t, 1, firstConn.quitCall)
+	assert.Nil(t, client.ftp)
+
+	var secondDest bytes.Buffer
+	err = client.Retrieve("/file.txt", &secondDest)
+	require.NoError(t, err)
+	assert.Equal(t, "fresh", secondDest.String())
+	assert.Equal(t, 1, dialCalls)
+	assert.Equal(t, secondConn, client.ftp)
 }
 
 func mustEncodeWindows1251(t *testing.T, value string) string {
