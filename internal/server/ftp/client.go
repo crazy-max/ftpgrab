@@ -36,6 +36,7 @@ type Client struct {
 	addr        string
 	username    string
 	password    string
+	connectErr  error
 	ftp         ftpConn
 	dial        func(addr string, options ...ftp.DialOption) (ftpConn, error)
 	dialOptions []ftp.DialOption
@@ -147,6 +148,7 @@ func (c *Client) connect() error {
 			return err
 		}
 	}
+	c.connectErr = nil
 	c.ftp = conn
 	return nil
 }
@@ -155,7 +157,14 @@ func (c *Client) ensureConnected() error {
 	if c.ftp != nil {
 		return nil
 	}
-	return c.connect()
+	if c.connectErr != nil {
+		return c.connectErr
+	}
+	if err := c.connect(); err != nil {
+		c.connectErr = err
+		return err
+	}
+	return nil
 }
 
 func (c *Client) handleTransferError(err error) error {

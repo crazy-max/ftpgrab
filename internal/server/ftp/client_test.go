@@ -333,6 +333,32 @@ func TestReadDirReconnectsAfterTimeout(t *testing.T) {
 	assert.Equal(t, secondConn, client.ftp)
 }
 
+func TestReadDirDoesNotRetryReconnectAfterFailedReconnect(t *testing.T) {
+	firstConn := &stubFTPConn{
+		listErr: multierror.Append(errors.New("data stalled"), timeoutError{}),
+	}
+
+	dialCalls := 0
+	client := &Client{
+		cfg: &config.ServerFTP{EscapeRegexpMeta: utl.NewFalse()},
+		ftp: firstConn,
+		dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
+			dialCalls++
+			return nil, errors.New("tls: first record does not look like a TLS handshake")
+		},
+	}
+
+	_, err := client.ReadDir("/source-a")
+	require.Error(t, err)
+	assert.Equal(t, 1, firstConn.quitCall)
+	assert.Nil(t, client.ftp)
+
+	_, err = client.ReadDir("/source-b")
+	require.EqualError(t, err, "tls: first record does not look like a TLS handshake")
+	assert.Equal(t, 1, dialCalls)
+	assert.EqualError(t, client.connectErr, "tls: first record does not look like a TLS handshake")
+}
+
 func TestReadDirKeepsConnectionAfterNonTimeoutError(t *testing.T) {
 	conn := &stubFTPConn{listErr: errors.New("permission denied")}
 	client := &Client{
