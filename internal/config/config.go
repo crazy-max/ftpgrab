@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/json"
 	"os"
 	"path"
 	"regexp"
@@ -125,12 +124,6 @@ func (cfg *Config) validate() error {
 	}
 
 	return validator.New().Struct(cfg)
-}
-
-// String returns the string representation of configuration
-func (cfg *Config) String() string {
-	b, _ := json.MarshalIndent(cfg, "", "  ")
-	return string(b)
 }
 
 func normalizeFTPPathEncoding(value string) (string, error) {
