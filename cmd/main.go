@@ -75,7 +75,7 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Cannot load configuration")
 	}
-	log.Debug().Msg(cfg.String())
+	log.Debug().Interface("config", cfg).Msg("Configuration")
 
 	// Init
 	fg, err := app.New(cfg)
