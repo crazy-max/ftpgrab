@@ -1,5 +1,12 @@
 # Changelog
 
+## 7.13.0 (2026/04/17)
+
+* Reconnect FTP sessions after timeout-poisoned transfers by @crazy-max in #508
+* Fix webhook notification timeout context cleanup by @crazy-max in #513
+* Remove outdated `GOMAXPROCS` override by @crazy-max in #514
+* Log startup config as a structured debug field by @crazy-max in #509
+
 ## 7.12.0 (2026/04/12)
 
 * Explicit TLS support by @crazy-max in #477
