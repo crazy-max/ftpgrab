@@ -3,11 +3,11 @@ package notif
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/notifier"
-	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -21,7 +21,7 @@ func TestNew(t *testing.T) {
 		Mail:    &config.NotifMail{},
 		Script:  &config.NotifScript{},
 		Slack:   &config.NotifSlack{},
-		Webhook: &config.NotifWebhook{Timeout: utl.NewDuration(0)},
+		Webhook: &config.NotifWebhook{Timeout: new(time.Duration)},
 	}, config.Meta{})
 	require.NoError(t, err)
 	require.Len(t, client.notifiers, 4)

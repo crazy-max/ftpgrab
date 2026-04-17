@@ -1,6 +1,8 @@
 package db
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"os"
 	"path"
@@ -8,7 +10,6 @@ import (
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
-	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	bolt "go.etcd.io/bbolt"
@@ -78,19 +79,19 @@ func (c *Client) Close() error {
 	return c.DB.Close()
 }
 
-// HasHash checks if hash is present for a file in db
-func (c *Client) HasHash(base string, source string, file os.FileInfo) bool {
+// HasDigest checks if digest is present for a file in db
+func (c *Client) HasDigest(base string, source string, file os.FileInfo) bool {
 	if !c.Enabled() {
 		return false
 	}
 
 	exists := false
 	filename := strings.TrimPrefix(path.Join(source, file.Name()), base)
-	hash := utl.Hash(filename)
+	digest := sha256Hex(filename)
 
 	_ = c.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(c.bucket))
-		if entryBytes := b.Get([]byte(hash)); entryBytes != nil {
+		if entryBytes := b.Get([]byte(digest)); entryBytes != nil {
 			exists = true
 		}
 		return nil
@@ -99,14 +100,14 @@ func (c *Client) HasHash(base string, source string, file os.FileInfo) bool {
 	return exists
 }
 
-// PutHash add hash in db for a given file
-func (c *Client) PutHash(base string, source string, file os.FileInfo) error {
+// PutDigest add digest in db for a given file
+func (c *Client) PutDigest(base string, source string, file os.FileInfo) error {
 	if !c.Enabled() {
 		return nil
 	}
 
 	filename := strings.TrimPrefix(path.Join(source, file.Name()), base)
-	hash := utl.Hash(filename)
+	digest := sha256Hex(filename)
 
 	entryBytes, _ := json.Marshal(entry{
 		File: filename,
@@ -116,8 +117,14 @@ func (c *Client) PutHash(base string, source string, file os.FileInfo) error {
 
 	err := c.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(c.bucket))
-		return b.Put([]byte(hash), entryBytes)
+		return b.Put([]byte(digest), entryBytes)
 	})
 
 	return err
+}
+
+func sha256Hex(text string) string {
+	hasher := sha256.New()
+	hasher.Write([]byte(text))
+	return hex.EncodeToString(hasher.Sum(nil))
 }

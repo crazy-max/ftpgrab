@@ -57,11 +57,10 @@ func TestTempFilePathUsesRunDirectoryAndPreservesRelativePath(t *testing.T) {
 }
 
 func TestListFiles(t *testing.T) {
-	createBaseDir := true
 	client := &Client{
 		config: &config.Download{
 			Output:        "downloads",
-			CreateBaseDir: &createBaseDir,
+			CreateBaseDir: new(true),
 		},
 		server: &server.Client{
 			Handler: &stubServerHandler{
@@ -186,7 +185,7 @@ func TestGetStatus(t *testing.T) {
 	}
 }
 
-func TestGetStatusHashExists(t *testing.T) {
+func TestGetStatusDigestExists(t *testing.T) {
 	dbCli, err := db.New(&config.Db{
 		Path: filepath.Join(t.TempDir(), "ftpgrab.db"),
 	})
@@ -205,20 +204,26 @@ func TestGetStatusHashExists(t *testing.T) {
 		Info:    stubFileInfo{name: "episode.mkv", size: 4, modTime: time.Now()},
 	}
 
-	require.NoError(t, dbCli.PutHash(file.Base, file.SrcDir, file.Info))
+	require.NoError(t, dbCli.PutDigest(file.Base, file.SrcDir, file.Info))
 
 	client := &Client{
 		config: cfg,
 		db:     dbCli,
 	}
 
-	assert.Equal(t, journal.EntryStatusHashExists, client.getStatus(file))
+	assert.Equal(t, journal.EntryStatusDigestExists, client.getStatus(file))
+}
+
+func TestMatchString(t *testing.T) {
+	assert.True(t, matchString(`\.mkv$`, "episode.mkv"))
+	assert.False(t, matchString(`\.mkv$`, "episode.txt"))
+	assert.False(t, matchString(`(`, "episode.mkv"))
 }
 
 func tempFirstDownloadConfig(output string, tempFirst bool) *config.Download {
 	cfg := (&config.Download{}).GetDefaults()
 	cfg.Output = output
-	cfg.TempFirst = &tempFirst
+	cfg.TempFirst = new(tempFirst)
 	return cfg
 }
 

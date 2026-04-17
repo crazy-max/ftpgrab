@@ -8,8 +8,8 @@ import (
 	"os"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
+	"github.com/crazy-max/ftpgrab/v7/internal/secret"
 	"github.com/crazy-max/ftpgrab/v7/internal/server"
-	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/pkg/errors"
 	"github.com/pkg/sftp"
 	"github.com/rs/zerolog/log"
@@ -30,13 +30,13 @@ type Client struct {
 // New creates new ftp instance
 func New(config *config.ServerSFTP) (*server.Client, error) {
 	var err error
-	var client = &Client{config: config}
+	client := &Client{config: config}
 	var sshConf *ssh.ClientConfig
 	var sshAuth []ssh.AuthMethod
 
 	// SSH Auth
 	if len(config.KeyFile) > 0 {
-		keyPassphrase, err := utl.GetSecret(config.KeyPassphrase, config.KeyPassphraseFile)
+		keyPassphrase, err := secret.GetSecret(config.KeyPassphrase, config.KeyPassphraseFile)
 		if err != nil {
 			log.Warn().Err(err).Msg("Cannot retrieve key passphrase secret for sftp server")
 		}
@@ -44,7 +44,7 @@ func New(config *config.ServerSFTP) (*server.Client, error) {
 			return nil, errors.Wrap(err, "Unable to read SFTP public key")
 		}
 	} else if len(config.Password) > 0 || len(config.PasswordFile) > 0 {
-		password, err := utl.GetSecret(config.Password, config.PasswordFile)
+		password, err := secret.GetSecret(config.Password, config.PasswordFile)
 		if err != nil {
 			log.Warn().Err(err).Msg("Cannot retrieve password secret for sftp server")
 		}
@@ -53,7 +53,7 @@ func New(config *config.ServerSFTP) (*server.Client, error) {
 		}
 	}
 
-	username, err := utl.GetSecret(config.Username, config.UsernameFile)
+	username, err := secret.GetSecret(config.Username, config.UsernameFile)
 	if err != nil {
 		log.Warn().Err(err).Msg("Cannot retrieve username secret for sftp server")
 	}

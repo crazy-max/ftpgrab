@@ -3,8 +3,6 @@ package config
 import (
 	"os"
 	"time"
-
-	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 )
 
 // Download holds download configuration details
@@ -38,7 +36,7 @@ func (s *Download) SetDefaults() {
 	s.ChmodFile = 0o644
 	s.ChmodDir = 0o755
 	s.Retry = 3
-	s.HideSkipped = utl.NewFalse()
-	s.TempFirst = utl.NewFalse()
-	s.CreateBaseDir = utl.NewFalse()
+	s.HideSkipped = new(false)
+	s.TempFirst = new(false)
+	s.CreateBaseDir = new(false)
 }

@@ -51,7 +51,7 @@ func TestIsSkipped(t *testing.T) {
 		want   bool
 	}{
 		{name: "already downloaded", status: EntryStatusAlreadyDl, want: true},
-		{name: "hash exists", status: EntryStatusHashExists, want: true},
+		{name: "digest exists", status: EntryStatusDigestExists, want: true},
 		{name: "outdated", status: EntryStatusOutdated, want: true},
 		{name: "not included", status: EntryStatusNotIncluded, want: true},
 		{name: "excluded", status: EntryStatusExcluded, want: true},

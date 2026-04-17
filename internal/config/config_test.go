@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/crazy-max/gonfig/env"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,16 +49,16 @@ func TestLoadFile(t *testing.T) {
 						Sources: []string{
 							"/",
 						},
-						Timeout:            utl.NewDuration(5 * time.Second),
+						Timeout:            new(5 * time.Second),
 						PathEncoding:       "utf-8",
-						DisableUTF8:        utl.NewFalse(),
-						DisableEPSV:        utl.NewFalse(),
-						DisableMLSD:        utl.NewFalse(),
-						EscapeRegexpMeta:   utl.NewFalse(),
-						TLS:                utl.NewFalse(),
-						ExplicitTLS:        utl.NewFalse(),
-						InsecureSkipVerify: utl.NewFalse(),
-						LogTrace:           utl.NewFalse(),
+						DisableUTF8:        new(false),
+						DisableEPSV:        new(false),
+						DisableMLSD:        new(false),
+						EscapeRegexpMeta:   new(false),
+						TLS:                new(false),
+						ExplicitTLS:        new(false),
+						InsecureSkipVerify: new(false),
+						LogTrace:           new(false),
 					},
 				},
 				Download: &Download{
@@ -71,16 +70,16 @@ func TestLoadFile(t *testing.T) {
 					Since:         "2019-02-01T18:50:05Z",
 					SinceTime:     time.Date(2019, 2, 1, 18, 50, 05, 0, time.UTC),
 					Retry:         3,
-					HideSkipped:   utl.NewFalse(),
-					TempFirst:     utl.NewFalse(),
-					CreateBaseDir: utl.NewFalse(),
+					HideSkipped:   new(false),
+					TempFirst:     new(false),
+					CreateBaseDir: new(false),
 				},
 				Notif: &Notif{
 					Mail: &NotifMail{
 						Host:               "localhost",
 						Port:               25,
-						SSL:                utl.NewFalse(),
-						InsecureSkipVerify: utl.NewFalse(),
+						SSL:                new(false),
+						InsecureSkipVerify: new(false),
 						From:               "ftpgrab@example.com",
 						To:                 "webmaster@example.com",
 					},
@@ -100,7 +99,7 @@ func TestLoadFile(t *testing.T) {
 							"content-type":  "application/json",
 							"authorization": "Token123456",
 						},
-						Timeout: utl.NewDuration(10 * time.Second),
+						Timeout: new(10 * time.Second),
 					},
 				},
 			},
@@ -126,7 +125,7 @@ func TestLoadEnv(t *testing.T) {
 		desc     string
 		cli      Cli
 		environ  []string
-		expected interface{}
+		expected any
 		wantErr  bool
 	}{
 		{
@@ -155,16 +154,16 @@ func TestLoadEnv(t *testing.T) {
 						Sources: []string{
 							"/",
 						},
-						Timeout:            utl.NewDuration(5 * time.Second),
+						Timeout:            new(5 * time.Second),
 						PathEncoding:       "utf-8",
-						DisableUTF8:        utl.NewFalse(),
-						DisableEPSV:        utl.NewFalse(),
-						DisableMLSD:        utl.NewFalse(),
-						EscapeRegexpMeta:   utl.NewFalse(),
-						TLS:                utl.NewFalse(),
-						ExplicitTLS:        utl.NewFalse(),
-						InsecureSkipVerify: utl.NewFalse(),
-						LogTrace:           utl.NewFalse(),
+						DisableUTF8:        new(false),
+						DisableEPSV:        new(false),
+						DisableMLSD:        new(false),
+						EscapeRegexpMeta:   new(false),
+						TLS:                new(false),
+						ExplicitTLS:        new(false),
+						InsecureSkipVerify: new(false),
+						LogTrace:           new(false),
 					},
 				},
 				Download: &Download{
@@ -174,9 +173,9 @@ func TestLoadEnv(t *testing.T) {
 					ChmodFile:     0o644,
 					ChmodDir:      0o755,
 					Retry:         3,
-					HideSkipped:   utl.NewFalse(),
-					TempFirst:     utl.NewFalse(),
-					CreateBaseDir: utl.NewFalse(),
+					HideSkipped:   new(false),
+					TempFirst:     new(false),
+					CreateBaseDir: new(false),
 				},
 			},
 			wantErr: false,
@@ -202,7 +201,7 @@ func TestLoadEnv(t *testing.T) {
 						Sources: []string{
 							"/",
 						},
-						Timeout:       utl.NewDuration(30 * time.Second),
+						Timeout:       new(30 * time.Second),
 						MaxPacketSize: 32768,
 					},
 				},
@@ -213,9 +212,9 @@ func TestLoadEnv(t *testing.T) {
 					ChmodFile:     0o644,
 					ChmodDir:      0o755,
 					Retry:         3,
-					HideSkipped:   utl.NewFalse(),
-					TempFirst:     utl.NewFalse(),
-					CreateBaseDir: utl.NewFalse(),
+					HideSkipped:   new(false),
+					TempFirst:     new(false),
+					CreateBaseDir: new(false),
 				},
 			},
 			wantErr: false,
@@ -282,7 +281,7 @@ func TestLoadMixed(t *testing.T) {
 		desc     string
 		cli      Cli
 		environ  []string
-		expected interface{}
+		expected any
 		wantErr  bool
 	}{
 		{
@@ -329,16 +328,16 @@ func TestLoadMixed(t *testing.T) {
 						Sources: []string{
 							"/",
 						},
-						Timeout:            utl.NewDuration(5 * time.Second),
+						Timeout:            new(5 * time.Second),
 						PathEncoding:       "utf-8",
-						DisableUTF8:        utl.NewFalse(),
-						DisableEPSV:        utl.NewFalse(),
-						DisableMLSD:        utl.NewFalse(),
-						EscapeRegexpMeta:   utl.NewFalse(),
-						TLS:                utl.NewFalse(),
-						ExplicitTLS:        utl.NewFalse(),
-						InsecureSkipVerify: utl.NewFalse(),
-						LogTrace:           utl.NewFalse(),
+						DisableUTF8:        new(false),
+						DisableEPSV:        new(false),
+						DisableMLSD:        new(false),
+						EscapeRegexpMeta:   new(false),
+						TLS:                new(false),
+						ExplicitTLS:        new(false),
+						InsecureSkipVerify: new(false),
+						LogTrace:           new(false),
 					},
 				},
 				Download: &Download{
@@ -348,16 +347,16 @@ func TestLoadMixed(t *testing.T) {
 					ChmodFile:     0o644,
 					ChmodDir:      0o755,
 					Retry:         3,
-					HideSkipped:   utl.NewFalse(),
-					TempFirst:     utl.NewFalse(),
-					CreateBaseDir: utl.NewFalse(),
+					HideSkipped:   new(false),
+					TempFirst:     new(false),
+					CreateBaseDir: new(false),
 				},
 				Notif: &Notif{
 					Mail: &NotifMail{
 						Host:               "127.0.0.1",
 						Port:               25,
-						SSL:                utl.NewFalse(),
-						InsecureSkipVerify: utl.NewTrue(),
+						SSL:                new(false),
+						InsecureSkipVerify: new(true),
 						From:               "ftpgrab@foo.com",
 						To:                 "webmaster@foo.com",
 					},
@@ -389,7 +388,7 @@ func TestLoadMixed(t *testing.T) {
 						Sources: []string{
 							"/",
 						},
-						Timeout:       utl.NewDuration(30 * time.Second),
+						Timeout:       new(30 * time.Second),
 						MaxPacketSize: 32768,
 					},
 				},
@@ -400,9 +399,9 @@ func TestLoadMixed(t *testing.T) {
 					ChmodFile:     0o644,
 					ChmodDir:      0o755,
 					Retry:         3,
-					HideSkipped:   utl.NewTrue(),
-					TempFirst:     utl.NewFalse(),
-					CreateBaseDir: utl.NewFalse(),
+					HideSkipped:   new(true),
+					TempFirst:     new(false),
+					CreateBaseDir: new(false),
 				},
 				Notif: &Notif{
 					Slack: &NotifSlack{

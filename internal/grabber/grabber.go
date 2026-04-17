@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
@@ -13,7 +14,6 @@ import (
 	"github.com/crazy-max/ftpgrab/v7/internal/server"
 	"github.com/crazy-max/ftpgrab/v7/internal/server/ftp"
 	"github.com/crazy-max/ftpgrab/v7/internal/server/sftp"
-	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/docker/go-units"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -105,11 +105,11 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 		Str("size", units.HumanSize(float64(file.Info.Size()))).
 		Logger()
 
-	if entry.Status == journal.EntryStatusAlreadyDl && !c.db.HasHash(file.Base, file.SrcDir, file.Info) {
-		if err := c.db.PutHash(file.Base, file.SrcDir, file.Info); err != nil {
-			sublogger.Error().Err(err).Msg("Cannot add hash into db")
+	if entry.Status == journal.EntryStatusAlreadyDl && !c.db.HasDigest(file.Base, file.SrcDir, file.Info) {
+		if err := c.db.PutDigest(file.Base, file.SrcDir, file.Info); err != nil {
+			sublogger.Error().Err(err).Msg("Cannot add digest into db")
 			entry.Level = journal.EntryLevelWarning
-			entry.Text = fmt.Sprintf("Already downloaded but cannot add hash into db: %v", err)
+			entry.Text = fmt.Sprintf("Already downloaded but cannot add digest into db: %v", err)
 			return entry
 		}
 	}
@@ -197,10 +197,10 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 		if err := c.fixPerms(destpath); err != nil {
 			sublogger.Warn().Err(err).Msg("Cannot fix file permissions")
 		}
-		if err := c.db.PutHash(file.Base, file.SrcDir, file.Info); err != nil {
-			sublogger.Error().Err(err).Msg("Cannot add hash into db")
+		if err := c.db.PutDigest(file.Base, file.SrcDir, file.Info); err != nil {
+			sublogger.Error().Err(err).Msg("Cannot add digest into db")
 			entry.Level = journal.EntryLevelWarning
-			entry.Text = fmt.Sprintf("Successfully downloaded but cannot add hash into db: %v", err)
+			entry.Text = fmt.Sprintf("Successfully downloaded but cannot add digest into db: %v", err)
 		}
 		if err = os.Chtimes(destpath, file.Info.ModTime(), file.Info.ModTime()); err != nil {
 			sublogger.Warn().Err(err).Msg("Cannot change modtime of destination file")
@@ -237,8 +237,8 @@ func (c *Client) getStatus(file File) journal.EntryStatus {
 			return journal.EntryStatusAlreadyDl
 		}
 		return journal.EntryStatusSizeDiff
-	} else if c.db.HasHash(file.Base, file.SrcDir, file.Info) {
-		return journal.EntryStatusHashExists
+	} else if c.db.HasDigest(file.Base, file.SrcDir, file.Info) {
+		return journal.EntryStatusDigestExists
 	}
 	return journal.EntryStatusNeverDl
 }
@@ -248,7 +248,7 @@ func (c *Client) isIncluded(file File) bool {
 		return true
 	}
 	for _, include := range c.config.Include {
-		if utl.MatchString(include, file.Info.Name()) {
+		if matchString(include, file.Info.Name()) {
 			return true
 		}
 	}
@@ -260,7 +260,7 @@ func (c *Client) isExcluded(file File) bool {
 		return false
 	}
 	for _, exclude := range c.config.Exclude {
-		if utl.MatchString(exclude, file.Info.Name()) {
+		if matchString(exclude, file.Info.Name()) {
 			return true
 		}
 	}
@@ -337,4 +337,12 @@ func (c *Client) removeTempPath(filename string) error {
 		return err
 	}
 	return nil
+}
+
+func matchString(exp string, s string) bool {
+	re, err := regexp.Compile(exp)
+	if err != nil {
+		return false
+	}
+	return re.MatchString(s)
 }

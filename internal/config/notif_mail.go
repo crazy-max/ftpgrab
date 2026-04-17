@@ -1,9 +1,5 @@
 package config
 
-import (
-	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
-)
-
 // NotifMail holds mail notification configuration details
 type NotifMail struct {
 	Host               string `yaml:"host,omitempty" json:"host,omitempty" validate:"required"`
@@ -29,6 +25,6 @@ func (s *NotifMail) GetDefaults() *NotifMail {
 func (s *NotifMail) SetDefaults() {
 	s.Host = "localhost"
 	s.Port = 25
-	s.SSL = utl.NewFalse()
-	s.InsecureSkipVerify = utl.NewFalse()
+	s.SSL = new(false)
+	s.InsecureSkipVerify = new(false)
 }

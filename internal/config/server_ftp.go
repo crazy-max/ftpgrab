@@ -2,8 +2,6 @@ package config
 
 import (
 	"time"
-
-	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 )
 
 // ServerFTP holds ftp server configuration
@@ -38,14 +36,14 @@ func (s *ServerFTP) GetDefaults() *ServerFTP {
 func (s *ServerFTP) SetDefaults() {
 	s.Port = 21
 	s.Sources = []string{}
-	s.Timeout = utl.NewDuration(5 * time.Second)
+	s.Timeout = new(5 * time.Second)
 	s.PathEncoding = "utf-8"
-	s.DisableUTF8 = utl.NewFalse()
-	s.DisableEPSV = utl.NewFalse()
-	s.DisableMLSD = utl.NewFalse()
-	s.EscapeRegexpMeta = utl.NewFalse()
-	s.TLS = utl.NewFalse()
-	s.ExplicitTLS = utl.NewFalse()
-	s.InsecureSkipVerify = utl.NewFalse()
-	s.LogTrace = utl.NewFalse()
+	s.DisableUTF8 = new(false)
+	s.DisableEPSV = new(false)
+	s.DisableMLSD = new(false)
+	s.EscapeRegexpMeta = new(false)
+	s.TLS = new(false)
+	s.ExplicitTLS = new(false)
+	s.InsecureSkipVerify = new(false)
+	s.LogTrace = new(false)
 }
