@@ -13,6 +13,7 @@ import (
 	"github.com/crazy-max/ftpgrab/v7/internal/logging"
 	"github.com/crazy-max/ftpgrab/v7/internal/server"
 	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
+	"github.com/hashicorp/go-multierror"
 	"github.com/jlaffaye/ftp"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -24,16 +25,38 @@ import (
 type ftpConn interface {
 	Login(username, password string) error
 	List(path string) ([]*ftp.Entry, error)
-	Retr(path string) (*ftp.Response, error)
+	Retr(path string) (io.ReadCloser, error)
 	Quit() error
 }
 
 // Client represents an active ftp object
 type Client struct {
 	*server.Client
-	cfg     *config.ServerFTP
-	ftp     ftpConn
-	pathenc pathEncoder
+	cfg         *config.ServerFTP
+	addr        string
+	username    string
+	password    string
+	connectErr  error
+	ftp         ftpConn
+	dial        func(addr string, options ...ftp.DialOption) (ftpConn, error)
+	dialOptions []ftp.DialOption
+	pathenc     pathEncoder
+}
+
+type serverConn struct {
+	*ftp.ServerConn
+}
+
+func (c serverConn) Retr(path string) (io.ReadCloser, error) {
+	return c.ServerConn.Retr(path)
+}
+
+func defaultDialFTP(addr string, options ...ftp.DialOption) (ftpConn, error) {
+	conn, err := ftp.Dial(addr, options...)
+	if err != nil {
+		return nil, err
+	}
+	return serverConn{ServerConn: conn}, nil
 }
 
 type tlsMode uint8
@@ -58,7 +81,11 @@ func getTLSMode(cfg *config.ServerFTP) tlsMode {
 // New creates new ftp instance
 func New(cfg *config.ServerFTP) (*server.Client, error) {
 	var err error
-	client := &Client{cfg: cfg}
+	client := &Client{
+		cfg:  cfg,
+		addr: fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		dial: defaultDialFTP,
+	}
 	mode := getTLSMode(cfg)
 	if client.pathenc, err = newPathEnc(cfg.PathEncoding); err != nil {
 		return nil, err
@@ -84,10 +111,7 @@ func New(cfg *config.ServerFTP) (*server.Client, error) {
 	case tlsModeExplicit:
 		ftpConfig = append(ftpConfig, ftp.DialWithExplicitTLS(tlsConfig))
 	}
-
-	if client.ftp, err = ftp.Dial(fmt.Sprintf("%s:%d", cfg.Host, cfg.Port), ftpConfig...); err != nil {
-		return nil, err
-	}
+	client.dialOptions = ftpConfig
 
 	username, err := utl.GetSecret(cfg.Username, cfg.UsernameFile)
 	if err != nil {
@@ -97,25 +121,60 @@ func New(cfg *config.ServerFTP) (*server.Client, error) {
 	if err != nil {
 		log.Warn().Err(err).Msg("Cannot retrieve password secret for ftp server")
 	}
+	client.username = username
+	client.password = password
 
-	if err = client.login(username, password); err != nil {
+	if err = client.connect(); err != nil {
 		return nil, err
 	}
 
 	return &server.Client{Handler: client}, err
 }
 
-func (c *Client) login(username, password string) error {
-	if username == "" {
+func (c *Client) connect() error {
+	dial := c.dial
+	if dial == nil {
+		dial = defaultDialFTP
+	}
+	conn, err := dial(c.addr, c.dialOptions...)
+	if err != nil {
+		return err
+	}
+	if c.username != "" {
+		if err := conn.Login(c.username, c.password); err != nil {
+			if closeErr := conn.Quit(); closeErr != nil {
+				log.Warn().Err(closeErr).Msg("Cannot close ftp connection after login failure")
+			}
+			return err
+		}
+	}
+	c.connectErr = nil
+	c.ftp = conn
+	return nil
+}
+
+func (c *Client) ensureConnected() error {
+	if c.ftp != nil {
 		return nil
 	}
-	if err := c.ftp.Login(username, password); err != nil {
-		if closeErr := c.ftp.Quit(); closeErr != nil {
-			log.Warn().Err(closeErr).Msg("Cannot close ftp connection after login failure")
-		}
+	if c.connectErr != nil {
+		return c.connectErr
+	}
+	if err := c.connect(); err != nil {
+		c.connectErr = err
 		return err
 	}
 	return nil
+}
+
+func (c *Client) handleTransferError(err error) error {
+	if !isTimeoutError(err) {
+		return err
+	}
+	if closeErr := c.Close(); closeErr != nil {
+		log.Warn().Err(closeErr).Msg("Cannot close ftp connection after transfer timeout")
+	}
+	return err
 }
 
 // Common return common configuration
@@ -136,9 +195,12 @@ func (c *Client) ReadDir(dir string) ([]os.FileInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err := c.ensureConnected(); err != nil {
+		return nil, err
+	}
 	files, err := c.ftp.List(dir)
 	if err != nil {
-		return nil, err
+		return nil, c.handleTransferError(err)
 	}
 
 	var entries []os.FileInfo
@@ -168,25 +230,35 @@ func (c *Client) ReadDir(dir string) ([]os.FileInfo, error) {
 	return entries, nil
 }
 
-// Retrieve file "path" from server and write bytes to "dest".
-func (c *Client) Retrieve(path string, dest io.Writer) error {
-	path, err := c.pathenc.Encode(path)
+// Retrieve file from server and write bytes to "dest".
+func (c *Client) Retrieve(filename string, dest io.Writer) error {
+	filename, err := c.pathenc.Encode(filename)
 	if err != nil {
 		return err
 	}
-	resp, err := c.ftp.Retr(path)
-	if err != nil {
+	if err := c.ensureConnected(); err != nil {
 		return err
 	}
-	defer resp.Close()
-
-	_, err = io.Copy(dest, resp)
-	return err
+	resp, err := c.ftp.Retr(filename)
+	if err != nil {
+		return c.handleTransferError(err)
+	}
+	_, copyErr := io.Copy(dest, resp)
+	closeErr := resp.Close()
+	if err := multierror.Append(copyErr, closeErr).ErrorOrNil(); err != nil {
+		return c.handleTransferError(err)
+	}
+	return nil
 }
 
 // Close closes ftp connection
 func (c *Client) Close() error {
-	return c.ftp.Quit()
+	if c.ftp == nil {
+		return nil
+	}
+	conn := c.ftp
+	c.ftp = nil
+	return conn.Quit()
 }
 
 func newTimeoutDialFunc(timeout time.Duration, mode tlsMode, tlsConfig *tls.Config) func(network, address string) (net.Conn, error) {
@@ -204,6 +276,16 @@ func newTimeoutDialFunc(timeout time.Duration, mode tlsMode, tlsConfig *tls.Conf
 		useTLS = mode == tlsModeExplicit
 		return conn, nil
 	}
+}
+
+func isTimeoutError(err error) bool {
+	if err == nil {
+		return false
+	}
+	var timeoutErr interface {
+		Timeout() bool
+	}
+	return errors.As(err, &timeoutErr) && timeoutErr.Timeout()
 }
 
 type pathEncoder struct {
