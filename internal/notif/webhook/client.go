@@ -51,9 +51,8 @@ func (c *Client) Send(jnl journal.Journal) error {
 		return err
 	}
 
-	cancelCtx, cancel := context.WithCancelCause(context.Background())
-	timeoutCtx, _ := context.WithTimeoutCause(cancelCtx, *c.cfg.Timeout, errors.WithStack(context.DeadlineExceeded)) //nolint:govet // no need to manually cancel this context as we already rely on parent
-	defer func() { cancel(errors.WithStack(context.Canceled)) }()
+	timeoutCtx, cancel := context.WithTimeoutCause(context.Background(), *c.cfg.Timeout, errors.WithStack(context.DeadlineExceeded))
+	defer cancel()
 
 	hc := http.Client{}
 	req, err := http.NewRequestWithContext(timeoutCtx, c.cfg.Method, c.cfg.Endpoint, bytes.NewBuffer(body))
