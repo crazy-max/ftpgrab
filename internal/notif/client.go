@@ -20,7 +20,7 @@ type Client struct {
 
 // New creates a new notification instance
 func New(cfg *config.Notif, meta config.Meta) (*Client, error) {
-	var c = &Client{
+	c := &Client{
 		cfg:       cfg,
 		meta:      meta,
 		notifiers: []notifier.Notifier{},

@@ -8,7 +8,7 @@ import (
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/notifier"
-	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
+	"github.com/crazy-max/ftpgrab/v7/internal/secret"
 	"github.com/go-gomail/gomail"
 	"github.com/hako/durafmt"
 	"github.com/matcornic/hermes/v2"
@@ -118,11 +118,11 @@ func (c *Client) Send(jnl journal.Journal) error {
 		}
 	}
 
-	username, err := utl.GetSecret(c.cfg.Username, c.cfg.UsernameFile)
+	username, err := secret.GetSecret(c.cfg.Username, c.cfg.UsernameFile)
 	if err != nil {
 		log.Warn().Err(err).Msg("Cannot retrieve username secret for mail notifier")
 	}
-	password, err := utl.GetSecret(c.cfg.Password, c.cfg.PasswordFile)
+	password, err := secret.GetSecret(c.cfg.Password, c.cfg.PasswordFile)
 	if err != nil {
 		log.Warn().Err(err).Msg("Cannot retrieve password secret for mail notifier")
 	}

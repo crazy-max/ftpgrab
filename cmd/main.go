@@ -7,13 +7,13 @@ import (
 	"runtime"
 	"strings"
 	"sync/atomic"
+	"syscall"
 	_ "time/tzdata"
 
 	"github.com/alecthomas/kong"
 	"github.com/crazy-max/ftpgrab/v7/internal/app"
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/logging"
-	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/rs/zerolog/log"
 )
 
@@ -60,7 +60,7 @@ func main() {
 
 	// Handle os signals
 	channel := make(chan os.Signal, 1)
-	signal.Notify(channel, os.Interrupt, utl.SIGTERM)
+	signal.Notify(channel, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		sig := <-channel
 		if fg := ftpgrab.Load(); fg != nil {

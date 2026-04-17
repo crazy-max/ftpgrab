@@ -9,7 +9,6 @@ import (
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
-	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -43,7 +42,7 @@ func TestSend(t *testing.T) {
 				"X-Test":       "true",
 				"User-Agent":   "wrong",
 			},
-			Timeout: utl.NewDuration(200 * time.Millisecond),
+			Timeout: new(200 * time.Millisecond),
 		},
 		meta: config.Meta{
 			Version:   "v1.2.3",
@@ -86,7 +85,7 @@ func TestTimeout(t *testing.T) {
 		cfg: &config.NotifWebhook{
 			Endpoint: srv.URL,
 			Method:   http.MethodPost,
-			Timeout:  utl.NewDuration(10 * time.Millisecond),
+			Timeout:  new(10 * time.Millisecond),
 		},
 	}
 

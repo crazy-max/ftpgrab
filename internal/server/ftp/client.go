@@ -11,8 +11,8 @@ import (
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/logging"
+	"github.com/crazy-max/ftpgrab/v7/internal/secret"
 	"github.com/crazy-max/ftpgrab/v7/internal/server"
-	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/hashicorp/go-multierror"
 	"github.com/jlaffaye/ftp"
 	"github.com/pkg/errors"
@@ -113,11 +113,11 @@ func New(cfg *config.ServerFTP) (*server.Client, error) {
 	}
 	client.dialOptions = ftpConfig
 
-	username, err := utl.GetSecret(cfg.Username, cfg.UsernameFile)
+	username, err := secret.GetSecret(cfg.Username, cfg.UsernameFile)
 	if err != nil {
 		log.Warn().Err(err).Msg("Cannot retrieve username secret for ftp server")
 	}
-	password, err := utl.GetSecret(cfg.Password, cfg.PasswordFile)
+	password, err := secret.GetSecret(cfg.Password, cfg.PasswordFile)
 	if err != nil {
 		log.Warn().Err(err).Msg("Cannot retrieve password secret for ftp server")
 	}
@@ -356,6 +356,6 @@ func (f *fileInfo) IsDir() bool {
 	return f.mode.IsDir()
 }
 
-func (f *fileInfo) Sys() interface{} {
+func (f *fileInfo) Sys() any {
 	return nil
 }

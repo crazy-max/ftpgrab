@@ -22,18 +22,18 @@ const (
 type EntryStatus string
 
 const (
-	EntryStatusOutdated    = EntryStatus("Outdated file")
-	EntryStatusNotIncluded = EntryStatus("Not included")
-	EntryStatusExcluded    = EntryStatus("Excluded")
-	EntryStatusNeverDl     = EntryStatus("Never downloaded")
-	EntryStatusAlreadyDl   = EntryStatus("Already downloaded")
-	EntryStatusSizeDiff    = EntryStatus("Exists but size is different")
-	EntryStatusHashExists  = EntryStatus("Hash sum exists")
+	EntryStatusOutdated     = EntryStatus("Outdated file")
+	EntryStatusNotIncluded  = EntryStatus("Not included")
+	EntryStatusExcluded     = EntryStatus("Excluded")
+	EntryStatusNeverDl      = EntryStatus("Never downloaded")
+	EntryStatusAlreadyDl    = EntryStatus("Already downloaded")
+	EntryStatusSizeDiff     = EntryStatus("Exists but size is different")
+	EntryStatusDigestExists = EntryStatus("Digest exists")
 )
 
 func (es *EntryStatus) IsSkipped() bool {
 	return *es == EntryStatusAlreadyDl ||
-		*es == EntryStatusHashExists ||
+		*es == EntryStatusDigestExists ||
 		*es == EntryStatusOutdated ||
 		*es == EntryStatusNotIncluded ||
 		*es == EntryStatusExcluded

@@ -2,8 +2,6 @@ package config
 
 import (
 	"time"
-
-	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 )
 
 // ServerSFTP holds sftp server configuration
@@ -33,6 +31,6 @@ func (s *ServerSFTP) GetDefaults() *ServerSFTP {
 func (s *ServerSFTP) SetDefaults() {
 	s.Port = 22
 	s.Sources = []string{}
-	s.Timeout = utl.NewDuration(30 * time.Second)
+	s.Timeout = new(30 * time.Second)
 	s.MaxPacketSize = 32768
 }

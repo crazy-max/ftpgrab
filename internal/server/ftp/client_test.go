@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
-	"github.com/crazy-max/ftpgrab/v7/pkg/utl"
 	"github.com/hashicorp/go-multierror"
 	ftplib "github.com/jlaffaye/ftp"
 	"github.com/stretchr/testify/assert"
@@ -89,13 +88,13 @@ func TestGetTLSMode(t *testing.T) {
 
 	t.Run("implicit", func(t *testing.T) {
 		cfg := (&config.ServerFTP{}).GetDefaults()
-		cfg.TLS = utl.NewTrue()
+		cfg.TLS = new(true)
 		assert.Equal(t, tlsModeImplicit, getTLSMode(cfg))
 	})
 
 	t.Run("explicit", func(t *testing.T) {
 		cfg := (&config.ServerFTP{}).GetDefaults()
-		cfg.ExplicitTLS = utl.NewTrue()
+		cfg.ExplicitTLS = new(true)
 		assert.Equal(t, tlsModeExplicit, getTLSMode(cfg))
 	})
 }
@@ -269,7 +268,7 @@ func TestReadDirDecodesEntryNames(t *testing.T) {
 		},
 	}
 	client := &Client{
-		cfg:     &config.ServerFTP{EscapeRegexpMeta: utl.NewFalse()},
+		cfg:     &config.ServerFTP{EscapeRegexpMeta: new(false)},
 		ftp:     conn,
 		pathenc: pathenc,
 	}
@@ -309,7 +308,7 @@ func TestReadDirReconnectsAfterTimeout(t *testing.T) {
 
 	dialCalls := 0
 	client := &Client{
-		cfg: &config.ServerFTP{EscapeRegexpMeta: utl.NewFalse()},
+		cfg: &config.ServerFTP{EscapeRegexpMeta: new(false)},
 		ftp: firstConn,
 		dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
 			dialCalls++
@@ -340,7 +339,7 @@ func TestReadDirDoesNotRetryReconnectAfterFailedReconnect(t *testing.T) {
 
 	dialCalls := 0
 	client := &Client{
-		cfg: &config.ServerFTP{EscapeRegexpMeta: utl.NewFalse()},
+		cfg: &config.ServerFTP{EscapeRegexpMeta: new(false)},
 		ftp: firstConn,
 		dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
 			dialCalls++
@@ -362,7 +361,7 @@ func TestReadDirDoesNotRetryReconnectAfterFailedReconnect(t *testing.T) {
 func TestReadDirKeepsConnectionAfterNonTimeoutError(t *testing.T) {
 	conn := &stubFTPConn{listErr: errors.New("permission denied")}
 	client := &Client{
-		cfg: &config.ServerFTP{EscapeRegexpMeta: utl.NewFalse()},
+		cfg: &config.ServerFTP{EscapeRegexpMeta: new(false)},
 		ftp: conn,
 	}
 
