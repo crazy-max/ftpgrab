@@ -7,7 +7,7 @@
   <a href="https://github.com/crazy-max/ftpgrab/actions?workflow=build"><img src="https://img.shields.io/github/actions/workflow/status/crazy-max/ftpgrab/build.yml?branch=master&label=build&logo=github&style=flat-square" alt="Build Status"></a>
   <a href="https://hub.docker.com/r/crazymax/ftpgrab/"><img src="https://img.shields.io/docker/stars/crazymax/ftpgrab.svg?style=flat-square&logo=docker" alt="Docker Stars"></a>
   <a href="https://hub.docker.com/r/crazymax/ftpgrab/"><img src="https://img.shields.io/docker/pulls/crazymax/ftpgrab.svg?style=flat-square&logo=docker" alt="Docker Pulls"></a>
-  <br /><a href="https://goreportcard.com/report/github.com/crazy-max/ftpgrab"><img src="https://goreportcard.com/badge/github.com/crazy-max/ftpgrab?style=flat-square" alt="Go Report"></a>
+  <br /><a href="https://goreportcard.com/report/github.com/crazy-max/ftpgrab/v7"><img src="https://goreportcard.com/badge/github.com/crazy-max/ftpgrab/v7?style=flat-square" alt="Go Report"></a>
   <a href="https://codecov.io/gh/crazy-max/ftpgrab"><img src="https://img.shields.io/codecov/c/github/crazy-max/ftpgrab?logo=codecov&style=flat-square" alt="Codecov"></a>
   <a href="https://github.com/sponsors/crazy-max"><img src="https://img.shields.io/badge/sponsor-crazy--max-181717.svg?logo=github&style=flat-square" alt="Become a sponsor"></a>
   <a href="https://www.paypal.me/crazyws"><img src="https://img.shields.io/badge/donate-paypal-00457c.svg?logo=paypal&style=flat-square" alt="Donate Paypal"></a>
