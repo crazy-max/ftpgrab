@@ -86,8 +86,8 @@ github.com/imdario/mergo
 # github.com/jaytaylor/html2text v0.0.0-20180606194806-57d518f124b0
 ## explicit
 github.com/jaytaylor/html2text
-# github.com/jlaffaye/ftp v0.2.0
-## explicit; go 1.17
+# github.com/jlaffaye/ftp v0.2.1
+## explicit; go 1.26
 github.com/jlaffaye/ftp
 # github.com/kr/fs v0.1.0
 ## explicit
