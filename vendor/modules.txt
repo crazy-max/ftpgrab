@@ -62,7 +62,7 @@ github.com/google/uuid
 # github.com/gorilla/css v1.0.0
 ## explicit
 github.com/gorilla/css/scanner
-# github.com/gorilla/websocket v1.4.2
+# github.com/gorilla/websocket v1.5.3
 ## explicit; go 1.12
 github.com/gorilla/websocket
 # github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
