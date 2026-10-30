@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/textproto"
 	"os"
 	"regexp"
+	"strings"
+	"syscall"
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
@@ -168,11 +171,11 @@ func (c *Client) ensureConnected() error {
 }
 
 func (c *Client) handleTransferError(err error) error {
-	if !isTimeoutError(err) {
+	if !isConnectionError(err) {
 		return err
 	}
 	if closeErr := c.Close(); closeErr != nil {
-		log.Warn().Err(closeErr).Msg("Cannot close ftp connection after transfer timeout")
+		log.Warn().Err(closeErr).Msg("Cannot close broken ftp connection")
 	}
 	return err
 }
@@ -195,12 +198,16 @@ func (c *Client) ReadDir(dir string) ([]os.FileInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := c.ensureConnected(); err != nil {
-		return nil, err
+	files, err := c.list(dir)
+	if err != nil && c.ftp == nil && c.connectErr == nil {
+		// The session was dropped as broken, which says nothing about this
+		// directory. Retry it once on a fresh connection rather than skip it
+		// for the rest of the run.
+		log.Warn().Err(err).Str("dir", dir).Msg("Listing failed on a broken connection, retrying on a new one")
+		files, err = c.list(dir)
 	}
-	files, err := c.ftp.List(dir)
 	if err != nil {
-		return nil, c.handleTransferError(err)
+		return nil, err
 	}
 
 	var entries []os.FileInfo
@@ -228,6 +235,17 @@ func (c *Client) ReadDir(dir string) ([]os.FileInfo, error) {
 	}
 
 	return entries, nil
+}
+
+func (c *Client) list(dir string) ([]*ftp.Entry, error) {
+	if err := c.ensureConnected(); err != nil {
+		return nil, err
+	}
+	files, err := c.ftp.List(dir)
+	if err != nil {
+		return nil, c.handleTransferError(err)
+	}
+	return files, nil
 }
 
 // Retrieve file from server and write bytes to "dest".
@@ -276,6 +294,44 @@ func newTimeoutDialFunc(timeout time.Duration, mode tlsMode, tlsConfig *tls.Conf
 		useTLS = mode == tlsModeExplicit
 		return conn, nil
 	}
+}
+
+// isConnectionError reports whether err means the FTP session itself is no
+// longer usable, as opposed to a failure scoped to one path. Reusing a broken
+// session fails every later command of the run, often with a misleading error
+// read from a stale reply.
+func isConnectionError(err error) bool {
+	if err == nil {
+		return false
+	}
+	if isTimeoutError(err) {
+		return true
+	}
+	var protoErr *textproto.Error
+	if errors.As(err, &protoErr) {
+		switch protoErr.Code {
+		case ftp.StatusNotAvailable, ftp.StatusCanNotOpenDataConnection, ftp.StatusTransfertAborted:
+			return true
+		}
+		// vsftpd answers "500 OOPS: ..." once its session process has failed,
+		// and "500 PASV: <errno>" / "500 EPSV: <errno>" when it can no longer
+		// set up a data channel. Neither recovers on the same session.
+		for _, prefix := range []string{"OOPS:", "PASV:", "EPSV:"} {
+			if strings.HasPrefix(protoErr.Msg, prefix) {
+				return true
+			}
+		}
+		return false
+	}
+	var opErr *net.OpError
+	var recordErr tls.RecordHeaderError
+	return errors.As(err, &opErr) ||
+		errors.As(err, &recordErr) ||
+		errors.Is(err, io.EOF) ||
+		errors.Is(err, io.ErrUnexpectedEOF) ||
+		errors.Is(err, net.ErrClosed) ||
+		errors.Is(err, syscall.EPIPE) ||
+		errors.Is(err, syscall.ECONNRESET)
 }
 
 func isTimeoutError(err error) bool {
