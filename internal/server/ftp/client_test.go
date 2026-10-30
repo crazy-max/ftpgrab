@@ -190,7 +190,7 @@ func TestClientConnect(t *testing.T) {
 		conn := &stubFTPConn{}
 		client := &Client{
 			addr: "ftp.example:21",
-			dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
+			dial: func(_ string, _ netDialFunc, _ ...ftplib.DialOption) (ftpConn, error) {
 				return conn, nil
 			},
 		}
@@ -205,7 +205,7 @@ func TestClientConnect(t *testing.T) {
 			addr:     "ftp.example:21",
 			username: "user",
 			password: "secret",
-			dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
+			dial: func(_ string, _ netDialFunc, _ ...ftplib.DialOption) (ftpConn, error) {
 				return conn, nil
 			},
 		}
@@ -221,7 +221,7 @@ func TestClientConnect(t *testing.T) {
 			addr:     "ftp.example:21",
 			username: "user",
 			password: "secret",
-			dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
+			dial: func(_ string, _ netDialFunc, _ ...ftplib.DialOption) (ftpConn, error) {
 				return conn, nil
 			},
 		}
@@ -229,6 +229,61 @@ func TestClientConnect(t *testing.T) {
 		assert.Equal(t, 0, conn.quitCall)
 		assert.Equal(t, conn, client.ftp)
 	})
+}
+
+// With explicit TLS a session's first dial is the plaintext control
+// connection and later dials are TLS data connections. A reconnect must start
+// that sequence over: reusing the previous session's dial function sent the
+// new control connection straight into a TLS handshake, which the server's
+// plaintext 220 greeting fails with "tls: first record does not look like a
+// TLS handshake", and every later command in the run then failed with it.
+func TestConnectStartsEachSessionWithPlaintextControlConnection(t *testing.T) {
+	ln, err := (&net.ListenConfig{}).Listen(context.Background(), "tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = ln.Close()
+	})
+	go func() {
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				return
+			}
+			t.Cleanup(func() {
+				_ = conn.Close()
+			})
+		}
+	}()
+
+	tlsConfig := &tls.Config{InsecureSkipVerify: true}
+	client := &Client{
+		addr: ln.Addr().String(),
+		newNetDial: func() netDialFunc {
+			return newTimeoutDialFunc(time.Second, tlsModeExplicit, tlsConfig)
+		},
+		dial: func(addr string, netDial netDialFunc, _ ...ftplib.DialOption) (ftpConn, error) {
+			control, err := netDial("tcp", addr)
+			require.NoError(t, err)
+			t.Cleanup(func() {
+				_ = control.Close()
+			})
+			_, isTLS := control.(*tls.Conn)
+			assert.False(t, isTLS, "control connection must start in plaintext")
+
+			data, err := netDial("tcp", addr)
+			require.NoError(t, err)
+			t.Cleanup(func() {
+				_ = data.Close()
+			})
+			_, isTLS = data.(*tls.Conn)
+			assert.True(t, isTLS, "data connection must use TLS")
+			return &stubFTPConn{}, nil
+		},
+	}
+
+	require.NoError(t, client.connect())
+	require.NoError(t, client.Close())
+	require.NoError(t, client.connect())
 }
 
 func TestNewPathEnc(t *testing.T) {
@@ -310,7 +365,7 @@ func TestReadDirReconnectsAfterTimeout(t *testing.T) {
 	client := &Client{
 		cfg: &config.ServerFTP{EscapeRegexpMeta: new(false)},
 		ftp: firstConn,
-		dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
+		dial: func(_ string, _ netDialFunc, _ ...ftplib.DialOption) (ftpConn, error) {
 			dialCalls++
 			if dialCalls == 1 {
 				return secondConn, nil
@@ -341,7 +396,7 @@ func TestReadDirDoesNotRetryReconnectAfterFailedReconnect(t *testing.T) {
 	client := &Client{
 		cfg: &config.ServerFTP{EscapeRegexpMeta: new(false)},
 		ftp: firstConn,
-		dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
+		dial: func(_ string, _ netDialFunc, _ ...ftplib.DialOption) (ftpConn, error) {
 			dialCalls++
 			return nil, errors.New("tls: first record does not look like a TLS handshake")
 		},
@@ -387,7 +442,7 @@ func TestRetrieveReconnectsAfterTimeoutClose(t *testing.T) {
 	dialCalls := 0
 	client := &Client{
 		ftp: firstConn,
-		dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
+		dial: func(_ string, _ netDialFunc, _ ...ftplib.DialOption) (ftpConn, error) {
 			dialCalls++
 			if dialCalls == 1 {
 				return secondConn, nil
