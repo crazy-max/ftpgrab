@@ -1,6 +1,6 @@
 module github.com/crazy-max/ftpgrab/v7
 
-go 1.26.0
+go 1.27.0
 
 require (
 	github.com/alecthomas/kong v1.17.0

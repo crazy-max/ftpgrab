@@ -343,8 +343,7 @@ func shouldDiscardSession(err error) bool {
 	if isTimeoutError(err) {
 		return true
 	}
-	var protoErr *textproto.Error
-	if errors.As(err, &protoErr) {
+	if protoErr, ok := stderrors.AsType[*textproto.Error](err); ok {
 		switch protoErr.Code {
 		case ftp.StatusNotAvailable, ftp.StatusCanNotOpenDataConnection, ftp.StatusTransfertAborted:
 			return true
@@ -356,13 +355,16 @@ func shouldDiscardSession(err error) bool {
 			}
 		}
 	}
-	var opErr *net.OpError
-	var recordErr tls.RecordHeaderError
-	var protocolErr textproto.ProtocolError
-	return errors.As(err, &opErr) ||
-		errors.As(err, &recordErr) ||
-		errors.As(err, &protocolErr) ||
-		errors.Is(err, io.EOF) ||
+	if _, ok := stderrors.AsType[*net.OpError](err); ok {
+		return true
+	}
+	if _, ok := stderrors.AsType[tls.RecordHeaderError](err); ok {
+		return true
+	}
+	if _, ok := stderrors.AsType[textproto.ProtocolError](err); ok {
+		return true
+	}
+	return errors.Is(err, io.EOF) ||
 		errors.Is(err, io.ErrUnexpectedEOF) ||
 		errors.Is(err, net.ErrClosed) ||
 		errors.Is(err, syscall.EPIPE) ||
