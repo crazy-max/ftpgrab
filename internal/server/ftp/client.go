@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/textproto"
 	"os"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
@@ -207,11 +209,11 @@ func (c *Client) ensureConnected() error {
 }
 
 func (c *Client) handleTransferError(err error) error {
-	if !isTimeoutError(err) && !errors.Is(err, errRestoreDir) {
+	if !shouldDiscardSession(err) && !errors.Is(err, errRestoreDir) {
 		return err
 	}
 	if closeErr := c.Close(); closeErr != nil {
-		log.Warn().Err(closeErr).Msg("Cannot close ftp connection after transfer error")
+		log.Warn().Err(closeErr).Msg("Cannot close broken ftp connection")
 	}
 	return err
 }
@@ -227,16 +229,20 @@ func (c *Client) Common() config.ServerCommon {
 
 // ReadDir fetches the contents of a directory, returning a list of os.FileInfo's
 func (c *Client) ReadDir(dir string) ([]os.FileInfo, error) {
-	dir, err := c.pathenc.Encode(dir)
+	encodedDir, err := c.pathenc.Encode(dir)
 	if err != nil {
 		return nil, err
 	}
-	if err := c.ensureConnected(); err != nil {
-		return nil, err
+	files, err := c.list(encodedDir)
+	if err != nil && c.ftp == nil && c.connectErr == nil {
+		// The session was dropped as broken, which says nothing about this
+		// directory. Retry it once on a fresh connection rather than skip it
+		// for the rest of the run.
+		log.Warn().Err(err).Str("dir", dir).Msg("Listing failed on a broken connection, retrying on a new one")
+		files, err = c.list(encodedDir)
 	}
-	files, err := c.ftp.List(dir)
 	if err != nil {
-		return nil, c.handleTransferError(err)
+		return nil, err
 	}
 
 	var entries []os.FileInfo
@@ -264,6 +270,17 @@ func (c *Client) ReadDir(dir string) ([]os.FileInfo, error) {
 	}
 
 	return entries, nil
+}
+
+func (c *Client) list(dir string) ([]*ftp.Entry, error) {
+	if err := c.ensureConnected(); err != nil {
+		return nil, err
+	}
+	files, err := c.ftp.List(dir)
+	if err != nil {
+		return nil, c.handleTransferError(err)
+	}
+	return files, nil
 }
 
 // Retrieve file from server and write bytes to "dest".
@@ -314,6 +331,42 @@ func newTimeoutDialFunc(timeout time.Duration, mode tlsMode, tlsConfig *tls.Conf
 		useTLS = mode == tlsModeExplicit
 		return conn, nil
 	}
+}
+
+// shouldDiscardSession reports whether err warrants replacing the FTP session.
+// It selects transport errors, malformed replies, and known session or data-channel
+// failures for recovery on a fresh connection, while preserving ordinary path errors.
+func shouldDiscardSession(err error) bool {
+	if err == nil {
+		return false
+	}
+	if isTimeoutError(err) {
+		return true
+	}
+	var protoErr *textproto.Error
+	if errors.As(err, &protoErr) {
+		switch protoErr.Code {
+		case ftp.StatusNotAvailable, ftp.StatusCanNotOpenDataConnection, ftp.StatusTransfertAborted:
+			return true
+		case ftp.StatusBadCommand:
+			// Some servers use 500 for session or passive-mode failures.
+			// Match known failure prefixes without treating every 500 as fatal.
+			if strings.HasPrefix(protoErr.Msg, "OOPS:") || strings.HasPrefix(protoErr.Msg, "PASV:") {
+				return true
+			}
+		}
+	}
+	var opErr *net.OpError
+	var recordErr tls.RecordHeaderError
+	var protocolErr textproto.ProtocolError
+	return errors.As(err, &opErr) ||
+		errors.As(err, &recordErr) ||
+		errors.As(err, &protocolErr) ||
+		errors.Is(err, io.EOF) ||
+		errors.Is(err, io.ErrUnexpectedEOF) ||
+		errors.Is(err, net.ErrClosed) ||
+		errors.Is(err, syscall.EPIPE) ||
+		errors.Is(err, syscall.ECONNRESET)
 }
 
 func isTimeoutError(err error) bool {
