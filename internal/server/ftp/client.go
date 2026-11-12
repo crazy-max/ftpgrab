@@ -209,7 +209,7 @@ func (c *Client) ensureConnected() error {
 }
 
 func (c *Client) handleTransferError(err error) error {
-	if !isConnectionError(err) && !errors.Is(err, errRestoreDir) {
+	if !shouldDiscardSession(err) && !errors.Is(err, errRestoreDir) {
 		return err
 	}
 	if closeErr := c.Close(); closeErr != nil {
@@ -229,17 +229,17 @@ func (c *Client) Common() config.ServerCommon {
 
 // ReadDir fetches the contents of a directory, returning a list of os.FileInfo's
 func (c *Client) ReadDir(dir string) ([]os.FileInfo, error) {
-	dir, err := c.pathenc.Encode(dir)
+	encodedDir, err := c.pathenc.Encode(dir)
 	if err != nil {
 		return nil, err
 	}
-	files, err := c.list(dir)
+	files, err := c.list(encodedDir)
 	if err != nil && c.ftp == nil && c.connectErr == nil {
 		// The session was dropped as broken, which says nothing about this
 		// directory. Retry it once on a fresh connection rather than skip it
 		// for the rest of the run.
 		log.Warn().Err(err).Str("dir", dir).Msg("Listing failed on a broken connection, retrying on a new one")
-		files, err = c.list(dir)
+		files, err = c.list(encodedDir)
 	}
 	if err != nil {
 		return nil, err
@@ -333,11 +333,10 @@ func newTimeoutDialFunc(timeout time.Duration, mode tlsMode, tlsConfig *tls.Conf
 	}
 }
 
-// isConnectionError reports whether err means the FTP session itself is no
-// longer usable, as opposed to a failure scoped to one path. Reusing a broken
-// session fails every later command of the run, often with a misleading error
-// read from a stale reply.
-func isConnectionError(err error) bool {
+// shouldDiscardSession reports whether err warrants replacing the FTP session.
+// It selects transport errors, malformed replies, and known session or data-channel
+// failures for recovery on a fresh connection, while preserving ordinary path errors.
+func shouldDiscardSession(err error) bool {
 	if err == nil {
 		return false
 	}
@@ -349,20 +348,20 @@ func isConnectionError(err error) bool {
 		switch protoErr.Code {
 		case ftp.StatusNotAvailable, ftp.StatusCanNotOpenDataConnection, ftp.StatusTransfertAborted:
 			return true
-		}
-		// vsftpd answers "500 OOPS: ..." once its session process has failed,
-		// and "500 PASV: <errno>" / "500 EPSV: <errno>" when it can no longer
-		// set up a data channel. Neither recovers on the same session.
-		for _, prefix := range []string{"OOPS:", "PASV:", "EPSV:"} {
-			if strings.HasPrefix(protoErr.Msg, prefix) {
+		case ftp.StatusBadCommand:
+			// Some servers use 500 for session or passive-mode failures.
+			// Match known failure prefixes without treating every 500 as fatal.
+			if strings.HasPrefix(protoErr.Msg, "OOPS:") || strings.HasPrefix(protoErr.Msg, "PASV:") {
 				return true
 			}
 		}
 	}
 	var opErr *net.OpError
 	var recordErr tls.RecordHeaderError
+	var protocolErr textproto.ProtocolError
 	return errors.As(err, &opErr) ||
 		errors.As(err, &recordErr) ||
+		errors.As(err, &protocolErr) ||
 		errors.Is(err, io.EOF) ||
 		errors.Is(err, io.ErrUnexpectedEOF) ||
 		errors.Is(err, net.ErrClosed) ||

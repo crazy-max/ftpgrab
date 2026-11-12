@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -18,6 +17,7 @@ import (
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/hashicorp/go-multierror"
 	ftplib "github.com/jlaffaye/ftp"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/text/encoding/charmap"
@@ -421,9 +421,10 @@ func TestRetrieveEncodesPath(t *testing.T) {
 
 func TestReadDirRetriesOnNewConnectionAfterConnectionError(t *testing.T) {
 	for name, listErr := range map[string]error{
-		"timeout":     multierror.Append(errors.New("data stalled"), timeoutError{}),
-		"vsftpd OOPS": &textproto.Error{Code: 500, Msg: "OOPS: priv_sock_get_int"},
-		"vsftpd PASV": &textproto.Error{Code: 500, Msg: "PASV: Broken pipe"},
+		"timeout":         multierror.Append(errors.New("data stalled"), timeoutError{}),
+		"vsftpd OOPS":     &textproto.Error{Code: 500, Msg: "OOPS: priv_sock_get_int"},
+		"PASV failure":    &textproto.Error{Code: 500, Msg: "PASV: Broken pipe"},
+		"malformed reply": textproto.ProtocolError("short response: garbled reply"),
 	} {
 		t.Run(name, func(t *testing.T) {
 			firstConn := &stubFTPConn{listErr: listErr}
@@ -518,7 +519,7 @@ func TestReadDirKeepsConnectionAfterPathError(t *testing.T) {
 	}
 }
 
-func TestIsConnectionError(t *testing.T) {
+func TestShouldDiscardSession(t *testing.T) {
 	for _, tt := range []struct {
 		err  error
 		want bool
@@ -590,6 +591,22 @@ func TestIsConnectionError(t *testing.T) {
 		},
 		{
 			err:  &textproto.Error{Code: 500, Msg: "EPSV: Broken pipe"},
+			want: false,
+		},
+		{
+			err:  &textproto.Error{Code: 550, Msg: "PASV: permission denied"},
+			want: false,
+		},
+		{
+			err:  &textproto.Error{Code: 550, Msg: "OOPS: file unavailable"},
+			want: false,
+		},
+		{
+			err:  errors.Wrap(textproto.ProtocolError("short response: garbled reply"), "read reply"),
+			want: true,
+		},
+		{
+			err:  net.ErrClosed,
 			want: true,
 		},
 		{
@@ -613,48 +630,79 @@ func TestIsConnectionError(t *testing.T) {
 			want: true,
 		},
 	} {
-		assert.Equal(t, tt.want, isConnectionError(tt.err), "%v", tt.err)
+		assert.Equal(t, tt.want, shouldDiscardSession(tt.err), "%v", tt.err)
 	}
 }
 
-func TestRetrieveReconnectsAfterTimeoutClose(t *testing.T) {
-	firstConn := &stubFTPConn{
-		retrResp: &stubReadCloser{
-			data:     bytes.NewBufferString("payload"),
-			closeErr: timeoutError{},
+func TestRetrieveReconnectsAfterSessionFailure(t *testing.T) {
+	for _, tt := range []struct {
+		name        string
+		retrErr     error
+		closeErr    error
+		wantPayload string
+	}{
+		{
+			name:        "close timeout",
+			closeErr:    timeoutError{},
+			wantPayload: "payload",
 		},
-	}
-	secondConn := &stubFTPConn{
-		retrResp: &stubReadCloser{
-			data: bytes.NewBufferString("fresh"),
+		{
+			name:    "RETR service unavailable",
+			retrErr: &textproto.Error{Code: 421, Msg: "Closing control connection"},
 		},
-	}
-
-	dialCalls := 0
-	client := &Client{
-		ftp: firstConn,
-		dial: func(_ string, _ netDialFunc, _ ...ftplib.DialOption) (ftpConn, error) {
-			dialCalls++
-			if dialCalls == 1 {
-				return secondConn, nil
+		{
+			name:        "close transfer aborted",
+			closeErr:    &textproto.Error{Code: 426, Msg: "Transfer aborted"},
+			wantPayload: "payload",
+		},
+		{
+			name:        "close malformed reply",
+			closeErr:    textproto.ProtocolError("short response: garbled reply"),
+			wantPayload: "payload",
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			firstConn := &stubFTPConn{
+				retrErr: tt.retrErr,
+				retrResp: &stubReadCloser{
+					data:     bytes.NewBufferString("payload"),
+					closeErr: tt.closeErr,
+				},
 			}
-			return nil, errors.New("unexpected dial")
-		},
+			secondConn := &stubFTPConn{
+				retrResp: &stubReadCloser{
+					data: bytes.NewBufferString("fresh"),
+				},
+			}
+
+			dialCalls := 0
+			client := &Client{
+				ftp: firstConn,
+				dial: func(_ string, _ netDialFunc, _ ...ftplib.DialOption) (ftpConn, error) {
+					dialCalls++
+					if dialCalls == 1 {
+						return secondConn, nil
+					}
+					return nil, errors.New("unexpected dial")
+				},
+			}
+
+			var firstDest bytes.Buffer
+			err := client.Retrieve("/file.txt", &firstDest)
+			require.Error(t, err)
+			assert.Zero(t, dialCalls, "Retrieve must not retry a partial write")
+			assert.Equal(t, tt.wantPayload, firstDest.String())
+			assert.Equal(t, 1, firstConn.quitCall)
+			assert.Nil(t, client.ftp)
+
+			var secondDest bytes.Buffer
+			err = client.Retrieve("/file.txt", &secondDest)
+			require.NoError(t, err)
+			assert.Equal(t, "fresh", secondDest.String())
+			assert.Equal(t, 1, dialCalls)
+			assert.Equal(t, secondConn, client.ftp)
+		})
 	}
-
-	var firstDest bytes.Buffer
-	err := client.Retrieve("/file.txt", &firstDest)
-	require.Error(t, err)
-	assert.Equal(t, "payload", firstDest.String())
-	assert.Equal(t, 1, firstConn.quitCall)
-	assert.Nil(t, client.ftp)
-
-	var secondDest bytes.Buffer
-	err = client.Retrieve("/file.txt", &secondDest)
-	require.NoError(t, err)
-	assert.Equal(t, "fresh", secondDest.String())
-	assert.Equal(t, 1, dialCalls)
-	assert.Equal(t, secondConn, client.ftp)
 }
 
 type listingServerOptions struct {
