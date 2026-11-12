@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/tls"
+	stderrors "errors"
 	"fmt"
 	"io"
 	"net"
@@ -15,7 +16,6 @@ import (
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
-	"github.com/hashicorp/go-multierror"
 	ftplib "github.com/jlaffaye/ftp"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -421,7 +421,7 @@ func TestRetrieveEncodesPath(t *testing.T) {
 
 func TestReadDirRetriesOnNewConnectionAfterConnectionError(t *testing.T) {
 	for name, listErr := range map[string]error{
-		"timeout":         multierror.Append(errors.New("data stalled"), timeoutError{}),
+		"timeout":         stderrors.Join(errors.New("data stalled"), timeoutError{}),
 		"vsftpd OOPS":     &textproto.Error{Code: 500, Msg: "OOPS: priv_sock_get_int"},
 		"PASV failure":    &textproto.Error{Code: 500, Msg: "PASV: Broken pipe"},
 		"malformed reply": textproto.ProtocolError("short response: garbled reply"),
@@ -479,7 +479,7 @@ func TestReadDirRetriesOnlyOnce(t *testing.T) {
 
 func TestReadDirDoesNotRetryReconnectAfterFailedReconnect(t *testing.T) {
 	firstConn := &stubFTPConn{
-		listErr: multierror.Append(errors.New("data stalled"), timeoutError{}),
+		listErr: stderrors.Join(errors.New("data stalled"), timeoutError{}),
 	}
 
 	dialCalls := 0
@@ -545,25 +545,25 @@ func TestShouldDiscardSession(t *testing.T) {
 			want: true,
 		},
 		{
-			err:  multierror.Append(errors.New("data stalled"), timeoutError{}),
+			err:  stderrors.Join(errors.New("data stalled"), timeoutError{}),
 			want: true,
 		},
 		{
-			err: multierror.Append(
+			err: stderrors.Join(
 				&net.OpError{Op: "read", Net: "tcp", Err: syscall.ECONNRESET},
 				&textproto.Error{Code: 550, Msg: "Transfer failed"},
 			),
 			want: true,
 		},
 		{
-			err: multierror.Append(
+			err: stderrors.Join(
 				&textproto.Error{Code: 550, Msg: "Transfer failed"},
 				io.EOF,
 			),
 			want: true,
 		},
 		{
-			err: multierror.Append(
+			err: stderrors.Join(
 				errors.New("permission denied"),
 				&textproto.Error{Code: 550, Msg: "Transfer failed"},
 			),
@@ -705,15 +705,63 @@ func TestRetrieveReconnectsAfterSessionFailure(t *testing.T) {
 	}
 }
 
+func TestPassiveTransfers(t *testing.T) {
+	for _, malformedEPSV := range []bool{false, true} {
+		t.Run(fmt.Sprintf("malformedEPSV=%v", malformedEPSV), func(t *testing.T) {
+			conn := newListingTestServer(t, listingServerOptions{mlsd: true, malformedEPSV: malformedEPSV}, ftplib.DialWithDisabledEPSV(!malformedEPSV))
+			client := &Client{ftp: serverConn{ServerConn: conn}}
+			entries, err := client.ReadDir("/complete/Game.v1 [Collection]/café")
+			require.NoError(t, err)
+			require.Len(t, entries, 1)
+			var dest bytes.Buffer
+			require.NoError(t, client.Retrieve("/résumé.txt", &dest))
+			assert.Equal(t, "payload", dest.String())
+		})
+	}
+}
+
+func TestRetrieveTransferCompletionFailure(t *testing.T) {
+	conn := newListingTestServer(t, listingServerOptions{failTransfer: true})
+	client := &Client{ftp: serverConn{ServerConn: conn}}
+	var dest bytes.Buffer
+	err := client.Retrieve("/résumé.txt", &dest)
+	require.Error(t, err)
+	var protoErr *textproto.Error
+	require.ErrorAs(t, err, &protoErr)
+	assert.Equal(t, 426, protoErr.Code)
+	assert.Equal(t, "payload", dest.String())
+	assert.Nil(t, client.ftp, "joined completion errors must discard the session")
+}
+
+func TestRejectCommandInjection(t *testing.T) {
+	for _, newline := range []string{"\r", "\n", "\r\n"} {
+		t.Run(fmt.Sprintf("newline=%q", newline), func(t *testing.T) {
+			conn := newListingTestServer(t, listingServerOptions{})
+			client := &Client{ftp: serverConn{ServerConn: conn}}
+			_, err := client.ReadDir("/dir" + newline + "QUIT")
+			require.ErrorIs(t, err, ftplib.ErrInvalidCommand)
+			var dest bytes.Buffer
+			err = client.Retrieve("/file"+newline+"QUIT", &dest)
+			require.ErrorIs(t, err, ftplib.ErrInvalidCommand)
+			assert.Empty(t, dest.String())
+			cwd, err := conn.CurrentDir()
+			require.NoError(t, err)
+			assert.Equal(t, "/", cwd)
+		})
+	}
+}
+
 type listingServerOptions struct {
-	mlsd        bool
-	failList    bool
-	failRestore bool
-	home        string
+	malformedEPSV bool
+	failTransfer  bool
+	mlsd          bool
+	failList      bool
+	failRestore   bool
+	home          string
 }
 
 // Exercise the real FTP library so tests cover the commands sent on the wire.
-func newListingTestServer(t *testing.T, opts listingServerOptions) *ftplib.ServerConn {
+func newListingTestServer(t *testing.T, opts listingServerOptions, dialOptions ...ftplib.DialOption) *ftplib.ServerConn {
 	t.Helper()
 	if opts.home == "" {
 		opts.home = "/"
@@ -768,13 +816,41 @@ func newListingTestServer(t *testing.T, opts listingServerOptions) *ftplib.Serve
 					continue
 				}
 				fmt.Fprint(control, "250 Directory changed\r\n")
-			case "EPSV":
+			case "EPSV", "PASV":
+				if command == "EPSV" && opts.malformedEPSV {
+					fmt.Fprint(control, "229 Entering Extended Passive Mode (|||)\r\n")
+					continue
+				}
+				if data != nil {
+					_ = data.Close()
+				}
 				data, err = (&net.ListenConfig{}).Listen(t.Context(), "tcp", "127.0.0.1:0")
 				if err != nil {
 					t.Error(err)
 					return
 				}
-				fmt.Fprintf(control, "229 Entering Extended Passive Mode (|||%d|)\r\n", data.Addr().(*net.TCPAddr).Port)
+				port := data.Addr().(*net.TCPAddr).Port
+				if command == "PASV" {
+					// A different loopback IP must be ignored in favor of the control peer.
+					fmt.Fprintf(control, "227 Entering Passive Mode (127,0,0,2,%d,%d)\r\n", port/256, port%256)
+				} else {
+					fmt.Fprintf(control, "229 Entering Extended Passive Mode (|||%d|)\r\n", port)
+				}
+			case "RETR":
+				fmt.Fprint(control, "150 Opening data connection\r\n")
+				transfer, err := data.Accept()
+				if err != nil {
+					t.Error(err)
+					return
+				}
+				fmt.Fprint(transfer, "payload")
+				_ = transfer.Close()
+				_ = data.Close()
+				if opts.failTransfer {
+					fmt.Fprint(control, "426 Transfer aborted\r\n")
+				} else {
+					fmt.Fprint(control, "226 Complete\r\n")
+				}
 			case "MLSD", "LIST":
 				if argument != "" || cwd != "/complete/Game.v1 [Collection]/café" || opts.failList {
 					fmt.Fprint(control, "550 Listing failed\r\n")
@@ -803,7 +879,8 @@ func newListingTestServer(t *testing.T, opts listingServerOptions) *ftplib.Serve
 			}
 		}
 	}()
-	conn, err := ftplib.Dial(listener.Addr().String(), ftplib.DialWithTimeout(5*time.Second))
+	dialOptions = append(dialOptions, ftplib.DialWithDialFunc(newTimeoutDialFunc(5*time.Second, tlsModeDisabled, nil)))
+	conn, err := ftplib.Dial(listener.Addr().String(), dialOptions...)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = conn.Quit()

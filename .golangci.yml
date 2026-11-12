@@ -12,6 +12,7 @@ linters:
     - gocritic
     - gosec
     - govet
+    - importas
     - ineffassign
     - makezero
     - misspell
@@ -27,6 +28,8 @@ linters:
       rules:
         main:
           deny:
+            - pkg: "github.com/hashicorp/go-multierror"
+              desc: Use stdlib errors.Join instead.
             - pkg: "io/ioutil"
               desc: The io/ioutil package has been deprecated.
     forbidigo:

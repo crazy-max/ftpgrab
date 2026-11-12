@@ -8,14 +8,13 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/textproto"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/hashicorp/go-multierror"
 )
 
 const (
@@ -41,6 +40,10 @@ type TransferType string
 const (
 	TransferTypeBinary = TransferType("I")
 	TransferTypeASCII  = TransferType("A")
+)
+
+var (
+	ErrInvalidCommand = errors.New("command contains CR or LF")
 )
 
 // Time format used by the MDTM and MFMT commands
@@ -77,6 +80,7 @@ type dialOptions struct {
 	tlsConfig       *tls.Config
 	explicitTLS     bool
 	disableEPSV     bool
+	trustPasvIP     bool
 	disableUTF8     bool
 	disableMLSD     bool
 	writingMDTM     bool
@@ -216,6 +220,15 @@ func DialWithNetConn(conn net.Conn) DialOption {
 func DialWithDisabledEPSV(disabled bool) DialOption {
 	return DialOption{func(do *dialOptions) {
 		do.disableEPSV = disabled
+	}}
+}
+
+// DialWithTrustPasvIP returns a DialOption that makes the ServerConn use the host
+// from the server's PASV reply for the data connection. It is off by default
+// to protect from SSRF.
+func DialWithTrustPasvIP(trust bool) DialOption {
+	return DialOption{func(do *dialOptions) {
+		do.trustPasvIP = trust
 	}}
 }
 
@@ -482,13 +495,17 @@ func (c *ServerConn) epsv() (port int, err error) {
 		return 0, err
 	}
 
+	return parseEPSV(line)
+}
+
+func parseEPSV(line string) (int, error) {
 	start := strings.Index(line, "|||")
 	end := strings.LastIndex(line, "|")
-	if start == -1 || end == -1 {
+	if start == -1 || start+3 >= end {
 		return 0, errors.New("invalid EPSV response format")
 	}
-	port, err = strconv.Atoi(line[start+3 : end])
-	return port, err
+
+	return strconv.Atoi(line[start+3 : end])
 }
 
 // pasv issues a "PASV" command to get a port number for a data connection.
@@ -528,7 +545,28 @@ func (c *ServerConn) pasv() (host string, port int, err error) {
 
 	// Make the IP address to connect to
 	host = strings.Join(pasvData[0:4], ".")
+
+	if !c.options.trustPasvIP {
+		return c.host, port, nil
+	}
+
+	if c.host != host {
+		if cmdIP := net.ParseIP(c.host); cmdIP != nil {
+			if dataIP := net.ParseIP(host); dataIP != nil {
+				if isBogusDataIP(cmdIP, dataIP) {
+					return c.host, port, nil
+				}
+			}
+		}
+	}
 	return host, port, nil
+}
+
+func isBogusDataIP(cmdIP, dataIP net.IP) bool {
+	// Logic stolen from lftp (https://github.com/lavv17/lftp/blob/d67fc14d085849a6b0418bb3e912fea2e94c18d1/src/ftpclass.cc#L769)
+	return dataIP.IsMulticast() ||
+		cmdIP.IsPrivate() != dataIP.IsPrivate() ||
+		cmdIP.IsLoopback() != dataIP.IsLoopback()
 }
 
 // getDataConnPort returns a host, port for a new data connection
@@ -585,12 +623,26 @@ func (c *ServerConn) openDataConn() (net.Conn, error) {
 // cmd is a helper function to execute a command and check for the expected FTP
 // return code
 func (c *ServerConn) cmd(expected int, format string, args ...interface{}) (int, string, error) {
+	if err := checkForCommandInjection(format, args...); err != nil {
+		return 0, "", err
+	}
+
 	_, err := c.conn.Cmd(format, args...)
 	if err != nil {
 		return 0, "", err
 	}
 
 	return c.conn.ReadResponse(expected)
+}
+
+func checkForCommandInjection(format string, args ...interface{}) error {
+	res := fmt.Sprintf(format, args...)
+
+	if strings.ContainsAny(res, "\r\n") {
+		return ErrInvalidCommand
+	}
+
+	return nil
 }
 
 // cmdDataConnFrom executes a command which require a FTP data connection.
@@ -618,17 +670,12 @@ func (c *ServerConn) cmdDataConnFrom(offset uint64, format string, args ...inter
 		}
 	}
 
-	_, err = c.conn.Cmd(format, args...)
+	code, msg, err := c.cmd(-1, format, args...)
 	if err != nil {
 		_ = conn.Close()
 		return nil, err
 	}
 
-	code, msg, err := c.conn.ReadResponse(-1)
-	if err != nil {
-		_ = conn.Close()
-		return nil, err
-	}
 	if code != StatusAlreadyOpen && code != StatusAboutToSend {
 		_ = conn.Close()
 		return nil, &textproto.Error{Code: code, Msg: msg}
@@ -639,7 +686,7 @@ func (c *ServerConn) cmdDataConnFrom(offset uint64, format string, args ...inter
 
 // Type switches the transfer mode for the connection.
 func (c *ServerConn) Type(transferType TransferType) (err error) {
-	_, _, err = c.cmd(StatusCommandOK, "TYPE "+string(transferType))
+	_, _, err = c.cmd(StatusCommandOK, "TYPE %s", string(transferType))
 	return err
 }
 
@@ -654,7 +701,7 @@ func (c *ServerConn) NameList(path string) (entries []string, err error) {
 		return nil, err
 	}
 
-	var errs *multierror.Error
+	var errs []error
 
 	r := &Response{conn: conn, c: c}
 
@@ -664,13 +711,13 @@ func (c *ServerConn) NameList(path string) (entries []string, err error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		errs = multierror.Append(errs, err)
+		errs = append(errs, err)
 	}
 	if err := r.Close(); err != nil {
-		errs = multierror.Append(errs, err)
+		errs = append(errs, err)
 	}
 
-	return entries, errs.ErrorOrNil()
+	return entries, errors.Join(errs...)
 }
 
 // List issues a LIST FTP command.
@@ -698,7 +745,7 @@ func (c *ServerConn) List(path string) (entries []*Entry, err error) {
 		return nil, err
 	}
 
-	var errs *multierror.Error
+	var errs []error
 
 	r := &Response{conn: conn, c: c}
 
@@ -712,13 +759,13 @@ func (c *ServerConn) List(path string) (entries []*Entry, err error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		errs = multierror.Append(errs, err)
+		errs = append(errs, err)
 	}
 	if err := r.Close(); err != nil {
-		errs = multierror.Append(errs, err)
+		errs = append(errs, err)
 	}
 
-	return entries, errs.ErrorOrNil()
+	return entries, errors.Join(errs...)
 }
 
 // GetEntry issues a MLST FTP command which retrieves one single Entry using the
@@ -761,9 +808,9 @@ func (c *ServerConn) GetEntry(path string) (entry *Entry, err error) {
 	e := &Entry{}
 	for _, l := range lines[1 : lc-1] {
 		// According to RFC 3659, the entry lines must start with a space when passed over the
-		// control connection. Some servers don't seem to add that space though. Both forms are
-		// accepted here.
-		if len(l) > 0 && l[0] == ' ' {
+		// control connection. Some servers don't seem to add that space though and some servers
+		// add multiple spaces. All forms are accepted here.
+		for len(l) > 0 && l[0] == ' ' {
 			l = l[1:]
 		}
 		// Some severs seem to send a blank line at the end which we ignore
@@ -927,14 +974,14 @@ func (c *ServerConn) StorFrom(path string, r io.Reader, offset uint64) error {
 		return err
 	}
 
-	var errs *multierror.Error
+	var errs []error
 
 	// if the upload fails we still need to try to read the server
 	// response otherwise if the failure is not due to a connection problem,
 	// for example the server denied the upload for quota limits, we miss
 	// the response and we cannot use the connection to send other commands.
 	if n, err := io.Copy(conn, r); err != nil {
-		errs = multierror.Append(errs, err)
+		errs = append(errs, err)
 	} else if n == 0 {
 		// If we wrote no bytes and got no error, make sure we call
 		// tls.Handshake on the connection as it won't get called
@@ -945,20 +992,20 @@ func (c *ServerConn) StorFrom(path string, r io.Reader, offset uint64) error {
 		// an empty file without this.
 		if do, ok := conn.(interface{ Handshake() error }); ok {
 			if err := do.Handshake(); err != nil {
-				errs = multierror.Append(errs, err)
+				errs = append(errs, err)
 			}
 		}
 	}
 
 	if err := conn.Close(); err != nil {
-		errs = multierror.Append(errs, err)
+		errs = append(errs, err)
 	}
 
 	if err := c.checkDataShut(); err != nil {
-		errs = multierror.Append(errs, err)
+		errs = append(errs, err)
 	}
 
-	return errs.ErrorOrNil()
+	return errors.Join(errs...)
 }
 
 // Append issues a APPE FTP command to store a file to the remote FTP server.
@@ -972,21 +1019,21 @@ func (c *ServerConn) Append(path string, r io.Reader) error {
 		return err
 	}
 
-	var errs *multierror.Error
+	var errs []error
 
 	if _, err := io.Copy(conn, r); err != nil {
-		errs = multierror.Append(errs, err)
+		errs = append(errs, err)
 	}
 
 	if err := conn.Close(); err != nil {
-		errs = multierror.Append(errs, err)
+		errs = append(errs, err)
 	}
 
 	if err := c.checkDataShut(); err != nil {
-		errs = multierror.Append(errs, err)
+		errs = append(errs, err)
 	}
 
-	return errs.ErrorOrNil()
+	return errors.Join(errs...)
 }
 
 // Rename renames a file on the remote FTP server.
@@ -1093,17 +1140,17 @@ func (c *ServerConn) Logout() error {
 // Quit issues a QUIT FTP command to properly close the connection from the
 // remote FTP server.
 func (c *ServerConn) Quit() error {
-	var errs *multierror.Error
+	var errs []error
 
 	if _, err := c.conn.Cmd("QUIT"); err != nil {
-		errs = multierror.Append(errs, err)
+		errs = append(errs, err)
 	}
 
 	if err := c.conn.Close(); err != nil {
-		errs = multierror.Append(errs, err)
+		errs = append(errs, err)
 	}
 
-	return errs.ErrorOrNil()
+	return errors.Join(errs...)
 }
 
 // Read implements the io.Reader interface on a FTP data connection.
@@ -1118,18 +1165,19 @@ func (r *Response) Close() error {
 		return nil
 	}
 
-	var errs *multierror.Error
+	var errs []error
 
 	if err := r.conn.Close(); err != nil {
-		errs = multierror.Append(errs, err)
+		errs = append(errs, err)
 	}
 
 	if err := r.c.checkDataShut(); err != nil {
-		errs = multierror.Append(errs, err)
+		errs = append(errs, err)
 	}
 
 	r.closed = true
-	return errs.ErrorOrNil()
+
+	return errors.Join(errs...)
 }
 
 // SetDeadline sets the deadlines associated with the connection.
