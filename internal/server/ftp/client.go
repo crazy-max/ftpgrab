@@ -2,6 +2,7 @@ package ftp
 
 import (
 	"crypto/tls"
+	stderrors "errors"
 	"fmt"
 	"io"
 	"net"
@@ -15,7 +16,6 @@ import (
 	"github.com/crazy-max/ftpgrab/v7/internal/logging"
 	"github.com/crazy-max/ftpgrab/v7/internal/secret"
 	"github.com/crazy-max/ftpgrab/v7/internal/server"
-	"github.com/hashicorp/go-multierror"
 	"github.com/jlaffaye/ftp"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
@@ -72,7 +72,7 @@ func (c serverConn) List(dir string) ([]*ftp.Entry, error) {
 	if err := c.ChangeDir(strings.ReplaceAll(cwd, `""`, `"`)); err != nil {
 		restoreErr := errors.Wrap(errRestoreDir, err.Error())
 		if listErr != nil {
-			return nil, multierror.Append(listErr, restoreErr)
+			return nil, stderrors.Join(listErr, restoreErr)
 		}
 		return nil, restoreErr
 	}
@@ -298,7 +298,7 @@ func (c *Client) Retrieve(filename string, dest io.Writer) error {
 	}
 	_, copyErr := io.Copy(dest, resp)
 	closeErr := resp.Close()
-	if err := multierror.Append(copyErr, closeErr).ErrorOrNil(); err != nil {
+	if err := stderrors.Join(copyErr, closeErr); err != nil {
 		return c.handleTransferError(err)
 	}
 	return nil

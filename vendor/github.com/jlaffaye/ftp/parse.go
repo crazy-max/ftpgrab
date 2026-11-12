@@ -24,6 +24,8 @@ var listLineParsers = []parseFunc{
 var dirTimeFormats = []string{
 	"01-02-06  03:04PM",
 	"2006-01-02  15:04",
+	"01-02-2006  03:04PM",
+	"01-02-2006  15:04",
 }
 
 // parseRFC3659ListLine parses the style of directory line defined in RFC 3659.
@@ -86,7 +88,7 @@ func parseLsListLine(line string, now time.Time, loc *time.Location) (*Entry, er
 	// Has the first field a length of exactly 10 bytes
 	// - or 10 bytes with an additional '+' character for indicating ACLs?
 	// If not, return.
-	if i := strings.IndexByte(line, ' '); !(i == 10 || (i == 11 && line[10] == '+')) {
+	if i := strings.IndexByte(line, ' '); i != 10 && (i != 11 || line[10] != '+') {
 		return nil, errUnsupportedListLine
 	}
 
