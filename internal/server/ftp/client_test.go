@@ -548,6 +548,27 @@ func TestIsConnectionError(t *testing.T) {
 			want: true,
 		},
 		{
+			err: multierror.Append(
+				&net.OpError{Op: "read", Net: "tcp", Err: syscall.ECONNRESET},
+				&textproto.Error{Code: 550, Msg: "Transfer failed"},
+			),
+			want: true,
+		},
+		{
+			err: multierror.Append(
+				&textproto.Error{Code: 550, Msg: "Transfer failed"},
+				io.EOF,
+			),
+			want: true,
+		},
+		{
+			err: multierror.Append(
+				errors.New("permission denied"),
+				&textproto.Error{Code: 550, Msg: "Transfer failed"},
+			),
+			want: false,
+		},
+		{
 			err:  &textproto.Error{Code: 421, Msg: "Timeout."},
 			want: true,
 		},

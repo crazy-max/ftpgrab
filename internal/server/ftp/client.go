@@ -358,7 +358,6 @@ func isConnectionError(err error) bool {
 				return true
 			}
 		}
-		return false
 	}
 	var opErr *net.OpError
 	var recordErr tls.RecordHeaderError
