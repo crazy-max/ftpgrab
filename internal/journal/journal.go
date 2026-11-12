@@ -15,7 +15,7 @@ type Journal struct {
 		Success int `json:"success,omitempty"`
 		Error   int `json:"error,omitempty"`
 		Skip    int `json:"skip,omitempty"`
-	} `json:"count,omitempty"`
+	} `json:"count"`
 	Status   string        `json:"status,omitempty"`
 	Duration time.Duration `json:"duration,omitempty"`
 }

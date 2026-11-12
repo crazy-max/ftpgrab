@@ -19,7 +19,7 @@ type FtpGrab struct {
 	notif   *notif.Client
 	grabber *grabber.Client
 	jobID   cron.EntryID
-	locker  uint32
+	locker  atomic.Uint32
 }
 
 // New creates new ftpgrab instance
@@ -59,11 +59,11 @@ func (fg *FtpGrab) Start() error {
 
 // Run runs ftpgrab process
 func (fg *FtpGrab) Run() {
-	if !atomic.CompareAndSwapUint32(&fg.locker, 0, 1) {
+	if !fg.locker.CompareAndSwap(0, 1) {
 		log.Warn().Msg("Already running")
 		return
 	}
-	defer atomic.StoreUint32(&fg.locker, 0)
+	defer fg.locker.Store(0)
 	if fg.jobID > 0 {
 		defer log.Info().Msgf("Next run in %s (%s)",
 			durafmt.Parse(time.Until(fg.cron.Entry(fg.jobID).Next)).LimitFirstN(2).String(),

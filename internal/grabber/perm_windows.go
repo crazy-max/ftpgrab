@@ -2,6 +2,6 @@
 
 package grabber
 
-func (c *Client) fixPerms(filepath string) error {
+func (c *Client) fixPerms(_ string) error {
 	return nil
 }

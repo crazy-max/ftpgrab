@@ -120,7 +120,7 @@ target "gomod-outdated" {
 }
 
 group "validate" {
-  targets = ["lint", "vendor-validate"]
+  targets = ["lint", "gopls-analyze", "vendor-validate"]
 }
 
 target "lint" {
@@ -142,6 +142,11 @@ target "lint" {
     "windows/amd64",
     "windows/arm64"
   ] : []
+}
+
+target "gopls-analyze" {
+  inherits = ["lint"]
+  target = "gopls-analyze"
 }
 
 target "vendor-validate" {

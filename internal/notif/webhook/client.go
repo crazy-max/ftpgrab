@@ -40,7 +40,7 @@ func (c *Client) Send(jnl journal.Journal) error {
 		Version  string          `json:"ftpgrab_version,omitempty"`
 		ServerIP string          `json:"server_ip,omitempty"`
 		Dest     string          `json:"dest_hostname,omitempty"`
-		Journal  journal.Journal `json:"journal,omitempty"`
+		Journal  journal.Journal `json:"journal"`
 	}{
 		Version:  c.meta.Version,
 		ServerIP: jnl.ServerHost,
