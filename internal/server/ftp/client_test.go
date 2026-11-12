@@ -235,13 +235,7 @@ func TestClientConnect(t *testing.T) {
 	})
 }
 
-// With explicit TLS a session's first dial is the plaintext control
-// connection and later dials are TLS data connections. A reconnect must start
-// that sequence over: reusing the previous session's dial function sent the
-// new control connection straight into a TLS handshake, which the server's
-// plaintext 220 greeting fails with "tls: first record does not look like a
-// TLS handshake", and every later command in the run then failed with it.
-func TestConnectStartsEachSessionWithPlaintextControlConnection(t *testing.T) {
+func TestConnectResetsTLSDialer(t *testing.T) {
 	ln, err := (&net.ListenConfig{}).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -253,16 +247,14 @@ func TestConnectStartsEachSessionWithPlaintextControlConnection(t *testing.T) {
 			if err != nil {
 				return
 			}
-			t.Cleanup(func() {
-				_ = conn.Close()
-			})
+			_ = conn.Close()
 		}
 	}()
 
 	tlsConfig := &tls.Config{InsecureSkipVerify: true}
 	client := &Client{
 		addr: ln.Addr().String(),
-		newNetDial: func() netDialFunc {
+		newDialFunc: func() netDialFunc {
 			return newTimeoutDialFunc(time.Second, tlsModeExplicit, tlsConfig)
 		},
 		dial: func(addr string, netDial netDialFunc, _ ...ftplib.DialOption) (ftpConn, error) {
@@ -395,7 +387,7 @@ func TestReadDirReconnectsAfterRestoreFailure(t *testing.T) {
 			next := &stubFTPConn{}
 			client := &Client{
 				ftp: serverConn{ServerConn: conn},
-				dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
+				dial: func(_ string, _ netDialFunc, _ ...ftplib.DialOption) (ftpConn, error) {
 					return next, nil
 				},
 			}
