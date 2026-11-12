@@ -29,6 +29,8 @@ type ftpConn interface {
 	Quit() error
 }
 
+type netDialFunc func(network, address string) (net.Conn, error)
+
 // Client represents an active ftp object
 type Client struct {
 	*server.Client
@@ -38,7 +40,8 @@ type Client struct {
 	password    string
 	connectErr  error
 	ftp         ftpConn
-	dial        func(addr string, options ...ftp.DialOption) (ftpConn, error)
+	dial        func(addr string, netDial netDialFunc, options ...ftp.DialOption) (ftpConn, error)
+	newDialFunc func() netDialFunc
 	dialOptions []ftp.DialOption
 	pathenc     pathEncoder
 }
@@ -78,7 +81,10 @@ func (c serverConn) Retr(path string) (io.ReadCloser, error) {
 	return c.ServerConn.Retr(path)
 }
 
-func defaultDialFTP(addr string, options ...ftp.DialOption) (ftpConn, error) {
+func defaultDialFTP(addr string, netDial netDialFunc, options ...ftp.DialOption) (ftpConn, error) {
+	if netDial != nil {
+		options = append([]ftp.DialOption{ftp.DialWithDialFunc(netDial)}, options...)
+	}
 	conn, err := ftp.Dial(addr, options...)
 	if err != nil {
 		return nil, err
@@ -122,8 +128,10 @@ func New(cfg *config.ServerFTP) (*server.Client, error) {
 		ServerName:         cfg.Host,
 		InsecureSkipVerify: *cfg.InsecureSkipVerify,
 	}
+	client.newDialFunc = func() netDialFunc {
+		return newTimeoutDialFunc(*cfg.Timeout, mode, tlsConfig)
+	}
 	ftpConfig := []ftp.DialOption{
-		ftp.DialWithDialFunc(newTimeoutDialFunc(*cfg.Timeout, mode, tlsConfig)),
 		ftp.DialWithDisabledEPSV(*cfg.DisableEPSV),
 		ftp.DialWithDisabledUTF8(*cfg.DisableUTF8),
 		ftp.DialWithDisabledMLSD(*cfg.DisableMLSD),
@@ -163,7 +171,11 @@ func (c *Client) connect() error {
 	if dial == nil {
 		dial = defaultDialFTP
 	}
-	conn, err := dial(c.addr, c.dialOptions...)
+	var netDial netDialFunc
+	if c.newDialFunc != nil {
+		netDial = c.newDialFunc()
+	}
+	conn, err := dial(c.addr, netDial, c.dialOptions...)
 	if err != nil {
 		return err
 	}
@@ -285,7 +297,9 @@ func (c *Client) Close() error {
 	return conn.Quit()
 }
 
-func newTimeoutDialFunc(timeout time.Duration, mode tlsMode, tlsConfig *tls.Config) func(network, address string) (net.Conn, error) {
+// newTimeoutDialFunc must be recreated per session: explicit TLS starts with a
+// plaintext control connection, then uses TLS for data connections.
+func newTimeoutDialFunc(timeout time.Duration, mode tlsMode, tlsConfig *tls.Config) netDialFunc {
 	dialer := &net.Dialer{Timeout: timeout}
 	useTLS := mode == tlsModeImplicit
 	return func(network, address string) (net.Conn, error) {
