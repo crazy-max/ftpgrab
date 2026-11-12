@@ -18,7 +18,7 @@ type ServerFTP struct {
 	DisableUTF8        *bool          `yaml:"disableUTF8,omitempty" json:"disableUTF8,omitempty"`
 	DisableEPSV        *bool          `yaml:"disableEPSV,omitempty" json:"disableEPSV,omitempty"`
 	DisableMLSD        *bool          `yaml:"disableMLSD,omitempty" json:"disableMLSD,omitempty"`
-	EscapeRegexpMeta   *bool          `yaml:"escapeRegexpMeta,omitempty" json:"escapeRegexpMeta,omitempty"`
+	EscapeRegexpMeta   *bool          `yaml:"escapeRegexpMeta,omitempty" json:"escapeRegexpMeta,omitempty"` // TODO: Remove this compatibility field in a future release.
 	TLS                *bool          `yaml:"tls,omitempty" json:"tls,omitempty"`
 	ExplicitTLS        *bool          `yaml:"explicitTLS,omitempty" json:"explicitTLS,omitempty"`
 	InsecureSkipVerify *bool          `yaml:"insecureSkipVerify,omitempty" json:"insecureSkipVerify,omitempty"`
@@ -41,7 +41,6 @@ func (s *ServerFTP) SetDefaults() {
 	s.DisableUTF8 = new(false)
 	s.DisableEPSV = new(false)
 	s.DisableMLSD = new(false)
-	s.EscapeRegexpMeta = new(false)
 	s.TLS = new(false)
 	s.ExplicitTLS = new(false)
 	s.InsecureSkipVerify = new(false)

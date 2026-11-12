@@ -18,7 +18,6 @@
         disableUTF8: false
         disableEPSV: false
         disableMLSD: false
-        escapeRegexpMeta: false
         tls: false
         explicitTLS: false
         insecureSkipVerify: false
@@ -199,25 +198,6 @@ properly. (default `false`)
 
 !!! abstract "Environment variables"
     * `FTPGRAB_SERVER_FTP_DISABLEMLSD`
-
-### `escapeRegexpMeta`
-
-Escapes all regular expression metacharacters in the source path. (default `false`)
-
-!!! warning
-    This setting is only useful for FTP servers that enforce global matching or
-    if you don't want to use regular expressions when listing files. See [crazy-max/ftpgrab#49](https://github.com/crazy-max/ftpgrab/issues/49#issuecomment-489137115)
-    for more information.
-
-!!! example "Config file"
-    ```yaml
-    server:
-      ftp:
-        escapeRegexpMeta: false
-    ```
-
-!!! abstract "Environment variables"
-    * `FTPGRAB_SERVER_FTP_ESCAPEREGEXPMETA`
 
 ### `tls`
 

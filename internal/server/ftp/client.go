@@ -6,7 +6,7 @@ import (
 	"io"
 	"net"
 	"os"
-	"regexp"
+	"strings"
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
@@ -45,6 +45,33 @@ type Client struct {
 
 type serverConn struct {
 	*ftp.ServerConn
+}
+
+var errRestoreDir = errors.New("cannot restore FTP working directory")
+
+func (c serverConn) List(dir string) ([]*ftp.Entry, error) {
+	if dir == "" {
+		return c.ServerConn.List("")
+	}
+	cwd, err := c.CurrentDir()
+	if err != nil {
+		return nil, err
+	}
+	// CWD takes a literal pathname. LIST may interpret it as a glob, while
+	// escaping glob characters changes the pathname passed to MLSD.
+	if err := c.ChangeDir(dir); err != nil {
+		return nil, err
+	}
+	entries, listErr := c.ServerConn.List("")
+	// CurrentDir leaves RFC 959 doubled quotes in the PWD response escaped.
+	if err := c.ChangeDir(strings.ReplaceAll(cwd, `""`, `"`)); err != nil {
+		restoreErr := errors.Wrap(errRestoreDir, err.Error())
+		if listErr != nil {
+			return nil, multierror.Append(listErr, restoreErr)
+		}
+		return nil, restoreErr
+	}
+	return entries, listErr
 }
 
 func (c serverConn) Retr(path string) (io.ReadCloser, error) {
@@ -168,11 +195,11 @@ func (c *Client) ensureConnected() error {
 }
 
 func (c *Client) handleTransferError(err error) error {
-	if !isTimeoutError(err) {
+	if !isTimeoutError(err) && !errors.Is(err, errRestoreDir) {
 		return err
 	}
 	if closeErr := c.Close(); closeErr != nil {
-		log.Warn().Err(closeErr).Msg("Cannot close ftp connection after transfer timeout")
+		log.Warn().Err(closeErr).Msg("Cannot close ftp connection after transfer error")
 	}
 	return err
 }
@@ -188,9 +215,6 @@ func (c *Client) Common() config.ServerCommon {
 
 // ReadDir fetches the contents of a directory, returning a list of os.FileInfo's
 func (c *Client) ReadDir(dir string) ([]os.FileInfo, error) {
-	if *c.cfg.EscapeRegexpMeta {
-		dir = regexp.QuoteMeta(dir)
-	}
 	dir, err := c.pathenc.Encode(dir)
 	if err != nil {
 		return nil, err
