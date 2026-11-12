@@ -25,8 +25,9 @@ Image: crazymax/ftpgrab:latest
    - linux/arm/v6
    - linux/arm/v7
    - linux/arm64
-   - linux/386
    - linux/ppc64le
+   - linux/riscv64
+   - linux/s390x
 ```
 
 This reference setup guides users through the setup based on `docker-compose`, but the installation of `docker-compose`
