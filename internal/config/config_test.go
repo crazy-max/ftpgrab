@@ -156,7 +156,7 @@ func TestLoadFile(t *testing.T) {
 }
 
 func TestLoadEnv(t *testing.T) {
-	defer UnsetEnv("FTPGRAB_")
+	t.Cleanup(UnsetEnv("FTPGRAB_"))
 
 	testCases := []struct {
 		desc     string
@@ -311,7 +311,7 @@ func TestLoadEnv(t *testing.T) {
 }
 
 func TestLoadMixed(t *testing.T) {
-	defer UnsetEnv("FTPGRAB_")
+	t.Cleanup(UnsetEnv("FTPGRAB_"))
 
 	testCases := []struct {
 		desc     string
