@@ -1,17 +1,55 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/crazy-max/gonfig/env"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
+func TestRemovedEscapeRegexpMeta(t *testing.T) {
+	for _, source := range []string{"file", "env", "unset"} {
+		for _, value := range []string{"true", "false"} {
+			t.Run(source+"/"+value, func(t *testing.T) {
+				var output bytes.Buffer
+				previous := log.Logger
+				log.Logger = zerolog.New(&output)
+				t.Cleanup(func() { log.Logger = previous })
+				filename := "./fixtures/config.ftp.yml"
+				switch source {
+				case "file":
+					content, err := os.ReadFile(filename)
+					require.NoError(t, err)
+					content = bytes.Replace(content, []byte("  ftp:"), []byte("  ftp:\n    escapeRegexpMeta: "+value), 1)
+					filename = filepath.Join(t.TempDir(), "ftpgrab.yml")
+					// #nosec G703 -- The path is a test-owned temporary directory plus a fixed filename.
+					require.NoError(t, os.WriteFile(filename, content, 0o600))
+				case "env":
+					t.Setenv("FTPGRAB_SERVER_FTP_ESCAPEREGEXPMETA", value)
+				}
+				cfg, err := Load(Cli{Cfgfile: filename}, Meta{})
+				require.NoError(t, err)
+				if source == "unset" {
+					assert.Nil(t, cfg.Server.FTP.EscapeRegexpMeta)
+					assert.NotContains(t, output.String(), "was removed and is ignored")
+				} else {
+					require.NotNil(t, cfg.Server.FTP.EscapeRegexpMeta)
+					assert.Equal(t, value == "true", *cfg.Server.FTP.EscapeRegexpMeta)
+					assert.Contains(t, output.String(), "was removed and is ignored")
+				}
+			})
+		}
+	}
+}
 func TestLoadFile(t *testing.T) {
 	cases := []struct {
 		name     string
@@ -54,7 +92,6 @@ func TestLoadFile(t *testing.T) {
 						DisableUTF8:        new(false),
 						DisableEPSV:        new(false),
 						DisableMLSD:        new(false),
-						EscapeRegexpMeta:   new(false),
 						TLS:                new(false),
 						ExplicitTLS:        new(false),
 						InsecureSkipVerify: new(false),
@@ -159,7 +196,6 @@ func TestLoadEnv(t *testing.T) {
 						DisableUTF8:        new(false),
 						DisableEPSV:        new(false),
 						DisableMLSD:        new(false),
-						EscapeRegexpMeta:   new(false),
 						TLS:                new(false),
 						ExplicitTLS:        new(false),
 						InsecureSkipVerify: new(false),
@@ -333,7 +369,6 @@ func TestLoadMixed(t *testing.T) {
 						DisableUTF8:        new(false),
 						DisableEPSV:        new(false),
 						DisableMLSD:        new(false),
-						EscapeRegexpMeta:   new(false),
 						TLS:                new(false),
 						ExplicitTLS:        new(false),
 						InsecureSkipVerify: new(false),

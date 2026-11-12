@@ -1,12 +1,16 @@
 package ftp
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"io"
 	"net"
+	"net/textproto"
+	"strings"
 	"testing"
 	"time"
 
@@ -268,7 +272,6 @@ func TestReadDirDecodesEntryNames(t *testing.T) {
 		},
 	}
 	client := &Client{
-		cfg:     &config.ServerFTP{EscapeRegexpMeta: new(false)},
 		ftp:     conn,
 		pathenc: pathenc,
 	}
@@ -279,6 +282,83 @@ func TestReadDirDecodesEntryNames(t *testing.T) {
 	assert.Equal(t, "/\xcf\xf0\xee\xe5\xea\xf2\xfb", conn.listPath)
 	assert.Equal(t, "Инструкция_по_заливке+договор", entries[0].Name())
 	assert.True(t, entries[0].IsDir())
+}
+
+func TestReadDirLiteralPaths(t *testing.T) {
+	for _, mlsd := range []bool{true, false} {
+		for _, escape := range []bool{true, false} {
+			t.Run(fmt.Sprintf("mlsd=%v/escape=%v", mlsd, escape), func(t *testing.T) {
+				conn := newListingTestServer(t, listingServerOptions{mlsd: mlsd})
+				client := &Client{
+					cfg: &config.ServerFTP{EscapeRegexpMeta: new(escape)},
+					ftp: serverConn{ServerConn: conn},
+				}
+				// Repeat with a relative source to check that CWD is restored.
+				for _, dir := range []string{"/complete/Game.v1 [Collection]/café", "complete/Game.v1 [Collection]/café"} {
+					entries, err := client.ReadDir(dir)
+					require.NoError(t, err)
+					require.Len(t, entries, 1)
+					assert.Equal(t, "résumé.txt", entries[0].Name())
+					cwd, err := conn.CurrentDir()
+					require.NoError(t, err)
+					assert.Equal(t, "/", cwd)
+				}
+			})
+		}
+	}
+}
+
+func TestReadDirRestoresDirectoryAfterListingFailure(t *testing.T) {
+	conn := newListingTestServer(t, listingServerOptions{mlsd: true, failList: true})
+	client := &Client{
+		ftp: serverConn{ServerConn: conn},
+	}
+	_, err := client.ReadDir("/complete/Game.v1 [Collection]/café")
+	require.Equal(t, &textproto.Error{Code: 550, Msg: "Listing failed"}, err)
+	cwd, err := conn.CurrentDir()
+	require.NoError(t, err)
+	assert.Equal(t, "/", cwd)
+}
+
+func TestReadDirRestoresQuotedDirectory(t *testing.T) {
+	conn := newListingTestServer(t, listingServerOptions{mlsd: true, home: `/home/a""b`})
+	client := &Client{ftp: serverConn{ServerConn: conn}}
+	for range 2 {
+		_, err := client.ReadDir("complete/Game.v1 [Collection]/café")
+		require.NoError(t, err)
+	}
+}
+
+func TestReadDirReconnectsAfterRestoreFailure(t *testing.T) {
+	for _, failList := range []bool{false, true} {
+		t.Run(fmt.Sprintf("failList=%v", failList), func(t *testing.T) {
+			conn := newListingTestServer(t, listingServerOptions{
+				mlsd:        true,
+				failList:    failList,
+				failRestore: true,
+			})
+			next := &stubFTPConn{}
+			client := &Client{
+				ftp: serverConn{ServerConn: conn},
+				dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
+					return next, nil
+				},
+			}
+			_, err := client.ReadDir("complete/Game.v1 [Collection]/café")
+			require.ErrorIs(t, err, errRestoreDir)
+			if failList {
+				var replyErr *textproto.Error
+				require.ErrorAs(t, err, &replyErr)
+				assert.Equal(t, 550, replyErr.Code)
+				assert.Equal(t, "Listing failed", replyErr.Msg)
+			}
+			require.Nil(t, client.ftp)
+			_, err = client.ReadDir("complete/other")
+			require.NoError(t, err)
+			assert.Equal(t, next, client.ftp)
+			assert.Equal(t, "complete/other", next.listPath)
+		})
+	}
 }
 
 func TestRetrieveEncodesPath(t *testing.T) {
@@ -308,7 +388,6 @@ func TestReadDirReconnectsAfterTimeout(t *testing.T) {
 
 	dialCalls := 0
 	client := &Client{
-		cfg: &config.ServerFTP{EscapeRegexpMeta: new(false)},
 		ftp: firstConn,
 		dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
 			dialCalls++
@@ -339,7 +418,6 @@ func TestReadDirDoesNotRetryReconnectAfterFailedReconnect(t *testing.T) {
 
 	dialCalls := 0
 	client := &Client{
-		cfg: &config.ServerFTP{EscapeRegexpMeta: new(false)},
 		ftp: firstConn,
 		dial: func(_ string, _ ...ftplib.DialOption) (ftpConn, error) {
 			dialCalls++
@@ -361,7 +439,6 @@ func TestReadDirDoesNotRetryReconnectAfterFailedReconnect(t *testing.T) {
 func TestReadDirKeepsConnectionAfterNonTimeoutError(t *testing.T) {
 	conn := &stubFTPConn{listErr: errors.New("permission denied")}
 	client := &Client{
-		cfg: &config.ServerFTP{EscapeRegexpMeta: new(false)},
 		ftp: conn,
 	}
 
@@ -409,6 +486,114 @@ func TestRetrieveReconnectsAfterTimeoutClose(t *testing.T) {
 	assert.Equal(t, "fresh", secondDest.String())
 	assert.Equal(t, 1, dialCalls)
 	assert.Equal(t, secondConn, client.ftp)
+}
+
+type listingServerOptions struct {
+	mlsd        bool
+	failList    bool
+	failRestore bool
+	home        string
+}
+
+// Exercise the real FTP library so tests cover the commands sent on the wire.
+func newListingTestServer(t *testing.T, opts listingServerOptions) *ftplib.ServerConn {
+	t.Helper()
+	if opts.home == "" {
+		opts.home = "/"
+	}
+	listener, err := (&net.ListenConfig{}).Listen(t.Context(), "tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = listener.Close() })
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		control, err := listener.Accept()
+		if err != nil {
+			return
+		}
+		defer control.Close()
+		_ = control.SetDeadline(time.Now().Add(10 * time.Second))
+		var data net.Listener
+		defer func() {
+			if data != nil {
+				_ = data.Close()
+			}
+		}()
+		cwd := opts.home
+		fmt.Fprint(control, "220 Test server\r\n")
+		scanner := bufio.NewScanner(control)
+		for scanner.Scan() {
+			command, argument, _ := strings.Cut(scanner.Text(), " ")
+			switch command {
+			case "USER":
+				fmt.Fprint(control, "230 Logged in\r\n")
+			case "FEAT":
+				if opts.mlsd {
+					fmt.Fprint(control, "211-Features\r\n MLST type*;size*;modify*;\r\n211 End\r\n")
+				} else {
+					fmt.Fprint(control, "211 No features\r\n")
+				}
+			case "TYPE":
+				fmt.Fprint(control, "200 OK\r\n")
+			case "PWD":
+				fmt.Fprintf(control, "257 \"%s\"\r\n", strings.ReplaceAll(cwd, `"`, `""`))
+			case "CWD":
+				if argument == opts.home {
+					if opts.failRestore {
+						fmt.Fprint(control, "550 Restore failed\r\n")
+						continue
+					}
+					cwd = opts.home
+				} else if (argument == "/complete/Game.v1 [Collection]/café" || argument == "complete/Game.v1 [Collection]/café") && cwd == opts.home {
+					cwd = "/complete/Game.v1 [Collection]/café"
+				} else {
+					fmt.Fprint(control, "550 Invalid directory\r\n")
+					continue
+				}
+				fmt.Fprint(control, "250 Directory changed\r\n")
+			case "EPSV":
+				data, err = (&net.ListenConfig{}).Listen(t.Context(), "tcp", "127.0.0.1:0")
+				if err != nil {
+					t.Error(err)
+					return
+				}
+				fmt.Fprintf(control, "229 Entering Extended Passive Mode (|||%d|)\r\n", data.Addr().(*net.TCPAddr).Port)
+			case "MLSD", "LIST":
+				if argument != "" || cwd != "/complete/Game.v1 [Collection]/café" || opts.failList {
+					fmt.Fprint(control, "550 Listing failed\r\n")
+					_ = data.Close()
+					continue
+				}
+				fmt.Fprint(control, "150 Opening data connection\r\n")
+				transfer, err := data.Accept()
+				if err != nil {
+					t.Error(err)
+					return
+				}
+				if command == "MLSD" {
+					fmt.Fprint(transfer, "type=file;size=7;modify=20261112130000; résumé.txt\r\n")
+				} else {
+					fmt.Fprint(transfer, "-rw-r--r-- 1 ftp ftp 7 Nov 12 2026 résumé.txt\r\n")
+				}
+				_ = transfer.Close()
+				_ = data.Close()
+				fmt.Fprint(control, "226 Complete\r\n")
+			case "QUIT":
+				fmt.Fprint(control, "221 Bye\r\n")
+				return
+			default:
+				fmt.Fprint(control, "500 Unsupported command\r\n")
+			}
+		}
+	}()
+	conn, err := ftplib.Dial(listener.Addr().String(), ftplib.DialWithTimeout(5*time.Second))
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = conn.Quit()
+		<-done
+	})
+	require.NoError(t, conn.Login("test", "test"))
+	return conn
 }
 
 func mustEncodeWindows1251(t *testing.T, value string) string {

@@ -57,6 +57,9 @@ func Load(cli Cli, meta Meta) (*Config, error) {
 		log.Info().Msgf("Configuration loaded from %d environment variables", len(envLoader.GetVars()))
 	}
 
+	if cfg.Server != nil && cfg.Server.FTP != nil && cfg.Server.FTP.EscapeRegexpMeta != nil {
+		log.Warn().Msg("ftp.escapeRegexpMeta (FTPGRAB_SERVER_FTP_ESCAPEREGEXPMETA) was removed and is ignored; remove it from your configuration. FTP directory paths are now always treated literally")
+	}
 	if err := cfg.validate(); err != nil {
 		return nil, err
 	}
