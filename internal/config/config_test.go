@@ -158,6 +158,7 @@ func TestLoadFile(t *testing.T) {
 					},
 					Slack: &NotifSlack{
 						WebhookURL: "https://hooks.slack.com/services/ABCD12EFG/HIJK34LMN/01234567890abcdefghij",
+						Timeout:    new(10 * time.Second),
 					},
 					Webhook: &NotifWebhook{
 						Endpoint: "http://webhook.foo.com/sd54qad89azd5a",
@@ -471,6 +472,7 @@ func TestLoadMixed(t *testing.T) {
 				Notif: &Notif{
 					Slack: &NotifSlack{
 						WebhookURL: "https://hooks.slack.com/services/ABCD12EFG/HIJK34LMN/01234567890abcdefghij",
+						Timeout:    new(10 * time.Second),
 					},
 				},
 			},
@@ -549,6 +551,53 @@ func TestValidation(t *testing.T) {
 			for _, value := range dec {
 				fmt.Printf(`%s=%s\n`, value.Name, value.Default)
 			}
+		})
+	}
+}
+
+func TestSlackDeliveryConfig(t *testing.T) {
+	tests := []struct {
+		name      string
+		timeout   string
+		want      time.Duration
+		wantError bool
+	}{
+		{
+			name: "default timeout",
+			want: 10 * time.Second,
+		},
+		{
+			name:    "configured timeout",
+			timeout: "2s",
+			want:    2 * time.Second,
+		},
+		{
+			name:      "zero timeout",
+			timeout:   "0s",
+			wantError: true,
+		},
+		{
+			name:      "negative timeout",
+			timeout:   "-1s",
+			wantError: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Cleanup(UnsetEnv("FTPGRAB_"))
+			t.Setenv("FTPGRAB_NOTIF_SLACK_WEBHOOKURL", "https://example.com/slack")
+			t.Setenv("FTPGRAB_NOTIF_SLACK_PROXY", "http://localhost:3128")
+			if tt.timeout != "" {
+				t.Setenv("FTPGRAB_NOTIF_SLACK_TIMEOUT", tt.timeout)
+			}
+			cfg, err := Load(Cli{Cfgfile: "./fixtures/config.ftp.yml"}, Meta{})
+			if tt.wantError {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, *cfg.Notif.Slack.Timeout)
+			assert.Equal(t, "http://localhost:3128", cfg.Notif.Slack.Proxy)
 		})
 	}
 }

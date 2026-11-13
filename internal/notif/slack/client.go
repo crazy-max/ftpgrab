@@ -3,17 +3,22 @@ package slack
 import (
 	"bytes"
 	"encoding/json"
+	stderrors "errors"
 	"fmt"
 	"html/template"
 	"strconv"
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
+	"github.com/crazy-max/ftpgrab/v7/internal/httputil"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/notifier"
 	"github.com/hako/durafmt"
 	"github.com/nlopes/slack"
+	"github.com/pkg/errors"
 )
+
+const slackMaxRateLimitAttempts = 3
 
 // Client represents an active slack notification object
 type Client struct {
@@ -62,7 +67,7 @@ func (c *Client) Send(jnl journal.Journal) error {
 		color = "#fbca04"
 	}
 
-	return slack.PostWebhook(c.cfg.WebhookURL, &slack.WebhookMessage{
+	payload := &slack.WebhookMessage{
 		Attachments: []slack.Attachment{{
 			Color:         color,
 			AuthorName:    c.meta.Name,
@@ -85,5 +90,26 @@ func (c *Client) Send(jnl journal.Journal) error {
 			},
 			Ts: json.Number(strconv.FormatInt(time.Now().Unix(), 10)),
 		}},
-	})
+	}
+
+	hc, err := httputil.NewClient(c.cfg.Proxy)
+	if err != nil {
+		return errors.Wrap(err, "cannot create HTTP client for Slack notifier")
+	}
+	defer hc.CloseIdleConnections()
+	hc.Timeout = *c.cfg.Timeout
+	for attempt := 1; attempt <= slackMaxRateLimitAttempts; attempt++ {
+		err = slack.PostWebhookCustomHTTP(c.cfg.WebhookURL, &hc, payload)
+		if err == nil {
+			return nil
+		}
+
+		rateLimitErr, ok := stderrors.AsType[*slack.RateLimitedError](err)
+		if !ok || attempt == slackMaxRateLimitAttempts {
+			return err
+		}
+
+		time.Sleep(rateLimitErr.RetryAfter)
+	}
+	return nil
 }
