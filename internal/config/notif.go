@@ -3,6 +3,7 @@ package config
 // Notif holds data necessary for notification configuration
 type Notif struct {
 	Discord *NotifDiscord `yaml:"discord,omitempty" json:"discord,omitempty"`
+	Gotify  *NotifGotify  `yaml:"gotify,omitempty" json:"gotify,omitempty"`
 	Mail    *NotifMail    `yaml:"mail,omitempty" json:"mail,omitempty"`
 	Ntfy    *NotifNtfy    `yaml:"ntfy,omitempty" json:"ntfy,omitempty"`
 	Script  *NotifScript  `yaml:"script,omitempty" json:"script,omitempty"`
