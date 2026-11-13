@@ -156,6 +156,13 @@ func TestLoadFile(t *testing.T) {
 						From:               "ftpgrab@example.com",
 						To:                 "webmaster@example.com",
 					},
+					Ntfy: &NotifNtfy{
+						Endpoint: "https://ntfy.sh",
+						Topic:    "ftpgrab-reports",
+						Priority: 3,
+						Tags:     []string{"package"},
+						Timeout:  new(10 * time.Second),
+					},
 					Script: &NotifScript{
 						Cmd: "uname",
 						Args: []string{
@@ -696,6 +703,87 @@ func TestDiscordConfig(t *testing.T) {
 				assert.True(t, *discord.RenderFields)
 				assert.Equal(t, 10*time.Second, *discord.Timeout)
 			}
+		})
+	}
+}
+
+func TestNtfyConfig(t *testing.T) {
+	filename := filepath.Join(t.TempDir(), "token")
+	require.NoError(t, os.WriteFile(filename, []byte("secret-token"), 0o600))
+	tests := []struct {
+		name      string
+		environ   map[string]string
+		wantError string
+	}{
+		{
+			name: "custom options",
+			environ: map[string]string{
+				"ENDPOINT":  "https://ntfy.example.com",
+				"TOKEN":     "inline-token",
+				"TOKENFILE": filename,
+				"TOPIC":     "custom-reports",
+				"PRIORITY":  "5",
+				"TAGS":      "warning,package",
+				"ICON":      "https://example.com/icon.png",
+				"CLICK":     "https://example.com/reports",
+				"TIMEOUT":   "2s",
+				"PROXY":     "http://localhost:3128",
+			},
+		},
+		{
+			name: "missing topic",
+			environ: map[string]string{
+				"TOPIC": "",
+			},
+			wantError: "Topic",
+		},
+		{
+			name: "invalid priority",
+			environ: map[string]string{
+				"PRIORITY": "6",
+			},
+			wantError: "Priority",
+		},
+		{
+			name: "zero timeout",
+			environ: map[string]string{
+				"TIMEOUT": "0s",
+			},
+			wantError: "Timeout",
+		},
+		{
+			name: "missing token file",
+			environ: map[string]string{
+				"TOKENFILE": filename + ".missing",
+			},
+			wantError: "TokenFile",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Cleanup(UnsetEnv("FTPGRAB_"))
+			t.Setenv("FTPGRAB_NOTIF_NTFY_TOPIC", "reports")
+			for key, value := range tt.environ {
+				t.Setenv("FTPGRAB_NOTIF_NTFY_"+key, value)
+			}
+			cfg, err := Load(Cli{Cfgfile: "./fixtures/config.ftp.yml"}, Meta{})
+			if tt.wantError != "" {
+				require.ErrorContains(t, err, tt.wantError)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, &NotifNtfy{
+				Endpoint:  "https://ntfy.example.com",
+				Token:     "inline-token",
+				TokenFile: filename,
+				Topic:     "custom-reports",
+				Priority:  5,
+				Tags:      []string{"warning", "package"},
+				Icon:      "https://example.com/icon.png",
+				Click:     "https://example.com/reports",
+				Timeout:   new(2 * time.Second),
+				Proxy:     "http://localhost:3128",
+			}, cfg.Notif.Ntfy)
 		})
 	}
 }

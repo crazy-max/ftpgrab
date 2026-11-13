@@ -183,6 +183,7 @@ Can be transposed to:
 * notif
     * [discord](notif/discord.md)
     * [mail](notif/mail.md)
+    * [ntfy](notif/ntfy.md)
     * [script](notif/script.md)
     * [slack](notif/slack.md)
     * [webhook](notif/webhook.md)
