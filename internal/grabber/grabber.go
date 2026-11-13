@@ -6,6 +6,8 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
@@ -81,13 +83,90 @@ func (c *Client) Grab(files []File) journal.Journal {
 	jnl := journal.New()
 	jnl.ServerHost = c.server.Common().Host
 
-	for _, file := range files {
-		if entry := c.download(file, 0); entry != nil {
+	if c.config.Concurrency <= 1 || len(files) < 2 {
+		for _, file := range files {
+			if entry := c.download(file, 0); entry != nil {
+				jnl.Add(*entry)
+			}
+		}
+		return jnl.Journal
+	}
+
+	groups := c.downloadGroups(files)
+
+	entries := make([]*journal.Entry, len(files))
+	jobs := make(chan []int)
+	var workers sync.WaitGroup
+	for range min(c.config.Concurrency, len(groups)) {
+		workers.Go(func() {
+			for group := range jobs {
+				for _, i := range group {
+					entries[i] = c.download(files[i], 0)
+				}
+			}
+		})
+	}
+	for _, group := range groups {
+		jobs <- group
+	}
+	close(jobs)
+	workers.Wait()
+
+	// Assemble the journal after all workers finish to preserve input order.
+	for _, entry := range entries {
+		if entry != nil {
 			jnl.Add(*entry)
 		}
 	}
 
 	return jnl.Journal
+}
+
+// downloadGroups keeps files sharing a destination or history key in input order.
+// A file can connect two groups, so merge their roots before assembling jobs.
+func (c *Client) downloadGroups(files []File) [][]int {
+	parents := make([]int, len(files))
+	for i := range parents {
+		parents[i] = i
+	}
+	root := func(i int) int {
+		for parents[i] != i {
+			parents[i] = parents[parents[i]]
+			i = parents[i]
+		}
+		return i
+	}
+
+	previous := make(map[string]int)
+	for i, file := range files {
+		// Conservatively serialize case variants, including on case-insensitive
+		// filesystems mounted on Unix. Temporary paths follow destination paths.
+		keys := []string{"dest:" + strings.ToLower(filepath.Join(file.DestDir, file.Info.Name()))}
+		if c.db.Enabled() {
+			keys = append(keys, "history:"+strings.TrimPrefix(path.Join(file.SrcDir, file.Info.Name()), file.Base))
+		}
+		for _, key := range keys {
+			if prev, ok := previous[key]; ok {
+				parents[root(prev)] = i
+			}
+			previous[key] = i
+		}
+	}
+
+	var groups [][]int
+	indices := make(map[int]int)
+	for i := range files {
+		r := root(i)
+		group, ok := indices[r]
+		if !ok {
+			group = len(groups)
+			indices[r] = group
+			groups = append(groups, nil)
+		}
+		groups[group] = append(groups[group], i)
+	}
+
+	return groups
 }
 
 func (c *Client) download(file File, retry int) *journal.Entry {
@@ -144,8 +223,7 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 		return entry
 	}
 
-	err = c.server.Retrieve(srcpath, destfile)
-	if err != nil {
+	if err := c.server.Retrieve(srcpath, destfile); err != nil {
 		if cleanupErr := c.closeAndRemoveTempFile(destfile); cleanupErr != nil {
 			sublogger.Warn().Err(cleanupErr).Str("path", destfile.Name()).Msg("Cannot clean destination file after download failure")
 		}

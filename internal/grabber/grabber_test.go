@@ -2,10 +2,13 @@ package grabber
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"path"
 	"path/filepath"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -13,9 +16,242 @@ import (
 	"github.com/crazy-max/ftpgrab/v7/internal/db"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
 	"github.com/crazy-max/ftpgrab/v7/internal/server"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestGrabConcurrency(t *testing.T) {
+	for _, tc := range []struct {
+		name        string
+		concurrency int
+		wantWorkers int
+	}{
+		{
+			name:        "sequential default",
+			concurrency: 1,
+			wantWorkers: 1,
+		},
+		{
+			name:        "parallel",
+			concurrency: 3,
+			wantWorkers: 3,
+		},
+		{
+			name:        "bounded by files",
+			concurrency: 20,
+			wantWorkers: 6,
+		},
+	} {
+		for _, tempFirst := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/tempFirst=%t", tc.name, tempFirst), func(t *testing.T) {
+				cfg := tempFirstDownloadConfig(t.TempDir(), tempFirst)
+				cfg.Concurrency = tc.concurrency
+				dbCli, err := db.New(&config.Db{Path: filepath.Join(t.TempDir(), "history.db")})
+				require.NoError(t, err)
+				gate := make(chan struct{})
+				var release sync.Once
+				started := make(chan struct{}, 32)
+				var active, closed atomic.Int32
+				newSession := func() *server.Client {
+					var attempts sync.Map
+					return &server.Client{Handler: &stubServerHandler{
+						common: config.ServerCommon{Host: "ftp.example.com"},
+						retrieve: func(src string, dest io.Writer) error {
+							assert.LessOrEqual(t, active.Add(1), int32(tc.wantWorkers))
+							defer active.Add(-1)
+							started <- struct{}{}
+							<-gate
+							_, retried := attempts.LoadOrStore(src, true)
+							if path.Base(src) == "file-4" || (path.Base(src) == "file-1" && !retried) {
+								return errors.New("transfer failed")
+							}
+							_, err := io.WriteString(dest, "data")
+							return err
+						},
+						close: func() error {
+							assert.Zero(t, active.Load(), "client closed during transfer")
+							closed.Add(1)
+							return nil
+						},
+					}}
+				}
+				client := &Client{
+					config: cfg,
+					db:     dbCli,
+					server: newSession(),
+				}
+				if tempFirst {
+					require.NoError(t, client.initTempDir())
+				}
+				t.Cleanup(client.Close)
+				t.Cleanup(func() { release.Do(func() { close(gate) }) })
+				var files []File
+				for i := range 6 {
+					files = append(files, File{
+						Base:    "/source",
+						SrcDir:  "/source",
+						DestDir: cfg.Output,
+						Info:    stubFileInfo{name: fmt.Sprintf("file-%d", i), size: 4, modTime: time.Now().Add(-time.Hour)},
+					})
+				}
+				result := make(chan journal.Journal, 1)
+				go func() { result <- client.Grab(files) }()
+				for range tc.wantWorkers {
+					select {
+					case <-started:
+					case <-time.After(5 * time.Second):
+						t.Fatal("workers did not start overlapping transfers")
+					}
+				}
+				release.Do(func() { close(gate) })
+				var got journal.Journal
+				select {
+				case got = <-result:
+				case <-time.After(5 * time.Second):
+					t.Fatal("downloads did not finish")
+				}
+				assert.Zero(t, closed.Load(), "Grab must leave the server client open")
+				assert.Equal(t, "ftp.example.com", got.ServerHost)
+				assert.Equal(t, 5, got.Count.Success)
+				assert.Equal(t, 1, got.Count.Error)
+				require.Len(t, got.Entries, len(files))
+				for i, file := range files {
+					assert.Equal(t, path.Join(file.SrcDir, file.Info.Name()), got.Entries[i].File)
+					if i == 4 {
+						assert.False(t, dbCli.HasDigest(file.Base, file.SrcDir, file.Info))
+						continue
+					}
+					data, err := os.ReadFile(filepath.Join(file.DestDir, file.Info.Name()))
+					require.NoError(t, err)
+					assert.Equal(t, "data", string(data))
+					assert.True(t, dbCli.HasDigest(file.Base, file.SrcDir, file.Info))
+				}
+				if tempFirst {
+					var remaining []string
+					require.NoError(t, filepath.WalkDir(client.tempdirRun, func(name string, entry os.DirEntry, err error) error {
+						if err == nil && !entry.IsDir() {
+							remaining = append(remaining, name)
+						}
+						return err
+					}))
+					assert.Empty(t, remaining)
+				}
+			})
+		}
+	}
+}
+
+func TestGrabHistoryConflicts(t *testing.T) {
+	for _, transitive := range []bool{false, true} {
+		t.Run(fmt.Sprintf("transitive=%t", transitive), func(t *testing.T) {
+			cfg := tempFirstDownloadConfig(t.TempDir(), true)
+			cfg.Concurrency = 3
+			dbCli, err := db.New(&config.Db{Path: filepath.Join(t.TempDir(), "history.db")})
+			require.NoError(t, err)
+			var sources []string
+			client := &Client{
+				config: cfg,
+				db:     dbCli,
+				server: &server.Client{Handler: &stubServerHandler{
+					retrieve: func(src string, dest io.Writer) error {
+						sources = append(sources, src)
+						_, err := io.WriteString(dest, "payload")
+						return err
+					},
+				}},
+			}
+			require.NoError(t, client.initTempDir())
+			t.Cleanup(client.Close)
+			var files []File
+			for i, src := range []string{"/a", "/b", "/c"} {
+				file := File{
+					Base:    src,
+					SrcDir:  src,
+					DestDir: filepath.Join(cfg.Output, src),
+					Info:    stubFileInfo{name: "file", size: 7, modTime: time.Now()},
+				}
+				if transitive {
+					file.Base = "/"
+					switch i {
+					case 1:
+						file.DestDir = files[0].DestDir
+					case 2:
+						file.SrcDir = files[1].SrcDir
+					}
+				}
+				files = append(files, file)
+			}
+			got := client.Grab(files)
+			assert.Equal(t, []string{"/a/file"}, sources)
+			assert.Equal(t, 1, got.Count.Success)
+			assert.Equal(t, 2, got.Count.Skip)
+			require.Len(t, got.Entries, 3)
+			if transitive {
+				assert.Equal(t, journal.EntryStatusAlreadyDl, got.Entries[1].Status)
+			} else {
+				assert.Equal(t, journal.EntryStatusDigestExists, got.Entries[1].Status)
+			}
+			assert.Equal(t, journal.EntryStatusDigestExists, got.Entries[2].Status)
+			require.NoFileExists(t, filepath.Join(files[2].DestDir, "file"))
+		})
+	}
+}
+
+func TestGrabDestinationConflicts(t *testing.T) {
+	for _, tempFirst := range []bool{false, true} {
+		for _, hideSkipped := range []bool{false, true} {
+			t.Run(fmt.Sprintf("tempFirst=%t/hideSkipped=%t", tempFirst, hideSkipped), func(t *testing.T) {
+				cfg := tempFirstDownloadConfig(t.TempDir(), tempFirst)
+				cfg.Concurrency = 4
+				cfg.HideSkipped = new(hideSkipped)
+				dbCli, err := db.New(nil)
+				require.NoError(t, err)
+				var sources []string
+				handler := &stubServerHandler{
+					retrieve: func(src string, dest io.Writer) error {
+						sources = append(sources, src)
+						_, err := io.WriteString(dest, src)
+						return err
+					},
+				}
+				client := &Client{
+					config: cfg,
+					db:     dbCli,
+					server: &server.Client{Handler: handler},
+				}
+				if tempFirst {
+					require.NoError(t, client.initTempDir())
+				}
+				t.Cleanup(client.Close)
+				var files []File
+				for _, src := range []string{"/a", "/b", "/c"} {
+					files = append(files, File{
+						Base:    src,
+						SrcDir:  src,
+						DestDir: cfg.Output,
+						Info:    stubFileInfo{name: "file", size: int64(len(src + "/file")), modTime: time.Now()},
+					})
+				}
+				// Later sources have the same size and must see the first download.
+				got := client.Grab(files)
+				assert.Equal(t, []string{"/a/file"}, sources)
+				assert.Equal(t, 1, got.Count.Success)
+				if hideSkipped {
+					assert.Len(t, got.Entries, 1)
+					assert.Zero(t, got.Count.Skip)
+				} else {
+					require.Len(t, got.Entries, 3)
+					assert.Equal(t, journal.EntryStatusAlreadyDl, got.Entries[2].Status)
+					assert.Equal(t, 2, got.Count.Skip)
+				}
+				data, err := os.ReadFile(filepath.Join(cfg.Output, "file"))
+				require.NoError(t, err)
+				assert.Equal(t, "/a/file", string(data))
+			})
+		}
+	}
+}
 
 func TestCreateDownloadFileUsesSessionTempDirectory(t *testing.T) {
 	destdir := t.TempDir()
@@ -235,8 +471,10 @@ func tempFirstClient(output string) *Client {
 }
 
 type stubServerHandler struct {
-	common  config.ServerCommon
-	entries map[string][]os.FileInfo
+	common   config.ServerCommon
+	entries  map[string][]os.FileInfo
+	retrieve func(string, io.Writer) error
+	close    func() error
 }
 
 func (h *stubServerHandler) Common() config.ServerCommon {
@@ -247,11 +485,17 @@ func (h *stubServerHandler) ReadDir(source string) ([]os.FileInfo, error) {
 	return h.entries[source], nil
 }
 
-func (*stubServerHandler) Retrieve(string, io.Writer) error {
+func (h *stubServerHandler) Retrieve(src string, dest io.Writer) error {
+	if h.retrieve != nil {
+		return h.retrieve(src, dest)
+	}
 	return nil
 }
 
-func (*stubServerHandler) Close() error {
+func (h *stubServerHandler) Close() error {
+	if h.close != nil {
+		return h.close()
+	}
 	return nil
 }
 

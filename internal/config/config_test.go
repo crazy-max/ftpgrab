@@ -16,6 +16,62 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestDownloadConcurrency(t *testing.T) {
+	for _, protocol := range []string{"ftp", "sftp"} {
+		for _, source := range []string{"file", "env"} {
+			for _, tc := range []struct {
+				name    string
+				value   string
+				want    int
+				wantErr bool
+			}{
+				{
+					name: "default",
+					want: 1,
+				},
+				{
+					name:  "parallel",
+					value: "4",
+					want:  4,
+				},
+				{
+					name:    "zero",
+					value:   "0",
+					wantErr: true,
+				},
+				{
+					name:    "negative",
+					value:   "-1",
+					wantErr: true,
+				},
+			} {
+				t.Run(protocol+"/"+source+"/"+tc.name, func(t *testing.T) {
+					filename := "./fixtures/config." + protocol + ".yml"
+					if tc.value != "" {
+						if source == "env" {
+							t.Setenv("FTPGRAB_DOWNLOAD_CONCURRENCY", tc.value)
+						} else {
+							content, err := os.ReadFile(filename)
+							require.NoError(t, err)
+							content = bytes.Replace(content, []byte("download:"), []byte("download:\n  concurrency: "+tc.value), 1)
+							filename = filepath.Join(t.TempDir(), "ftpgrab.yml")
+							// #nosec G703 -- The path is a test-owned temporary directory plus a fixed filename.
+							require.NoError(t, os.WriteFile(filename, content, 0o600))
+						}
+					}
+					cfg, err := Load(Cli{Cfgfile: filename}, Meta{})
+					if tc.wantErr {
+						require.ErrorContains(t, err, "Concurrency")
+						return
+					}
+					require.NoError(t, err)
+					assert.Equal(t, tc.want, cfg.Download.Concurrency)
+				})
+			}
+		}
+	}
+}
+
 func TestRemovedEscapeRegexpMeta(t *testing.T) {
 	for _, source := range []string{"file", "env", "unset"} {
 		for _, value := range []string{"true", "false"} {
@@ -137,6 +193,7 @@ func TestLoadFile(t *testing.T) {
 					Since:         "2019-02-01T18:50:05Z",
 					SinceTime:     time.Date(2019, 2, 1, 18, 50, 05, 0, time.UTC),
 					Retry:         3,
+					Concurrency:   1,
 					HideSkipped:   new(false),
 					TempFirst:     new(false),
 					CreateBaseDir: new(false),
@@ -265,6 +322,7 @@ func TestLoadEnv(t *testing.T) {
 					ChmodFile:     0o644,
 					ChmodDir:      0o755,
 					Retry:         3,
+					Concurrency:   1,
 					HideSkipped:   new(false),
 					TempFirst:     new(false),
 					CreateBaseDir: new(false),
@@ -304,6 +362,7 @@ func TestLoadEnv(t *testing.T) {
 					ChmodFile:     0o644,
 					ChmodDir:      0o755,
 					Retry:         3,
+					Concurrency:   1,
 					HideSkipped:   new(false),
 					TempFirst:     new(false),
 					CreateBaseDir: new(false),
@@ -438,6 +497,7 @@ func TestLoadMixed(t *testing.T) {
 					ChmodFile:     0o644,
 					ChmodDir:      0o755,
 					Retry:         3,
+					Concurrency:   1,
 					HideSkipped:   new(false),
 					TempFirst:     new(false),
 					CreateBaseDir: new(false),
@@ -490,6 +550,7 @@ func TestLoadMixed(t *testing.T) {
 					ChmodFile:     0o644,
 					ChmodDir:      0o755,
 					Retry:         3,
+					Concurrency:   1,
 					HideSkipped:   new(true),
 					TempFirst:     new(false),
 					CreateBaseDir: new(false),

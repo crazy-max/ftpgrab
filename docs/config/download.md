@@ -14,6 +14,7 @@
         - \.nfo$
       since: 2019-02-01T18:50:05Z
       retry: 3
+      concurrency: 1
       hideSkipped: false
       tempFirst: false
       createBaseDir: false
@@ -140,6 +141,29 @@ Number of retries in case of download failure. (default: `3`)
 
 !!! abstract "Environment variables"
     * `FTPGRAB_DOWNLOAD_RETRY`
+
+## `concurrency`
+
+Maximum number of simultaneous file downloads. (default: `1`, minimum: `1`)
+Concurrent FTP transfers use separate sessions, opened lazily and reused within
+the run. SFTP workers share one SSH/SFTP connection. The number of workers is
+limited to the number of independent groups of files. Directory listing remains
+sequential. Files sharing a destination or database history key are processed
+in their original order by one worker. Destination paths differing only in case
+are also grouped together for filesystem compatibility.
+
+Choose a value within the server's per-user connection limit. If an additional
+FTP session cannot be opened, FTPGrab logs a warning and continues with fewer
+workers.
+
+!!! example "Config file"
+    ```yaml
+    download:
+      concurrency: 4
+    ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_DOWNLOAD_CONCURRENCY`
 
 ## `hideSkipped`
 

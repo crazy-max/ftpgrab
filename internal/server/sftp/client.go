@@ -2,6 +2,7 @@ package sftp
 
 import (
 	"context"
+	stderrors "errors"
 	"io"
 	"net"
 	"os"
@@ -176,13 +177,11 @@ func (c *Client) Retrieve(path string, dest io.Writer) error {
 
 // Close closes sftp connection
 func (c *Client) Close() error {
-	if err := c.ssh.Close(); err != nil {
-		return err
+	err := c.sftp.Close()
+	if err == io.EOF {
+		err = nil
 	}
-	if err := c.sftp.Close(); err != nil && err != io.EOF {
-		return err
-	}
-	return nil
+	return stderrors.Join(err, c.ssh.Close())
 }
 
 func dialSSH(network, addr string, config *ssh.ClientConfig) (*ssh.Client, error) {
