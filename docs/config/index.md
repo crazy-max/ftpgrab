@@ -182,6 +182,7 @@ Can be transposed to:
 * [download](download.md)
 * notif
     * [discord](notif/discord.md)
+    * [gotify](notif/gotify.md)
     * [mail](notif/mail.md)
     * [ntfy](notif/ntfy.md)
     * [script](notif/script.md)

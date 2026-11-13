@@ -29,6 +29,9 @@ download:
 notif:
   discord:
     webhookURL: https://discord.com/api/webhooks/1234567890/token
+  gotify:
+    endpoint: https://gotify.example.com
+    token: gotify-token
   mail:
     host: localhost
     port: 25

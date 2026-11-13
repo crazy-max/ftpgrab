@@ -148,6 +148,12 @@ func TestLoadFile(t *testing.T) {
 						RenderFields: new(true),
 						Timeout:      new(10 * time.Second),
 					},
+					Gotify: &NotifGotify{
+						Endpoint: "https://gotify.example.com",
+						Token:    "gotify-token",
+						Priority: 1,
+						Timeout:  new(10 * time.Second),
+					},
 					Mail: &NotifMail{
 						Host:               "localhost",
 						Port:               25,
@@ -784,6 +790,102 @@ func TestNtfyConfig(t *testing.T) {
 				Timeout:   new(2 * time.Second),
 				Proxy:     "http://localhost:3128",
 			}, cfg.Notif.Ntfy)
+		})
+	}
+}
+
+func TestGotifyConfig(t *testing.T) {
+	filename := filepath.Join(t.TempDir(), "token")
+	require.NoError(t, os.WriteFile(filename, []byte("gotify-token"), 0o600))
+	tests := []struct {
+		name      string
+		environ   map[string]string
+		wantError string
+	}{
+		{
+			name: "defaults",
+		},
+		{
+			name: "custom options",
+			environ: map[string]string{
+				"PRIORITY": "5",
+				"TIMEOUT":  "2s",
+				"PROXY":    "http://localhost:3128",
+			},
+		},
+		{
+			name: "secret file",
+			environ: map[string]string{
+				"TOKEN":     "",
+				"TOKENFILE": filename,
+			},
+		},
+		{
+			name: "missing endpoint",
+			environ: map[string]string{
+				"ENDPOINT": "",
+			},
+			wantError: "Endpoint",
+		},
+		{
+			name: "missing token",
+			environ: map[string]string{
+				"TOKEN": "",
+			},
+			wantError: "Token",
+		},
+		{
+			name: "negative priority",
+			environ: map[string]string{
+				"PRIORITY": "-1",
+			},
+			wantError: "Priority",
+		},
+		{
+			name: "zero timeout",
+			environ: map[string]string{
+				"TIMEOUT": "0s",
+			},
+			wantError: "Timeout",
+		},
+		{
+			name: "missing secret file",
+			environ: map[string]string{
+				"TOKENFILE": filename + ".missing",
+			},
+			wantError: "TokenFile",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Cleanup(UnsetEnv("FTPGRAB_"))
+			t.Setenv("FTPGRAB_NOTIF_GOTIFY_ENDPOINT", "https://gotify.example.com")
+			t.Setenv("FTPGRAB_NOTIF_GOTIFY_TOKEN", "gotify-token")
+			for key, value := range tt.environ {
+				t.Setenv("FTPGRAB_NOTIF_GOTIFY_"+key, value)
+			}
+			cfg, err := Load(Cli{Cfgfile: "./fixtures/config.ftp.yml"}, Meta{})
+			if tt.wantError != "" {
+				require.ErrorContains(t, err, tt.wantError)
+				return
+			}
+			require.NoError(t, err)
+			gotify := cfg.Notif.Gotify
+			assert.Equal(t, "https://gotify.example.com", gotify.Endpoint)
+			if tt.name == "secret file" {
+				assert.Empty(t, gotify.Token)
+				assert.Equal(t, filename, gotify.TokenFile)
+			} else {
+				assert.Equal(t, "gotify-token", gotify.Token)
+			}
+			if tt.name == "custom options" {
+				assert.Equal(t, 5, gotify.Priority)
+				assert.Equal(t, 2*time.Second, *gotify.Timeout)
+				assert.Equal(t, "http://localhost:3128", gotify.Proxy)
+			} else {
+				assert.Equal(t, 1, gotify.Priority)
+				assert.Equal(t, 10*time.Second, *gotify.Timeout)
+			}
 		})
 	}
 }

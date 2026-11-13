@@ -120,6 +120,7 @@ nav:
     - .download: config/download.md
     - .notif:
       - .discord: config/notif/discord.md
+      - .gotify: config/notif/gotify.md
       - .mail: config/notif/mail.md
       - .ntfy: config/notif/ntfy.md
       - .script: config/notif/script.md

@@ -19,6 +19,7 @@ func TestNew(t *testing.T) {
 
 	client, err = New(&config.Notif{
 		Discord: &config.NotifDiscord{},
+		Gotify:  &config.NotifGotify{},
 		Mail:    &config.NotifMail{},
 		Ntfy:    &config.NotifNtfy{},
 		Script:  &config.NotifScript{},
@@ -26,13 +27,14 @@ func TestNew(t *testing.T) {
 		Webhook: &config.NotifWebhook{Timeout: new(time.Duration)},
 	}, config.Meta{})
 	require.NoError(t, err)
-	require.Len(t, client.notifiers, 6)
+	require.Len(t, client.notifiers, 7)
 	assert.Equal(t, "discord", client.notifiers[0].Name())
-	assert.Equal(t, "mail", client.notifiers[1].Name())
-	assert.Equal(t, "ntfy", client.notifiers[2].Name())
-	assert.Equal(t, "script", client.notifiers[3].Name())
-	assert.Equal(t, "slack", client.notifiers[4].Name())
-	assert.Equal(t, "webhook", client.notifiers[5].Name())
+	assert.Equal(t, "gotify", client.notifiers[1].Name())
+	assert.Equal(t, "mail", client.notifiers[2].Name())
+	assert.Equal(t, "ntfy", client.notifiers[3].Name())
+	assert.Equal(t, "script", client.notifiers[4].Name())
+	assert.Equal(t, "slack", client.notifiers[5].Name())
+	assert.Equal(t, "webhook", client.notifiers[6].Name())
 }
 
 func TestSend(t *testing.T) {
