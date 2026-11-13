@@ -974,6 +974,66 @@ func TestAppriseConfig(t *testing.T) {
 	}
 }
 
+func TestHTTPNotifierTLSConfig(t *testing.T) {
+	files := []string{
+		filepath.Join(t.TempDir(), "first.pem"),
+		filepath.Join(t.TempDir(), "second.pem"),
+	}
+	for _, filename := range files {
+		require.NoError(t, os.WriteFile(filename, nil, 0o600))
+	}
+	for _, provider := range []string{"apprise", "discord", "gotify", "ntfy", "slack", "webhook"} {
+		for _, source := range []string{"file", "env", "missing"} {
+			t.Run(provider+"/"+source, func(t *testing.T) {
+				t.Cleanup(UnsetEnv("FTPGRAB_"))
+				filename := "./fixtures/config.test.yml"
+				if source == "file" {
+					content, err := os.ReadFile(filename)
+					require.NoError(t, err)
+					anchor := "  " + provider + ":"
+					replacement := fmt.Sprintf("%s\n    tlsSkipVerify: true\n    tlsCaCertFiles:\n      - %q\n      - %q", anchor, files[0], files[1])
+					content = bytes.Replace(content, []byte(anchor), []byte(replacement), 1)
+					filename = filepath.Join(t.TempDir(), "ftpgrab.yml")
+					// #nosec G703 -- The file is a test-owned temporary configuration.
+					require.NoError(t, os.WriteFile(filename, content, 0o600))
+				} else {
+					prefix := "FTPGRAB_NOTIF_" + strings.ToUpper(provider)
+					t.Setenv(prefix+"_TLSSKIPVERIFY", "true")
+					value := strings.Join(files, ",")
+					if source == "missing" {
+						value += ".missing"
+					}
+					t.Setenv(prefix+"_TLSCACERTFILES", value)
+				}
+				cfg, err := Load(Cli{Cfgfile: filename}, Meta{})
+				if source == "missing" {
+					require.ErrorContains(t, err, "TLSCACertFiles")
+					return
+				}
+				require.NoError(t, err)
+				var skipVerify bool
+				var caFiles []string
+				switch provider {
+				case "apprise":
+					skipVerify, caFiles = cfg.Notif.Apprise.TLSSkipVerify, cfg.Notif.Apprise.TLSCACertFiles
+				case "discord":
+					skipVerify, caFiles = cfg.Notif.Discord.TLSSkipVerify, cfg.Notif.Discord.TLSCACertFiles
+				case "gotify":
+					skipVerify, caFiles = cfg.Notif.Gotify.TLSSkipVerify, cfg.Notif.Gotify.TLSCACertFiles
+				case "ntfy":
+					skipVerify, caFiles = cfg.Notif.Ntfy.TLSSkipVerify, cfg.Notif.Ntfy.TLSCACertFiles
+				case "slack":
+					skipVerify, caFiles = cfg.Notif.Slack.TLSSkipVerify, cfg.Notif.Slack.TLSCACertFiles
+				case "webhook":
+					skipVerify, caFiles = cfg.Notif.Webhook.TLSSkipVerify, cfg.Notif.Webhook.TLSCACertFiles
+				}
+				assert.True(t, skipVerify)
+				assert.Equal(t, files, caFiles)
+			})
+		}
+	}
+}
+
 func UnsetEnv(prefix string) (restore func()) {
 	before := map[string]string{}
 

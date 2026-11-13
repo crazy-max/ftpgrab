@@ -19,12 +19,16 @@ You can send notifications to your Slack channel using an [incoming webhook URL]
     * `FTPGRAB_NOTIF_SLACK_WEBHOOKURL`
     * `FTPGRAB_NOTIF_SLACK_TIMEOUT`
     * `FTPGRAB_NOTIF_SLACK_PROXY`
+    * `FTPGRAB_NOTIF_SLACK_TLSSKIPVERIFY`
+    * `FTPGRAB_NOTIF_SLACK_TLSCACERTFILES` (comma separated)
 
 | Name             | Default | Description                                                            |
-|------------------|---------|------------------------------------------------------------------------|
+| ---------------- | ------- | ---------------------------------------------------------------------- |
 | `webhookURL`[^1] |         | Slack [incoming webhook URL](https://api.slack.com/messaging/webhooks) |
 | `timeout`        | `10s`   | Timeout for each HTTP request                                          |
 | `proxy`          |         | Explicit proxy URL                                                     |
+| `tlsSkipVerify`  | `false` | Skip TLS certificate verification                                      |
+| `tlsCaCertFiles` |         | Custom CA PEM files (replace system roots)                             |
 
 ## Sample
 

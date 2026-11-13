@@ -23,13 +23,17 @@ Send notifications using an Apprise API instance.
     * `FTPGRAB_NOTIF_APPRISE_URLS` (comma separated)
     * `FTPGRAB_NOTIF_APPRISE_TIMEOUT`
     * `FTPGRAB_NOTIF_APPRISE_PROXY`
+    * `FTPGRAB_NOTIF_APPRISE_TLSSKIPVERIFY`
+    * `FTPGRAB_NOTIF_APPRISE_TLSCACERTFILES` (comma separated)
 
-| Name        | Default | Description                            |
-| ----------- | ------- | -------------------------------------- |
-| `endpoint`  |         | Apprise API base URL (required)        |
-| `token`     |         | Config key for saved destinations      |
-| `tokenFile` |         | Secret file used when `token` is unset |
-| `tags`      |         | Tags selecting saved destinations      |
-| `urls`      |         | Direct notification URLs               |
-| `timeout`   | `10s`   | Timeout for the HTTP request           |
-| `proxy`     |         | HTTP proxy URL to use for requests     |
+| Name             | Default | Description                                |
+| ---------------- | ------- | ------------------------------------------ |
+| `endpoint`       |         | Apprise API base URL (required)            |
+| `token`          |         | Config key for saved destinations          |
+| `tokenFile`      |         | Secret file used when `token` is unset     |
+| `tags`           |         | Tags selecting saved destinations          |
+| `urls`           |         | Direct notification URLs                   |
+| `timeout`        | `10s`   | Timeout for the HTTP request               |
+| `proxy`          |         | HTTP proxy URL to use for requests         |
+| `tlsSkipVerify`  | `false` | Skip TLS certificate verification          |
+| `tlsCaCertFiles` |         | Custom CA PEM files (replace system roots) |

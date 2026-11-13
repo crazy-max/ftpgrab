@@ -11,6 +11,8 @@ type NotifDiscord struct {
 	RenderFields   *bool          `yaml:"renderFields,omitempty" json:"renderFields,omitempty" validate:"required"`
 	Timeout        *time.Duration `yaml:"timeout,omitempty" json:"timeout,omitempty" validate:"required,gt=0"`
 	Proxy          string         `yaml:"proxy,omitempty" json:"proxy,omitempty" validate:"omitempty,url"`
+	TLSSkipVerify  bool           `yaml:"tlsSkipVerify,omitempty" json:"tlsSkipVerify,omitempty"`
+	TLSCACertFiles []string       `yaml:"tlsCaCertFiles,omitempty" json:"tlsCaCertFiles,omitempty" validate:"omitempty,dive,file"`
 }
 
 // GetDefaults gets the default values.
