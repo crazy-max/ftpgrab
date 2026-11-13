@@ -1,5 +1,42 @@
 # Changelog
 
+## 7.14.0 (2026/11/14)
+
+:warning: See **Migration notes** in the documentation for breaking changes.
+
+* Add concurrent FTP and SFTP downloads with `download.concurrency` by @crazy-max in #624
+* Add `download.force` to download files on every run by @crazy-max in #625
+* Add Discord notifications by @crazy-max in #615
+* Add ntfy notifications by @crazy-max in #617
+* Add Gotify notifications by @crazy-max in #618
+* Add Apprise notifications by @crazy-max in #619
+* Verify SFTP server host keys against `known_hosts` by @crazy-max in #612
+* Fix FTP directory listings for paths with special characters by @crazy-max in #584
+* Start reconnected FTP sessions with a plaintext control connection before TLS negotiation by @com6056 @crazy-max in #582 #585
+* Recover broken FTP sessions and retry directory listings by @com6056 @crazy-max in #583 #586
+* Fix Slack delivery with rate-limit retries and request timeouts by @crazy-max in #613
+* Support Slack webhook URLs from secret files by @crazy-max in #622
+* Reject HTTP errors and support proxies for webhook notifications by @crazy-max in #614
+* Add TLS configuration for HTTP notifications by @crazy-max in #620
+* Migrate SMTP delivery to `wneessen/go-mail` by @crazy-max in #616
+* Support custom SMTP HELO names and multiple mail recipients by @crazy-max in #621
+* Add `freebsd/arm64` artifacts and `linux/riscv64` and `linux/s390x` images by @crazy-max in #603 #604
+* Drop `386` artifacts and images and `linux/arm/v5` artifacts by @crazy-max in #603 #604
+* Go 1.27 by @crazy-max in #601
+* Alpine Linux 3.24 by @crazy-max in #600
+* Bump github.com/alecthomas/kong to 1.17.0 in #598
+* Bump github.com/crazy-max/gonfig to 0.10.0 in #607 #626
+* Bump github.com/jlaffaye/ftp to 0.2.4 by @crazy-max in #587
+* Bump github.com/go-playground/validator/v10 to 10.30.6 in #592
+* Bump github.com/pkg/sftp to 1.13.12 in #599
+* Bump github.com/rs/zerolog to 1.35.1 in #517
+* Bump go.etcd.io/bbolt to 1.5.0 in #546
+* Bump golang.org/x/crypto to 0.59.0 in #590 #627
+* Bump golang.org/x/sys to 0.50.0 in #595
+* Bump golang.org/x/text to 0.44.0 in #593
+
+**Full Changelog**: [`v7.13.0...v7.14.0`](https://github.com/crazy-max/ftpgrab/compare/v7.13.0...v7.14.0)
+
 ## 7.13.1 (2026/10/24)
 
 This release is built with Go 1.26.10 to address [CVE-2026-111943](https://go.dev/issue/82345).
