@@ -3,6 +3,12 @@
 ARG ALPINE_VERSION="3.24"
 
 FROM alpine:${ALPINE_VERSION} AS fixtures
+RUN apk add --no-cache openssh-keygen && \
+    mkdir /ssh && \
+    ssh-keygen -q -t ed25519 -N '' -f /ssh/ssh_host_ed25519_key && \
+    ssh-keygen -q -t ecdsa -N '' -f /ssh/ssh_host_ecdsa_key && \
+    awk '{print "sftp,[sftpgo]:2022 " $1 " " $2}' \
+      /ssh/ssh_host_ed25519_key.pub > /ssh/known_hosts
 RUN <<EOT
 #!/bin/sh
 set -eu

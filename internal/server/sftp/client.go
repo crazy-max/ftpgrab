@@ -2,10 +2,12 @@ package sftp
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net"
 	"os"
+	"path/filepath"
+	"slices"
+	"strconv"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/secret"
@@ -13,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/pkg/sftp"
 	"github.com/rs/zerolog/log"
+	"github.com/skeema/knownhosts"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -58,15 +61,28 @@ func New(config *config.ServerSFTP) (*server.Client, error) {
 		log.Warn().Err(err).Msg("Cannot retrieve username secret for sftp server")
 	}
 
+	knownHosts, err := loadKnownHosts(config.KnownHostsFile)
+	if err != nil {
+		return nil, errors.Wrap(err, "Cannot configure SFTP host key verification")
+	}
+
+	addr := net.JoinHostPort(config.Host, strconv.Itoa(config.Port))
 	sshConf = &ssh.ClientConfig{
-		User:            username,
-		Auth:            sshAuth,
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), //nolint:gosec // Host key verification is not configurable yet, preserve current behavior.
-		Timeout:         *config.Timeout,
+		User:              username,
+		Auth:              sshAuth,
+		HostKeyCallback:   knownHosts.HostKeyCallback(),
+		HostKeyAlgorithms: knownHosts.HostKeyAlgorithms(addr),
+		Timeout:           *config.Timeout,
+	}
+	// Prefer trusted key types while allowing a CA to sign other host key types.
+	for _, algo := range ssh.SupportedAlgorithms().HostKeys {
+		if !slices.Contains(sshConf.HostKeyAlgorithms, algo) {
+			sshConf.HostKeyAlgorithms = append(sshConf.HostKeyAlgorithms, algo)
+		}
 	}
 
 	sshConf.SetDefaults()
-	client.ssh, err = dialSSH("tcp", fmt.Sprintf("%s:%d", config.Host, config.Port), sshConf)
+	client.ssh, err = dialSSH("tcp", addr, sshConf)
 	if err != nil {
 		return nil, errors.Wrap(err, "Cannot open ssh connection")
 	}
@@ -77,6 +93,21 @@ func New(config *config.ServerSFTP) (*server.Client, error) {
 	}
 
 	return &server.Client{Handler: client}, err
+}
+
+func loadKnownHosts(filename string) (*knownhosts.HostKeyDB, error) {
+	if filename == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return nil, errors.Wrap(err, "resolve user home directory for known_hosts; configure knownHostsFile explicitly")
+		}
+		filename = filepath.Join(home, ".ssh", "known_hosts")
+	}
+	db, err := knownhosts.NewDB(filename)
+	if err != nil {
+		return nil, errors.Wrapf(err, "load known hosts file %q; configure knownHostsFile with trusted server keys", filename)
+	}
+	return db, nil
 }
 
 func (c *Client) openSFTP() error {

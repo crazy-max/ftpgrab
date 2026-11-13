@@ -52,6 +52,7 @@ FROM scratch AS test-coverage
 COPY --from=test /tmp/coverage.txt /coverage.txt
 
 FROM test-base AS integration
+COPY --from=fixtures /ssh/known_hosts /etc/ftpgrab/known_hosts
 COPY --from=build /usr/bin/ftpgrab /usr/local/bin/ftpgrab
 COPY . .
 RUN mkdir /coverage

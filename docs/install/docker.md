@@ -4,10 +4,10 @@
 
 FTPGrab provides automatically updated Docker :whale: images within several registries:
 
-| Registry                                                                                         | Image                           |
-|--------------------------------------------------------------------------------------------------|---------------------------------|
-| [Docker Hub](https://hub.docker.com/r/crazymax/ftpgrab/)                             | `crazymax/ftpgrab`                 |
-| [GitHub Container Registry](https://github.com/users/crazy-max/packages/container/package/ftpgrab)  | `ghcr.io/crazy-max/ftpgrab`        |
+| Registry                                                                                           | Image                       |
+|----------------------------------------------------------------------------------------------------|-----------------------------|
+| [Docker Hub](https://hub.docker.com/r/crazymax/ftpgrab/)                                           | `crazymax/ftpgrab`          |
+| [GitHub Container Registry](https://github.com/users/crazy-max/packages/container/package/ftpgrab) | `ghcr.io/crazy-max/ftpgrab` |
 
 It is possible to always use the latest stable tag or to use another service that handles updating Docker images.
 
@@ -36,10 +36,10 @@ is out of scope of this documentation. To install `docker-compose` itself, follo
 
 ## Volumes
 
-| Path               | Description   |
-|--------------------|---------------|
-| `/db`              | Folder containing bbolt database file |
-| `/download`        | Downloaded files folder |
+| Path        | Description                           |
+|-------------|---------------------------------------|
+| `/db`       | Folder containing bbolt database file |
+| `/download` | Downloaded files folder               |
 
 ## Usage
 

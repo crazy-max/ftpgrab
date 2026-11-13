@@ -50,6 +50,36 @@ func TestRemovedEscapeRegexpMeta(t *testing.T) {
 		}
 	}
 }
+func TestLoadSFTPKnownHostsFile(t *testing.T) {
+	for _, source := range []string{"file", "env", "missing"} {
+		t.Run(source, func(t *testing.T) {
+			knownHostsFile := filepath.Join(t.TempDir(), "known_hosts")
+			if source != "missing" {
+				require.NoError(t, os.WriteFile(knownHostsFile, nil, 0o600))
+			}
+			filename := "./fixtures/config.sftp.yml"
+			if source == "file" {
+				content, err := os.ReadFile(filename)
+				require.NoError(t, err)
+				// Quoting with %q also escapes Windows path separators for YAML.
+				content = bytes.Replace(content, []byte("  sftp:"), []byte(fmt.Sprintf("  sftp:\n    knownHostsFile: %q", knownHostsFile)), 1)
+				filename = filepath.Join(t.TempDir(), "ftpgrab.yml")
+				// #nosec G703 -- The path is a test-owned temporary directory plus a fixed filename.
+				require.NoError(t, os.WriteFile(filename, content, 0o600))
+			} else {
+				t.Setenv("FTPGRAB_SERVER_SFTP_KNOWNHOSTSFILE", knownHostsFile)
+			}
+			cfg, err := Load(Cli{Cfgfile: filename}, Meta{})
+			if source == "missing" {
+				require.ErrorContains(t, err, "KnownHostsFile")
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, knownHostsFile, cfg.Server.SFTP.KnownHostsFile)
+		})
+	}
+}
+
 func TestLoadFile(t *testing.T) {
 	cases := []struct {
 		name     string
