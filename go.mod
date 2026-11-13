@@ -4,7 +4,7 @@ go 1.27.0
 
 require (
 	github.com/alecthomas/kong v1.17.0
-	github.com/crazy-max/gonfig v0.9.0
+	github.com/crazy-max/gonfig v0.10.0
 	github.com/docker/go-units v0.5.0
 	github.com/go-playground/validator/v10 v10.30.6
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
@@ -52,7 +52,7 @@ require (
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	github.com/vanng822/css v0.0.0-20190504095207-a21e860bcd04 // indirect
 	github.com/vanng822/go-premailer v0.0.0-20191214114701-be27abe028fe // indirect
-	go.yaml.in/yaml/v3 v3.0.5 // indirect
+	go.yaml.in/yaml/v3 v3.0.6 // indirect
 	golang.org/x/net v0.60.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
