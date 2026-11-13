@@ -162,6 +162,7 @@ func TestLoadFile(t *testing.T) {
 					},
 					Webhook: &NotifWebhook{
 						Endpoint: "http://webhook.foo.com/sd54qad89azd5a",
+						Proxy:    "http://proxy.example.com:3128",
 						Method:   "GET",
 						Headers: map[string]string{
 							"content-type":  "application/json",
@@ -600,6 +601,14 @@ func TestSlackDeliveryConfig(t *testing.T) {
 			assert.Equal(t, "http://localhost:3128", cfg.Notif.Slack.Proxy)
 		})
 	}
+}
+
+func TestWebhookProxyConfig(t *testing.T) {
+	t.Cleanup(UnsetEnv("FTPGRAB_"))
+	t.Setenv("FTPGRAB_NOTIF_WEBHOOK_PROXY", "http://localhost:3128")
+	cfg, err := Load(Cli{Cfgfile: "./fixtures/config.test.yml"}, Meta{})
+	require.NoError(t, err)
+	assert.Equal(t, "http://localhost:3128", cfg.Notif.Webhook.Proxy)
 }
 
 func UnsetEnv(prefix string) (restore func()) {

@@ -21,6 +21,7 @@ You can send webhook notifications with the following settings.
     * `FTPGRAB_NOTIF_WEBHOOK_METHOD`
     * `FTPGRAB_NOTIF_WEBHOOK_HEADERS_<KEY>`
     * `FTPGRAB_NOTIF_WEBHOOK_TIMEOUT`
+    * `FTPGRAB_NOTIF_WEBHOOK_PROXY`
 
 | Name               | Default       | Description   |
 |--------------------|---------------|---------------|
@@ -28,6 +29,7 @@ You can send webhook notifications with the following settings.
 | `method`[^1]       | `GET`         | HTTP method |
 | `headers`          |               | Map of additional headers to be sent (key is case insensitive) |
 | `timeout`          | `10s`         | Timeout specifies a time limit for the request to be made |
+| `proxy`            |               | HTTP proxy URL to use for requests |
 
 ## Sample
 

@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -92,4 +93,92 @@ func TestTimeout(t *testing.T) {
 	err := client.Send(journal.Journal{})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "context deadline exceeded")
+}
+
+func TestResponseStatus(t *testing.T) {
+	tests := []struct {
+		name      string
+		status    int
+		wantError bool
+	}{
+		{
+			name:   "OK",
+			status: http.StatusOK,
+		},
+		{
+			name:   "created",
+			status: http.StatusCreated,
+		},
+		{
+			name:   "no content",
+			status: http.StatusNoContent,
+		},
+		{
+			name:      "redirect without location",
+			status:    http.StatusFound,
+			wantError: true,
+		},
+		{
+			name:      "bad request",
+			status:    http.StatusBadRequest,
+			wantError: true,
+		},
+		{
+			name:      "rate limited",
+			status:    http.StatusTooManyRequests,
+			wantError: true,
+		},
+		{
+			name:      "server error",
+			status:    http.StatusInternalServerError,
+			wantError: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tt.status)
+				if tt.status != http.StatusNoContent {
+					_, _ = w.Write([]byte("response details"))
+				}
+			}))
+			t.Cleanup(srv.Close)
+			cfg := (&config.NotifWebhook{}).GetDefaults()
+			cfg.Endpoint = srv.URL
+			err := (&Client{cfg: cfg}).Send(journal.Journal{})
+			if tt.wantError {
+				require.EqualError(t, err, fmt.Sprintf("unexpected HTTP status %d: response details", tt.status))
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestErrorResponseReadFailure(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Length", "100")
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte("truncated"))
+	}))
+	t.Cleanup(srv.Close)
+	cfg := (&config.NotifWebhook{}).GetDefaults()
+	cfg.Endpoint = srv.URL
+	err := (&Client{cfg: cfg}).Send(journal.Journal{})
+	require.ErrorContains(t, err, "cannot read Webhook error response")
+	assert.ErrorContains(t, err, "unexpected EOF")
+}
+
+func TestProxy(t *testing.T) {
+	var target string
+	proxy := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		target = r.URL.String()
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	t.Cleanup(proxy.Close)
+	cfg := (&config.NotifWebhook{}).GetDefaults()
+	cfg.Proxy = proxy.URL
+	cfg.Endpoint = "http://example.invalid/report"
+	require.NoError(t, (&Client{cfg: cfg}).Send(journal.Journal{}))
+	assert.Equal(t, cfg.Endpoint, target)
 }
