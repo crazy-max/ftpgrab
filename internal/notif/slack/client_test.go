@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -58,6 +60,61 @@ func TestSend(t *testing.T) {
 	require.Len(t, attachment.Fields, 2)
 	assert.Equal(t, "ftp.example.com", attachment.Fields[0].Value)
 	assert.Equal(t, "destination", attachment.Fields[1].Value)
+}
+
+func TestWebhookURLFile(t *testing.T) {
+	tests := []struct {
+		name      string
+		inline    bool
+		missing   bool
+		wantPath  string
+		wantError bool
+	}{
+		{
+			name:     "file URL",
+			wantPath: "/file",
+		},
+		{
+			name:     "inline takes precedence",
+			inline:   true,
+			wantPath: "/inline",
+		},
+		{
+			name:      "unreadable file",
+			missing:   true,
+			wantError: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var target string
+			var requests atomic.Int32
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				target = r.URL.Path
+				requests.Add(1)
+				w.WriteHeader(http.StatusOK)
+			}))
+			t.Cleanup(srv.Close)
+			filename := filepath.Join(t.TempDir(), "webhook_url")
+			if !tt.missing {
+				require.NoError(t, os.WriteFile(filename, []byte(srv.URL+"/file"), 0o600))
+			}
+			cfg := (&config.NotifSlack{}).GetDefaults()
+			cfg.WebhookURLFile = filename
+			if tt.inline {
+				cfg.WebhookURL = srv.URL + "/inline"
+			}
+			err := (&Client{cfg: cfg}).Send(journal.Journal{})
+			if tt.wantError {
+				require.ErrorContains(t, err, "cannot retrieve webhook URL for Slack notifier")
+				assert.EqualValues(t, 0, requests.Load())
+				return
+			}
+			require.NoError(t, err)
+			assert.EqualValues(t, 1, requests.Load())
+			assert.Equal(t, tt.wantPath, target)
+		})
+	}
 }
 
 func TestDeliveryResponses(t *testing.T) {

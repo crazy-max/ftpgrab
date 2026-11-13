@@ -1111,6 +1111,67 @@ func TestMailRecipientsEnvOverride(t *testing.T) {
 	assert.Equal(t, []string{"ops@example.com", "dev@example.com"}, cfg.Notif.Mail.To)
 }
 
+func TestSlackWebhookURLFile(t *testing.T) {
+	secretFile := filepath.Join(t.TempDir(), "webhook_url")
+	require.NoError(t, os.WriteFile(secretFile, []byte("https://example.com/slack"), 0o600))
+	tests := []struct {
+		name        string
+		webhookURL  string
+		webhookFile string
+		wantError   string
+	}{
+		{
+			name:       "inline URL",
+			webhookURL: "https://example.com/slack",
+		},
+		{
+			name:        "file URL",
+			webhookFile: secretFile,
+		},
+		{
+			name:        "both configured",
+			webhookURL:  "https://example.com/slack",
+			webhookFile: secretFile,
+		},
+		{
+			name:      "neither configured",
+			wantError: "WebhookURL",
+		},
+		{
+			name:        "missing file",
+			webhookFile: secretFile + ".missing",
+			wantError:   "WebhookURLFile",
+		},
+	}
+	for _, tt := range tests {
+		for _, source := range []string{"file", "env"} {
+			t.Run(tt.name+"/"+source, func(t *testing.T) {
+				t.Cleanup(UnsetEnv("FTPGRAB_"))
+				content, err := os.ReadFile("./fixtures/config.ftp.yml")
+				require.NoError(t, err)
+				content = append(content, []byte("\nnotif:\n  slack:\n    timeout: 10s\n")...)
+				if source == "file" {
+					content = append(content, []byte(fmt.Sprintf("    webhookURL: %q\n    webhookURLFile: %q\n", tt.webhookURL, tt.webhookFile))...)
+				} else {
+					t.Setenv("FTPGRAB_NOTIF_SLACK_WEBHOOKURL", tt.webhookURL)
+					t.Setenv("FTPGRAB_NOTIF_SLACK_WEBHOOKURLFILE", tt.webhookFile)
+				}
+				filename := filepath.Join(t.TempDir(), "ftpgrab.yml")
+				// #nosec G703 -- The file is a test-owned temporary configuration.
+				require.NoError(t, os.WriteFile(filename, content, 0o600))
+				cfg, err := Load(Cli{Cfgfile: filename}, Meta{})
+				if tt.wantError != "" {
+					require.ErrorContains(t, err, tt.wantError)
+					return
+				}
+				require.NoError(t, err)
+				assert.Equal(t, tt.webhookURL, cfg.Notif.Slack.WebhookURL)
+				assert.Equal(t, tt.webhookFile, cfg.Notif.Slack.WebhookURLFile)
+			})
+		}
+	}
+}
+
 func UnsetEnv(prefix string) (restore func()) {
 	before := map[string]string{}
 
