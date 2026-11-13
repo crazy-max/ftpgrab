@@ -12,7 +12,7 @@ import (
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
-	"github.com/nlopes/slack"
+	"github.com/slack-go/slack"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -168,7 +168,7 @@ func TestDeliveryResponses(t *testing.T) {
 			name:      "missing retry header",
 			status:    http.StatusTooManyRequests,
 			attempts:  1,
-			wantError: "invalid syntax",
+			wantError: "429 Too Many Requests",
 		},
 		{
 			name:       "invalid retry header",
