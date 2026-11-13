@@ -102,6 +102,9 @@ List of regular expressions to include files.
 
 List of regular expressions to exclude files.
 
+To skip incomplete uploads, see the
+[FAQ](../faq.md#how-can-i-avoid-downloading-incomplete-uploads).
+
 !!! example "Config file"
     ```yaml
     download:

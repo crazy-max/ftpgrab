@@ -39,6 +39,29 @@ returns a match that begins as early as possible in the input (leftmost) like Pe
 use. You can test your regular expression on [regex101.com](https://regex101.com/) and select Golang
 flavor. Check this [quick example](https://regex101.com/r/jITi0D/1).
 
+## How can I avoid downloading incomplete uploads?
+
+FTPGrab does not detect whether a remote file is still being written. Configure
+the uploader to use a temporary suffix, such as `.part` or `.writing`, while
+uploading a file, and rename it to its final name only after the upload completes.
+Exclude those temporary names with
+[`download.exclude`](config/download.md#exclude):
+
+```yaml
+download:
+  exclude:
+    - '\.(part|writing)$'
+```
+
+For example, `report.csv.part` is skipped. After the uploader finishes and renames
+it to `report.csv`, the file becomes eligible for download on the next run.
+
+This approach requires the uploader to follow the naming convention. An unchanged
+size or modification time over a short interval does not guarantee completion,
+since an upload may be paused. The [`tempFirst`](config/download.md#tempfirst)
+option only controls local temporary files; it does not check whether a remote
+upload has finished.
+
 ## How can I edit/remove some entries in the database?
 
 FTPGrab currently uses the embedded key/value database [bbolt](https://github.com/etcd-io/bbolt).
