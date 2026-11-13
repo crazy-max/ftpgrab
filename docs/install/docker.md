@@ -44,8 +44,6 @@ is out of scope of this documentation. To install `docker-compose` itself, follo
 ## Usage
 
 ```yaml
-version: "3.5"
-
 services:
   ftpgrab:
     image: crazymax/ftpgrab:latest
@@ -155,8 +153,6 @@ notif:
 And here is your docker composition:
 
 ```yaml
-version: "3.5"
-
 services:
   ftpgrab:
     image: crazymax/ftpgrab:latest
