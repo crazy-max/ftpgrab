@@ -3,6 +3,7 @@ package notif
 import (
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
+	"github.com/crazy-max/ftpgrab/v7/internal/notif/apprise"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/discord"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/gotify"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/mail"
@@ -35,6 +36,9 @@ func New(cfg *config.Notif, meta config.Meta) (*Client, error) {
 	}
 
 	// Add notifiers
+	if cfg.Apprise != nil {
+		c.notifiers = append(c.notifiers, apprise.New(cfg.Apprise, meta))
+	}
 	if cfg.Discord != nil {
 		c.notifiers = append(c.notifiers, discord.New(cfg.Discord, meta))
 	}
