@@ -283,5 +283,5 @@ func typedRawMap(m map[string]interface{}, k string) map[string]interface{} {
 }
 
 func isArrayKey(name string) bool {
-	return name[0] == '[' && name[len(name)-1] == ']'
+	return len(name) > 0 && name[0] == '[' && name[len(name)-1] == ']'
 }
