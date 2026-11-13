@@ -6,7 +6,6 @@ require (
 	github.com/alecthomas/kong v1.17.0
 	github.com/crazy-max/gonfig v0.9.0
 	github.com/docker/go-units v0.5.0
-	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
 	github.com/go-playground/validator/v10 v10.30.6
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/ilya1st/rotatewriter v0.0.0-20171126183947-3df0c1a3ed6d
@@ -19,6 +18,7 @@ require (
 	github.com/rs/zerolog v1.35.1
 	github.com/skeema/knownhosts v1.3.3
 	github.com/stretchr/testify v1.12.1
+	github.com/wneessen/go-mail v0.8.2
 	go.etcd.io/bbolt v1.5.0
 	golang.org/x/crypto v0.58.0
 	golang.org/x/sys v0.50.0
@@ -54,7 +54,5 @@ require (
 	github.com/vanng822/go-premailer v0.0.0-20191214114701-be27abe028fe // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/net v0.60.0 // indirect
-	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
-	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
