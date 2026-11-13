@@ -27,6 +27,9 @@ download:
   createBaseDir: false
 
 notif:
+  apprise:
+    endpoint: http://apprise:8000
+    token: ftpgrab
   discord:
     webhookURL: https://discord.com/api/webhooks/1234567890/token
   gotify:

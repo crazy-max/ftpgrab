@@ -142,6 +142,11 @@ func TestLoadFile(t *testing.T) {
 					CreateBaseDir: new(false),
 				},
 				Notif: &Notif{
+					Apprise: &NotifApprise{
+						Endpoint: "http://apprise:8000",
+						Token:    "ftpgrab",
+						Timeout:  new(10 * time.Second),
+					},
 					Discord: &NotifDiscord{
 						WebhookURL:   "https://discord.com/api/webhooks/1234567890/token",
 						RenderEmbeds: new(true),
@@ -885,6 +890,85 @@ func TestGotifyConfig(t *testing.T) {
 			} else {
 				assert.Equal(t, 1, gotify.Priority)
 				assert.Equal(t, 10*time.Second, *gotify.Timeout)
+			}
+		})
+	}
+}
+
+func TestAppriseConfig(t *testing.T) {
+	filename := filepath.Join(t.TempDir(), "token")
+	require.NoError(t, os.WriteFile(filename, []byte("ftpgrab-key"), 0o600))
+	tests := []struct {
+		name      string
+		environ   map[string]string
+		wantError string
+	}{
+		{
+			name: "defaults",
+		},
+		{
+			name: "custom options",
+			environ: map[string]string{ //nolint:gosec // The Apprise config key is a test fixture, not a credential.
+				"TOKEN":     "ftpgrab-key",
+				"TOKENFILE": filename,
+				"TAGS":      "reports,ops",
+				"URLS":      "mailto://ops@example.com,ntfy://ntfy.sh/reports",
+				"TIMEOUT":   "2s",
+				"PROXY":     "http://localhost:3128",
+			},
+		},
+		{
+			name: "secret file",
+			environ: map[string]string{
+				"TOKENFILE": filename,
+			},
+		},
+		{
+			name: "missing endpoint",
+			environ: map[string]string{
+				"ENDPOINT": "",
+			},
+			wantError: "Endpoint",
+		},
+		{
+			name: "zero timeout",
+			environ: map[string]string{
+				"TIMEOUT": "0s",
+			},
+			wantError: "Timeout",
+		},
+		{
+			name: "missing secret file",
+			environ: map[string]string{
+				"TOKENFILE": filename + ".missing",
+			},
+			wantError: "TokenFile",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Cleanup(UnsetEnv("FTPGRAB_"))
+			t.Setenv("FTPGRAB_NOTIF_APPRISE_ENDPOINT", "http://apprise:8000")
+			for key, value := range tt.environ {
+				t.Setenv("FTPGRAB_NOTIF_APPRISE_"+key, value)
+			}
+			cfg, err := Load(Cli{Cfgfile: "./fixtures/config.ftp.yml"}, Meta{})
+			if tt.wantError != "" {
+				require.ErrorContains(t, err, tt.wantError)
+				return
+			}
+			require.NoError(t, err)
+			apprise := cfg.Notif.Apprise
+			assert.Equal(t, "http://apprise:8000", apprise.Endpoint)
+			assert.Equal(t, tt.environ["TOKEN"], apprise.Token)
+			assert.Equal(t, tt.environ["TOKENFILE"], apprise.TokenFile)
+			assert.Equal(t, tt.environ["PROXY"], apprise.Proxy)
+			if tt.name == "custom options" {
+				assert.Equal(t, []string{"reports", "ops"}, apprise.Tags)
+				assert.Equal(t, []string{"mailto://ops@example.com", "ntfy://ntfy.sh/reports"}, apprise.URLs)
+				assert.Equal(t, 2*time.Second, *apprise.Timeout)
+			} else {
+				assert.Equal(t, 10*time.Second, *apprise.Timeout)
 			}
 		})
 	}
