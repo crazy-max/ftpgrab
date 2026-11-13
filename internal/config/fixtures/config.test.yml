@@ -27,6 +27,8 @@ download:
   createBaseDir: false
 
 notif:
+  discord:
+    webhookURL: https://discord.com/api/webhooks/1234567890/token
   mail:
     host: localhost
     port: 25

@@ -119,6 +119,7 @@ nav:
       - .sftp: config/server/sftp.md
     - .download: config/download.md
     - .notif:
+      - .discord: config/notif/discord.md
       - .mail: config/notif/mail.md
       - .script: config/notif/script.md
       - .slack: config/notif/slack.md
