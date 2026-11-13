@@ -165,7 +165,7 @@ func TestLoadFile(t *testing.T) {
 						SSL:                new(false),
 						InsecureSkipVerify: new(false),
 						From:               "ftpgrab@example.com",
-						To:                 "webmaster@example.com",
+						To:                 []string{"webmaster@example.com"},
 					},
 					Ntfy: &NotifNtfy{
 						Endpoint: "https://ntfy.sh",
@@ -449,7 +449,7 @@ func TestLoadMixed(t *testing.T) {
 						SSL:                new(false),
 						InsecureSkipVerify: new(true),
 						From:               "ftpgrab@foo.com",
-						To:                 "webmaster@foo.com",
+						To:                 []string{"webmaster@foo.com"},
 					},
 				},
 			},
@@ -1032,6 +1032,83 @@ func TestHTTPNotifierTLSConfig(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestMailRecipients(t *testing.T) {
+	tests := []struct {
+		name      string
+		yaml      string
+		env       string
+		want      []string
+		wantError bool
+	}{
+		{
+			name: "single address",
+			yaml: "ops@example.com",
+			env:  "ops@example.com",
+			want: []string{"ops@example.com"},
+		},
+		{
+			name: "multiple addresses",
+			yaml: "[ops@example.com, dev@example.com]",
+			env:  "ops@example.com, dev@example.com",
+			want: []string{"ops@example.com", "dev@example.com"},
+		},
+		{
+			name:      "empty recipients",
+			yaml:      "[]",
+			wantError: true,
+		},
+		{
+			name:      "invalid second address",
+			yaml:      "[ops@example.com, broken]",
+			env:       "ops@example.com,broken",
+			wantError: true,
+		},
+		{
+			name:      "empty second address",
+			yaml:      "[ops@example.com, '']",
+			env:       "ops@example.com,",
+			wantError: true,
+		},
+	}
+	for _, tt := range tests {
+		for _, source := range []string{"file", "env"} {
+			t.Run(tt.name+"/"+source, func(t *testing.T) {
+				t.Cleanup(UnsetEnv("FTPGRAB_"))
+				content, err := os.ReadFile("./fixtures/config.ftp.yml")
+				require.NoError(t, err)
+				content = append(content, []byte("\nnotif:\n  mail:\n    from: ftpgrab@example.com\n    localName: file.example.com\n")...)
+				localName := "file.example.com"
+				if source == "file" {
+					content = append(content, []byte("    to: "+tt.yaml+"\n")...)
+				} else {
+					t.Setenv("FTPGRAB_NOTIF_MAIL_TO", tt.env)
+					t.Setenv("FTPGRAB_NOTIF_MAIL_LOCALNAME", "env.example.com")
+					localName = "env.example.com"
+				}
+				filename := filepath.Join(t.TempDir(), "ftpgrab.yml")
+				// #nosec G703 -- The file is a test-owned temporary configuration.
+				require.NoError(t, os.WriteFile(filename, content, 0o600))
+				cfg, err := Load(Cli{Cfgfile: filename}, Meta{})
+				if tt.wantError {
+					require.ErrorContains(t, err, "To")
+					return
+				}
+				require.NoError(t, err)
+				assert.Equal(t, tt.want, cfg.Notif.Mail.To)
+				assert.Equal(t, localName, cfg.Notif.Mail.LocalName)
+			})
+		}
+	}
+}
+
+func TestMailRecipientsEnvOverride(t *testing.T) {
+	t.Cleanup(UnsetEnv("FTPGRAB_"))
+	t.Setenv("FTPGRAB_NOTIF_MAIL_TO", "ops@example.com,dev@example.com")
+	cfg, err := Load(Cli{Cfgfile: "./fixtures/config.test.yml"}, Meta{})
+	require.NoError(t, err)
+	assert.Equal(t, []string{"ops@example.com", "dev@example.com"}, cfg.Notif.Mail.To)
 }
 
 func UnsetEnv(prefix string) (restore func()) {

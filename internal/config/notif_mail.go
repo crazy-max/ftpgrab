@@ -2,16 +2,17 @@ package config
 
 // NotifMail holds mail notification configuration details
 type NotifMail struct {
-	Host               string `yaml:"host,omitempty" json:"host,omitempty" validate:"required"`
-	Port               int    `yaml:"port,omitempty" json:"port,omitempty" validate:"required,min=1"`
-	SSL                *bool  `yaml:"ssl,omitempty" json:"ssl,omitempty" validate:"required"`
-	InsecureSkipVerify *bool  `yaml:"insecureSkipVerify,omitempty" json:"insecureSkipVerify,omitempty" validate:"required"`
-	Username           string `yaml:"username,omitempty" json:"username,omitempty" validate:"omitempty"`
-	UsernameFile       string `yaml:"usernameFile,omitempty" json:"usernameFile,omitempty" validate:"omitempty,file"`
-	Password           string `yaml:"password,omitempty" json:"password,omitempty" validate:"omitempty"`
-	PasswordFile       string `yaml:"passwordFile,omitempty" json:"passwordFile,omitempty" validate:"omitempty,file"`
-	From               string `yaml:"from,omitempty" json:"from,omitempty" validate:"required,email"`
-	To                 string `yaml:"to,omitempty" json:"to,omitempty" validate:"required,email"`
+	Host               string   `yaml:"host,omitempty" json:"host,omitempty" validate:"required"`
+	Port               int      `yaml:"port,omitempty" json:"port,omitempty" validate:"required,min=1"`
+	SSL                *bool    `yaml:"ssl,omitempty" json:"ssl,omitempty" validate:"required"`
+	InsecureSkipVerify *bool    `yaml:"insecureSkipVerify,omitempty" json:"insecureSkipVerify,omitempty" validate:"required"`
+	LocalName          string   `yaml:"localName,omitempty" json:"localName,omitempty"`
+	Username           string   `yaml:"username,omitempty" json:"username,omitempty" validate:"omitempty"`
+	UsernameFile       string   `yaml:"usernameFile,omitempty" json:"usernameFile,omitempty" validate:"omitempty,file"`
+	Password           string   `yaml:"password,omitempty" json:"password,omitempty" validate:"omitempty"`
+	PasswordFile       string   `yaml:"passwordFile,omitempty" json:"passwordFile,omitempty" validate:"omitempty,file"`
+	From               string   `yaml:"from,omitempty" json:"from,omitempty" validate:"required,email"`
+	To                 []string `yaml:"to,omitempty" json:"to,omitempty" validate:"required,min=1,dive,email"`
 }
 
 // GetDefaults gets the default values
