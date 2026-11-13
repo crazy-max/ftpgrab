@@ -12,14 +12,19 @@ You can send notifications to your Slack channel using an [incoming webhook URL]
     notif:
       slack:
         webhookURL: https://hooks.slack.com/services/ABCD12EFG/HIJK34LMN/01234567890abcdefghij
+        timeout: 10s
     ```
 
 !!! abstract "Environment variables"
     * `FTPGRAB_NOTIF_SLACK_WEBHOOKURL`
+    * `FTPGRAB_NOTIF_SLACK_TIMEOUT`
+    * `FTPGRAB_NOTIF_SLACK_PROXY`
 
-| Name               | Default       | Description   |
-|--------------------|---------------|---------------|
-| `webhookURL`[^1]   |               | Slack [incoming webhook URL](https://api.slack.com/messaging/webhooks) |
+| Name             | Default | Description                                                            |
+|------------------|---------|------------------------------------------------------------------------|
+| `webhookURL`[^1] |         | Slack [incoming webhook URL](https://api.slack.com/messaging/webhooks) |
+| `timeout`        | `10s`   | Timeout for each HTTP request                                          |
+| `proxy`          |         | Explicit proxy URL                                                     |
 
 ## Sample
 
