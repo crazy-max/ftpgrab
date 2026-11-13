@@ -16,6 +16,49 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestDownloadForce(t *testing.T) {
+	for _, source := range []string{"file", "env"} {
+		for _, tc := range []struct {
+			name  string
+			value string
+			want  bool
+		}{
+			{
+				name: "default",
+			},
+			{
+				name:  "enabled",
+				value: "true",
+				want:  true,
+			},
+			{
+				name:  "disabled",
+				value: "false",
+			},
+		} {
+			t.Run(source+"/"+tc.name, func(t *testing.T) {
+				filename := "./fixtures/config.ftp.yml"
+				if tc.value != "" {
+					if source == "env" {
+						t.Setenv("FTPGRAB_DOWNLOAD_FORCE", tc.value)
+					} else {
+						content, err := os.ReadFile(filename)
+						require.NoError(t, err)
+						content = bytes.Replace(content, []byte("download:"), []byte("download:\n  force: "+tc.value), 1)
+						filename = filepath.Join(t.TempDir(), "ftpgrab.yml")
+						// #nosec G703 -- The path is a test-owned temporary directory plus a fixed filename.
+						require.NoError(t, os.WriteFile(filename, content, 0o600))
+					}
+				}
+				cfg, err := Load(Cli{Cfgfile: filename}, Meta{})
+				require.NoError(t, err)
+				require.NotNil(t, cfg.Download.Force)
+				assert.Equal(t, tc.want, *cfg.Download.Force)
+			})
+		}
+	}
+}
+
 func TestDownloadConcurrency(t *testing.T) {
 	for _, protocol := range []string{"ftp", "sftp"} {
 		for _, source := range []string{"file", "env"} {
@@ -194,6 +237,7 @@ func TestLoadFile(t *testing.T) {
 					SinceTime:     time.Date(2019, 2, 1, 18, 50, 05, 0, time.UTC),
 					Retry:         3,
 					Concurrency:   1,
+					Force:         new(false),
 					HideSkipped:   new(false),
 					TempFirst:     new(false),
 					CreateBaseDir: new(false),
@@ -323,6 +367,7 @@ func TestLoadEnv(t *testing.T) {
 					ChmodDir:      0o755,
 					Retry:         3,
 					Concurrency:   1,
+					Force:         new(false),
 					HideSkipped:   new(false),
 					TempFirst:     new(false),
 					CreateBaseDir: new(false),
@@ -363,6 +408,7 @@ func TestLoadEnv(t *testing.T) {
 					ChmodDir:      0o755,
 					Retry:         3,
 					Concurrency:   1,
+					Force:         new(false),
 					HideSkipped:   new(false),
 					TempFirst:     new(false),
 					CreateBaseDir: new(false),
@@ -498,6 +544,7 @@ func TestLoadMixed(t *testing.T) {
 					ChmodDir:      0o755,
 					Retry:         3,
 					Concurrency:   1,
+					Force:         new(false),
 					HideSkipped:   new(false),
 					TempFirst:     new(false),
 					CreateBaseDir: new(false),
@@ -551,6 +598,7 @@ func TestLoadMixed(t *testing.T) {
 					ChmodDir:      0o755,
 					Retry:         3,
 					Concurrency:   1,
+					Force:         new(false),
 					HideSkipped:   new(true),
 					TempFirst:     new(false),
 					CreateBaseDir: new(false),

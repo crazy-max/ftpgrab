@@ -15,5 +15,5 @@ func moveFile(oldpath, newpath string) error {
 	if err != nil {
 		return err
 	}
-	return windows.MoveFile(from, to)
+	return windows.MoveFileEx(from, to, windows.MOVEFILE_REPLACE_EXISTING)
 }
