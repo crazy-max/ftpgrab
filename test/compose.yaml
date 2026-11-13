@@ -80,7 +80,7 @@ services:
 
   tests:
     build:
-      context: ..
+      <<: *server-build
       target: integration
     volumes:
       - ${DESTDIR:-../bin}/coverage/integration:/coverage

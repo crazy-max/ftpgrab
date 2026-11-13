@@ -126,6 +126,7 @@ nav:
   - FAQ: faq.md
   - Changelog: changelog.md
   - Migration:
+    - FTPGrab v7.13 to v7.14: migration/v7.13-to-v7.14.md
     - FTPGrab v6 to v7: migration/v6-to-v7.md
     - FTPGrab v5.2 to v6.0: migration/v5.2-to-v6.0.md
     - FTPGrab v5.1 to v5.2: migration/v5.1-to-v5.2.md

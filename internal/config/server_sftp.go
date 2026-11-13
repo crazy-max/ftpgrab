@@ -15,6 +15,7 @@ type ServerSFTP struct {
 	KeyFile           string         `yaml:"keyFile,omitempty" json:"keyFile,omitempty" validate:"omitempty,file"`
 	KeyPassphrase     string         `yaml:"keyPassphrase,omitempty" json:"keyPassphrase,omitempty"`
 	KeyPassphraseFile string         `yaml:"keyPassphraseFile,omitempty" json:"keyPassphraseFile,omitempty" validate:"omitempty,file"`
+	KnownHostsFile    string         `yaml:"knownHostsFile,omitempty" json:"knownHostsFile,omitempty" validate:"omitempty,file"`
 	Sources           []string       `yaml:"sources,omitempty" json:"sources,omitempty"`
 	Timeout           *time.Duration `yaml:"timeout,omitempty" json:"timeout,omitempty"`
 	MaxPacketSize     int            `yaml:"maxPacketSize,omitempty" json:"maxPacketSize,omitempty"`

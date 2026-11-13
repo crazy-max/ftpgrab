@@ -11,6 +11,7 @@
         port: 22
         username: foo
         password: bar
+        knownHostsFile: /etc/ftpgrab/known_hosts
         sources:
           - /
         timeout: 30s
@@ -147,6 +148,30 @@ Use content of secret file as SFTP key passphrase if `keyPassphrase` not defined
       sftp:
         keyPassphraseFile: /run/secrets/passphrase
     ```
+
+### `knownHostsFile`
+
+Path to an OpenSSH known_hosts file containing trusted server host keys. If
+unset, ftpgrab uses `.ssh/known_hosts` in the running user's home directory.
+Relative paths are resolved from the working directory. A configured path must
+be literal; `~` and environment variables are not expanded.
+
+Host key verification is required. Missing or malformed files, unknown hosts,
+and mismatched keys cause the connection to fail. ftpgrab never creates the
+file or automatically trusts new keys. Hashed hostnames are supported. For a
+nonstandard port, use `[hostname]:port` in the known_hosts entry.
+
+For existing configurations, see the [v7.14.0 migration guide](../../migration/v7.13-to-v7.14.md).
+
+!!! example "Config file"
+    ```yaml
+    server:
+      sftp:
+        knownHostsFile: /etc/ftpgrab/known_hosts
+    ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_SERVER_SFTP_KNOWNHOSTSFILE`
 
 ### `sources`
 

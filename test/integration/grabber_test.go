@@ -3,6 +3,8 @@
 package integration
 
 import (
+	"crypto/ed25519"
+	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
 	"io"
@@ -18,9 +20,12 @@ import (
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/grabber"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
+	sftpserver "github.com/crazy-max/ftpgrab/v7/internal/server/sftp"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/ssh"
+	"golang.org/x/crypto/ssh/knownhosts"
 )
 
 var serverNames = []string{
@@ -46,6 +51,42 @@ func TestMain(m *testing.M) {
 		}
 	}
 	os.Exit(m.Run())
+}
+
+func TestSFTPHostKeyRejection(t *testing.T) {
+	publicKey, _, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+	key, err := ssh.NewPublicKey(publicKey)
+	require.NoError(t, err)
+	for _, name := range serverNames {
+		if name != "sftp" && name != "sftpgo-sftp" {
+			continue
+		}
+		for _, tc := range []struct {
+			name    string
+			entry   string
+			wantErr string
+		}{
+			{
+				name:    "unknown host",
+				wantErr: "knownhosts: key is unknown",
+			},
+			{
+				name:    "wrong key",
+				entry:   knownhosts.Line([]string{"sftp", "[sftpgo]:2022"}, key),
+				wantErr: "knownhosts: key mismatch",
+			},
+		} {
+			t.Run(name+"/"+tc.name, func(t *testing.T) {
+				cfg := serverConfig(name).SFTP
+				cfg.KnownHostsFile = filepath.Join(t.TempDir(), "known_hosts")
+				require.NoError(t, os.WriteFile(cfg.KnownHostsFile, []byte(tc.entry+"\n"), 0o600))
+				client, err := sftpserver.New(cfg)
+				require.ErrorContains(t, err, tc.wantErr)
+				assert.Nil(t, client)
+			})
+		}
+	}
 }
 
 func TestDownloads(t *testing.T) {
@@ -215,6 +256,7 @@ func serverConfig(name string) *config.Server {
 	}
 	cfg := (&config.ServerSFTP{}).GetDefaults()
 	cfg.Host, cfg.Username, cfg.Password = "sftp", "foo", "bar"
+	cfg.KnownHostsFile = "/etc/ftpgrab/known_hosts"
 	cfg.Sources = []string{"/fixtures"}
 	if name == "sftpgo-sftp" {
 		cfg.Host, cfg.Port = "sftpgo", 2022

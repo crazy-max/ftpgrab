@@ -33,12 +33,12 @@ Flags:
 
 Following environment variables can be used in place:
 
-| Name               | Default       | Description   |
-|--------------------|---------------|---------------|
-| `CONFIG`           |               | FTPGrab configuration file |
-| `SCHEDULE`         |               | [CRON expression](https://godoc.org/github.com/robfig/cron#hdr-CRON_Expression_Format) to schedule FTPGrab |
-| `LOG_LEVEL`        | `info`        | Log level output |
-| `LOG_JSON`         | `false`       | Enable JSON logging output |
-| `LOG_TIMESTAMP`    | `true`        | Adds the current local time as UNIX timestamp to the logger context |
-| `LOG_CALLER`       | `false`       | Enable to add `file:line` of the caller |
-| `LOG_FILE`         |               | Add logging to a specific file |
+| Name            | Default | Description                                                                                                |
+|-----------------|---------|------------------------------------------------------------------------------------------------------------|
+| `CONFIG`        |         | FTPGrab configuration file                                                                                 |
+| `SCHEDULE`      |         | [CRON expression](https://godoc.org/github.com/robfig/cron#hdr-CRON_Expression_Format) to schedule FTPGrab |
+| `LOG_LEVEL`     | `info`  | Log level output                                                                                           |
+| `LOG_JSON`      | `false` | Enable JSON logging output                                                                                 |
+| `LOG_TIMESTAMP` | `true`  | Adds the current local time as UNIX timestamp to the logger context                                        |
+| `LOG_CALLER`    | `false` | Enable to add `file:line` of the caller                                                                    |
+| `LOG_FILE`      |         | Add logging to a specific file                                                                             |
