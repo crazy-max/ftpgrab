@@ -83,6 +83,66 @@ func TestSendSMTPRegression(t *testing.T) {
 	}
 }
 
+func TestSendMailOptions(t *testing.T) {
+	hostname, err := os.Hostname()
+	require.NoError(t, err)
+	tests := []struct {
+		name       string
+		localName  string
+		recipients []string
+		wantHelo   string
+	}{
+		{
+			name:       "default HELO and single recipient",
+			recipients: []string{"ops@example.com"},
+			wantHelo:   hostname,
+		},
+		{
+			name:       "custom HELO and multiple recipients",
+			localName:  "ftpgrab.example.com",
+			recipients: []string{"ops@example.com", "dev@example.com"},
+			wantHelo:   "ftpgrab.example.com",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			addr, done := startSMTPServer(t, smtpServerOptions{})
+			client := newTestClient(t, addr)
+			client.cfg.LocalName = tt.localName
+			client.cfg.To = tt.recipients
+			require.NoError(t, client.Send(journal.Journal{}))
+			result := waitSMTPServer(t, done)
+			require.NoError(t, result.err)
+			assert.Equal(t, tt.wantHelo, result.helo)
+			message, err := stdmail.ReadMessage(strings.NewReader(result.data))
+			require.NoError(t, err)
+			to, err := message.Header.AddressList("To")
+			require.NoError(t, err)
+			require.Len(t, to, len(tt.recipients))
+			require.Len(t, result.to, len(tt.recipients))
+			for i, recipient := range tt.recipients {
+				assert.Equal(t, recipient, to[i].Address)
+				assert.Equal(t, "RCPT TO:<"+recipient+">", result.to[i])
+			}
+		})
+	}
+}
+
+func TestSendRejectsRecipient(t *testing.T) {
+	addr, done := startSMTPServer(t, smtpServerOptions{
+		rejectRecipient: "dev@example.com",
+	})
+	client := newTestClient(t, addr)
+	client.cfg.To = []string{"ops@example.com", "dev@example.com"}
+	err := client.Send(journal.Journal{})
+	require.ErrorContains(t, err, "cannot send mail notification")
+	assert.Contains(t, err.Error(), "dev@example.com")
+	result := waitSMTPServer(t, done)
+	require.NoError(t, result.err)
+	assert.Len(t, result.to, 2)
+	assert.Empty(t, result.data)
+}
+
 func TestSendReport(t *testing.T) {
 	addr, done := startSMTPServer(t, smtpServerOptions{})
 	client := newTestClient(t, addr)
@@ -104,7 +164,7 @@ func TestSendReport(t *testing.T) {
 	result := waitSMTPServer(t, done)
 	require.NoError(t, result.err)
 	assert.Equal(t, "MAIL FROM:<ftpgrab@example.com>", result.from)
-	assert.Equal(t, "RCPT TO:<ops@example.com>", result.to)
+	assert.Equal(t, []string{"RCPT TO:<ops@example.com>"}, result.to)
 	message, err := stdmail.ReadMessage(strings.NewReader(result.data))
 	require.NoError(t, err)
 	from, err := message.Header.AddressList("From")
@@ -115,7 +175,7 @@ func TestSendReport(t *testing.T) {
 	to, err := message.Header.AddressList("To")
 	require.NoError(t, err)
 	require.Len(t, to, 1)
-	assert.Equal(t, client.cfg.To, to[0].Address)
+	assert.Equal(t, client.cfg.To[0], to[0].Address)
 	assert.Equal(t, "FTPGrab report for ftp.example.com on destination", message.Header.Get("Subject"))
 	assert.NotEmpty(t, message.Header.Get("Message-ID"))
 	assert.NotEmpty(t, message.Header.Get("Date"))
@@ -216,12 +276,13 @@ func TestSendTLSAndAuth(t *testing.T) {
 }
 
 type smtpServerOptions struct {
-	advertiseAuth  bool
-	closeAfterData bool
-	closeOnNoop    bool
-	rejectData     bool
-	implicitTLS    bool
-	tlsConfig      *tls.Config
+	advertiseAuth   bool
+	closeAfterData  bool
+	closeOnNoop     bool
+	rejectData      bool
+	rejectRecipient string
+	implicitTLS     bool
+	tlsConfig       *tls.Config
 }
 
 type smtpServerResult struct {
@@ -232,7 +293,7 @@ type smtpServerResult struct {
 	username string
 	password string
 	from     string
-	to       string
+	to       []string
 	data     string
 }
 
@@ -312,7 +373,11 @@ func startSMTPServer(t *testing.T, options smtpServerOptions) (string, <-chan sm
 				result.from = line
 				write("250 OK")
 			case strings.HasPrefix(upperLine, "RCPT TO:"):
-				result.to = line
+				result.to = append(result.to, line)
+				if options.rejectRecipient != "" && line == "RCPT TO:<"+options.rejectRecipient+">" {
+					write("550 recipient rejected")
+					continue
+				}
 				write("250 OK")
 			case upperLine == "DATA":
 				write("354 end data with <CR><LF>.<CR><LF>")
@@ -364,7 +429,7 @@ func newTestClient(t *testing.T, addr string) *Client {
 	cfg.Host = host
 	cfg.Port = portNum
 	cfg.From = "ftpgrab@example.com"
-	cfg.To = "ops@example.com"
+	cfg.To = []string{"ops@example.com"}
 	return &Client{
 		cfg: cfg,
 		meta: config.Meta{

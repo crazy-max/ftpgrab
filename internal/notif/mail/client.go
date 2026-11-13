@@ -104,8 +104,8 @@ func (c *Client) Send(jnl journal.Journal) error {
 	if err = msg.FromFormat(c.meta.Name, c.cfg.From); err != nil {
 		return errors.Wrap(err, "cannot set mail FROM address")
 	}
-	if err = msg.To(c.cfg.To); err != nil {
-		return errors.Wrap(err, "cannot set mail TO address")
+	if err = msg.To(c.cfg.To...); err != nil {
+		return errors.Wrap(err, "cannot set mail TO addresses")
 	}
 	msg.Subject(fmt.Sprintf("%s report for %s on %s",
 		c.meta.Name,
@@ -143,6 +143,9 @@ func (c *Client) mailClient(username, password string) (*email.Client, error) {
 		email.WithPort(c.cfg.Port),
 		email.WithTLSPolicy(email.TLSOpportunistic),
 		email.WithoutNoop(),
+	}
+	if c.cfg.LocalName != "" {
+		opts = append(opts, email.WithHELO(c.cfg.LocalName))
 	}
 	if *c.cfg.SSL {
 		opts = append(opts, email.WithSSL())
