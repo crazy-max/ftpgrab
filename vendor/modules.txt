@@ -42,9 +42,6 @@ github.com/gabriel-vasile/mimetype/internal/magic
 github.com/gabriel-vasile/mimetype/internal/markup
 github.com/gabriel-vasile/mimetype/internal/mp3
 github.com/gabriel-vasile/mimetype/internal/scan
-# github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
-## explicit
-github.com/go-gomail/gomail
 # github.com/go-playground/locales v0.14.2
 ## explicit; go 1.17
 github.com/go-playground/locales
@@ -152,6 +149,14 @@ github.com/vanng822/css
 # github.com/vanng822/go-premailer v0.0.0-20191214114701-be27abe028fe
 ## explicit
 github.com/vanng822/go-premailer/premailer
+# github.com/wneessen/go-mail v0.8.2
+## explicit; go 1.26.10
+github.com/wneessen/go-mail
+github.com/wneessen/go-mail/internal/dkim
+github.com/wneessen/go-mail/internal/ntlm
+github.com/wneessen/go-mail/internal/pkcs7
+github.com/wneessen/go-mail/log
+github.com/wneessen/go-mail/smtp
 # go.etcd.io/bbolt v1.5.0
 ## explicit; go 1.25.0
 go.etcd.io/bbolt
@@ -170,6 +175,7 @@ golang.org/x/crypto/cryptobyte/asn1
 golang.org/x/crypto/curve25519
 golang.org/x/crypto/internal/alias
 golang.org/x/crypto/internal/poly1305
+golang.org/x/crypto/md4
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/scrypt
 golang.org/x/crypto/sha3
@@ -187,19 +193,22 @@ golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.44.0
 ## explicit; go 1.26.0
+golang.org/x/text/cases
 golang.org/x/text/encoding
 golang.org/x/text/encoding/charmap
 golang.org/x/text/encoding/internal
 golang.org/x/text/encoding/internal/identifier
+golang.org/x/text/internal
 golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact
 golang.org/x/text/internal/tag
 golang.org/x/text/language
+golang.org/x/text/runes
+golang.org/x/text/secure/bidirule
+golang.org/x/text/secure/precis
 golang.org/x/text/transform
-# gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc
-## explicit
-gopkg.in/alexcesaro/quotedprintable.v3
-# gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
-## explicit
+golang.org/x/text/unicode/bidi
+golang.org/x/text/unicode/norm
+golang.org/x/text/width
 # gopkg.in/yaml.v2 v2.4.0
 ## explicit; go 1.15
