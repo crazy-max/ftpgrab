@@ -15,8 +15,8 @@ import (
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/notifier"
 	"github.com/crazy-max/ftpgrab/v7/internal/secret"
 	"github.com/hako/durafmt"
-	"github.com/nlopes/slack"
 	"github.com/pkg/errors"
+	"github.com/slack-go/slack"
 )
 
 const slackMaxRateLimitAttempts = 3
