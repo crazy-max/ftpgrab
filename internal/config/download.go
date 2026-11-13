@@ -18,6 +18,7 @@ type Download struct {
 	SinceTime     time.Time   `yaml:"-" json:"-" label:"-" file:"-"`
 	Retry         int         `yaml:"retry,omitempty" json:"retry,omitempty"`
 	Concurrency   int         `yaml:"concurrency,omitempty" json:"concurrency,omitempty" validate:"min=1"`
+	Force         *bool       `yaml:"force,omitempty" json:"force,omitempty"`
 	HideSkipped   *bool       `yaml:"hideSkipped,omitempty" json:"hideSkipped,omitempty"`
 	TempFirst     *bool       `yaml:"tempFirst,omitempty" json:"tempFirst,omitempty"`
 	CreateBaseDir *bool       `yaml:"createBaseDir,omitempty" json:"createBaseDir,omitempty"`
@@ -38,6 +39,7 @@ func (s *Download) SetDefaults() {
 	s.ChmodDir = 0o755
 	s.Retry = 3
 	s.Concurrency = 1
+	s.Force = new(false)
 	s.HideSkipped = new(false)
 	s.TempFirst = new(false)
 	s.CreateBaseDir = new(false)

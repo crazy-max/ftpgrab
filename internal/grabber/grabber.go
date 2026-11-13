@@ -310,6 +310,8 @@ func (c *Client) getStatus(file File) journal.EntryStatus {
 		return journal.EntryStatusExcluded
 	} else if file.Info.ModTime().Before(c.config.SinceTime) {
 		return journal.EntryStatusOutdated
+	} else if *c.config.Force {
+		return journal.EntryStatusForcedDl
 	} else if destfile, err := os.Stat(path.Join(file.DestDir, file.Info.Name())); err == nil {
 		if destfile.Size() == file.Info.Size() {
 			return journal.EntryStatusAlreadyDl

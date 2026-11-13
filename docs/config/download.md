@@ -15,6 +15,7 @@
       since: 2019-02-01T18:50:05Z
       retry: 3
       concurrency: 1
+      force: false
       hideSkipped: false
       tempFirst: false
       createBaseDir: false
@@ -164,6 +165,29 @@ workers.
 
 !!! abstract "Environment variables"
     * `FTPGRAB_DOWNLOAD_CONCURRENCY`
+
+## `force`
+
+Download matching files on every run, even if they already exist locally or are
+recorded in the database. Existing destination files are overwritten.
+(default: `false`)
+
+The `include`, `exclude`, and `since` filters still apply. Downloads are still
+recorded in the database, and database errors retain their usual behavior.
+Disabling this option restores the usual checks against local files and history.
+
+This is useful for files such as nightly backups that reuse the same filename.
+Enable `tempFirst` to download to a temporary location before replacing an
+existing file.
+
+!!! example "Config file"
+    ```yaml
+    download:
+      force: true
+    ```
+
+!!! abstract "Environment variables"
+    * `FTPGRAB_DOWNLOAD_FORCE`
 
 ## `hideSkipped`
 

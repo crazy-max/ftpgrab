@@ -26,6 +26,7 @@ const (
 	EntryStatusNotIncluded  = EntryStatus("Not included")
 	EntryStatusExcluded     = EntryStatus("Excluded")
 	EntryStatusNeverDl      = EntryStatus("Never downloaded")
+	EntryStatusForcedDl     = EntryStatus("Forced download")
 	EntryStatusAlreadyDl    = EntryStatus("Already downloaded")
 	EntryStatusSizeDiff     = EntryStatus("Exists but size is different")
 	EntryStatusDigestExists = EntryStatus("Digest exists")

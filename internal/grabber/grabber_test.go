@@ -21,6 +21,58 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestGrabForce(t *testing.T) {
+	for _, tempFirst := range []bool{false, true} {
+		t.Run(fmt.Sprintf("tempFirst=%t", tempFirst), func(t *testing.T) {
+			cfg := tempFirstDownloadConfig(t.TempDir(), tempFirst)
+			cfg.Force = new(true)
+			dbCli, err := db.New(&config.Db{Path: filepath.Join(t.TempDir(), "history.db")})
+			require.NoError(t, err)
+			var calls int
+			client := &Client{
+				config: cfg,
+				db:     dbCli,
+				server: &server.Client{Handler: &stubServerHandler{
+					retrieve: func(_ string, dest io.Writer) error {
+						calls++
+						_, err := fmt.Fprintf(dest, "data%d", calls)
+						return err
+					},
+				}},
+			}
+			if tempFirst {
+				require.NoError(t, client.initTempDir())
+			}
+			t.Cleanup(client.Close)
+			file := File{
+				Base:    "/backups",
+				SrcDir:  "/backups",
+				DestDir: cfg.Output,
+				Info:    stubFileInfo{name: "nightly.tar", size: 5, modTime: time.Now()},
+			}
+			dest := filepath.Join(file.DestDir, file.Info.Name())
+			for run := 1; run <= 3; run++ {
+				if run == 3 {
+					// History alone must not prevent another download either.
+					require.NoError(t, os.Remove(dest))
+				}
+				got := client.Grab([]File{file})
+				require.Equal(t, 1, got.Count.Success)
+				require.Len(t, got.Entries, 1)
+				assert.Equal(t, journal.EntryStatusForcedDl, got.Entries[0].Status)
+				data, err := os.ReadFile(dest)
+				require.NoError(t, err)
+				assert.Equal(t, fmt.Sprintf("data%d", run), string(data))
+				assert.True(t, dbCli.HasDigest(file.Base, file.SrcDir, file.Info))
+			}
+			assert.Equal(t, 3, calls)
+			cfg.Force = new(false)
+			assert.Equal(t, 1, client.Grab([]File{file}).Count.Skip)
+			assert.Equal(t, 3, calls)
+		})
+	}
+}
+
 func TestGrabConcurrency(t *testing.T) {
 	for _, tc := range []struct {
 		name        string
@@ -417,6 +469,13 @@ func TestGetStatus(t *testing.T) {
 	for _, tt := range cases {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.Equal(t, tt.want, client.getStatus(tt.build(t)))
+			cfg.Force = new(true)
+			t.Cleanup(func() { cfg.Force = new(false) })
+			want := tt.want
+			if !want.IsSkipped() || want == journal.EntryStatusAlreadyDl {
+				want = journal.EntryStatusForcedDl
+			}
+			assert.Equal(t, want, client.getStatus(tt.build(t)))
 		})
 	}
 }
