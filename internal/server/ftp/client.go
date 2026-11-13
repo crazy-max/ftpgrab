@@ -165,7 +165,24 @@ func New(cfg *config.ServerFTP) (*server.Client, error) {
 		return nil, err
 	}
 
-	return &server.Client{Handler: client}, err
+	return &server.Client{Handler: newPool(client)}, nil
+}
+
+func (c *Client) newSession() (*Client, error) {
+	client := &Client{
+		cfg:         c.cfg,
+		addr:        c.addr,
+		username:    c.username,
+		password:    c.password,
+		dial:        c.dial,
+		newDialFunc: c.newDialFunc,
+		dialOptions: c.dialOptions,
+		pathenc:     c.pathenc,
+	}
+	if err := client.connect(); err != nil {
+		return nil, err
+	}
+	return client, nil
 }
 
 func (c *Client) connect() error {

@@ -34,6 +34,7 @@ type stubFTPConn struct {
 	retrErr     error
 	retrPath    string
 	retrResp    io.ReadCloser
+	retrFunc    func(string) (io.ReadCloser, error)
 }
 
 func (c *stubFTPConn) Login(_, _ string) error {
@@ -47,6 +48,9 @@ func (c *stubFTPConn) List(path string) ([]*ftplib.Entry, error) {
 
 func (c *stubFTPConn) Retr(path string) (io.ReadCloser, error) {
 	c.retrPath = path
+	if c.retrFunc != nil {
+		return c.retrFunc(path)
+	}
 	return c.retrResp, c.retrErr
 }
 
@@ -56,9 +60,10 @@ func (c *stubFTPConn) Quit() error {
 }
 
 type stubReadCloser struct {
-	readErr  error
-	closeErr error
-	data     *bytes.Buffer
+	readErr   error
+	closeErr  error
+	data      *bytes.Buffer
+	closeFunc func()
 }
 
 func (r *stubReadCloser) Read(p []byte) (int, error) {
@@ -72,6 +77,9 @@ func (r *stubReadCloser) Read(p []byte) (int, error) {
 }
 
 func (r *stubReadCloser) Close() error {
+	if r.closeFunc != nil {
+		r.closeFunc()
+	}
 	return r.closeErr
 }
 

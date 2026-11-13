@@ -3,6 +3,7 @@
 package integration
 
 import (
+	"bytes"
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/sha256"
@@ -14,12 +15,15 @@ import (
 	"path"
 	"path/filepath"
 	"slices"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
 	"github.com/crazy-max/ftpgrab/v7/internal/grabber"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
+	"github.com/crazy-max/ftpgrab/v7/internal/server"
+	ftpserver "github.com/crazy-max/ftpgrab/v7/internal/server/ftp"
 	sftpserver "github.com/crazy-max/ftpgrab/v7/internal/server/sftp"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
@@ -84,6 +88,153 @@ func TestSFTPHostKeyRejection(t *testing.T) {
 				client, err := sftpserver.New(cfg)
 				require.ErrorContains(t, err, tc.wantErr)
 				assert.Nil(t, client)
+			})
+		}
+	}
+}
+
+func TestConcurrentRetrievals(t *testing.T) {
+	files := []struct {
+		path    string
+		content string
+	}{
+		{
+			path:    "basic/bar.txt",
+			content: "bar\n",
+		},
+		{
+			path:    "basic/baz/baz.txt",
+			content: "baz\n",
+		},
+	}
+	for _, name := range serverNames {
+		t.Run(name, func(t *testing.T) {
+			cfg := serverConfig(name)
+			var client *server.Client
+			var source string
+			var err error
+			if cfg.FTP != nil {
+				client, err = ftpserver.New(cfg.FTP)
+				source = cfg.FTP.Sources[0]
+			} else {
+				client, err = sftpserver.New(cfg.SFTP)
+				source = cfg.SFTP.Sources[0]
+			}
+			require.NoError(t, err)
+			t.Cleanup(func() { assert.NoError(t, client.Close()) })
+
+			started := make(chan struct{}, len(files))
+			proceed := make(chan struct{})
+			var release sync.Once
+			writers := make([]transferWriter, len(files))
+			errs := make([]error, len(files))
+			var transfers sync.WaitGroup
+			for i, file := range files {
+				writers[i].started = started
+				writers[i].proceed = proceed
+				transfers.Go(func() {
+					errs[i] = client.Retrieve(path.Join(source, file.path), &writers[i])
+				})
+			}
+			done := make(chan struct{})
+			go func() {
+				transfers.Wait()
+				close(done)
+			}()
+			t.Cleanup(func() {
+				release.Do(func() { close(proceed) })
+				<-done
+			})
+
+			// Both transfers must receive data before either is allowed to finish.
+			// Holding the first destination also keeps its FTP session checked out.
+			timer := time.NewTimer(30 * time.Second)
+			defer timer.Stop()
+			for range files {
+				select {
+				case <-started:
+				case <-done:
+					t.Fatalf("transfers finished before overlapping: %v", errs)
+				case <-timer.C:
+					t.Fatal("transfers did not receive data concurrently")
+				}
+			}
+			release.Do(func() { close(proceed) })
+			<-done
+			for i, file := range files {
+				require.NoError(t, errs[i], file.path)
+				assert.Equal(t, file.content, writers[i].buffer.String(), file.path)
+			}
+		})
+	}
+}
+
+type transferWriter struct {
+	buffer  bytes.Buffer
+	started chan<- struct{}
+	proceed <-chan struct{}
+	once    sync.Once
+}
+
+func (w *transferWriter) Write(p []byte) (int, error) {
+	w.once.Do(func() {
+		w.started <- struct{}{}
+		<-w.proceed
+	})
+	return w.buffer.Write(p)
+}
+
+func TestConcurrentDownloads(t *testing.T) {
+	expected := make(map[string]fixture)
+	for name, data := range map[string]string{
+		"bar.txt":             "bar\n",
+		"baz/baz.txt":         "baz\n",
+		"file name.txt":       "spaces\n",
+		"file [1](a)+.^$.txt": "regexp\n",
+		"café-世界.txt":         "unicode\n",
+	} {
+		expected[name] = fixture{
+			size:   int64(len(data)),
+			digest: fmt.Sprintf("%x", sha256.Sum256([]byte(data))),
+		}
+	}
+	for _, name := range serverNames {
+		for _, tempFirst := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/tempFirst=%t", name, tempFirst), func(t *testing.T) {
+				dl := (&config.Download{}).GetDefaults()
+				dl.Output = t.TempDir()
+				dl.TempFirst = new(tempFirst)
+				dl.Concurrency = 4
+				srv := serverConfig(name)
+				var sources []string
+				root := "/fixtures"
+				if name == "crazymax-pureftpd" || name == "sftpgo" || name == "sftpgo-sftp" {
+					root = "/"
+				}
+				for _, dir := range []string{"basic", "path with spaces", "regexp [dir](v1)+.^$", "日本語"} {
+					sources = append(sources, path.Join(root, dir))
+				}
+				if srv.FTP != nil {
+					srv.FTP.Sources = sources
+				} else {
+					srv.SFTP.Sources = sources
+				}
+				client := openGrabber(t, dl, &config.Db{Path: filepath.Join(t.TempDir(), "history.db")}, srv)
+				files := client.ListFiles()
+				require.Len(t, files, len(expected))
+				got := client.Grab(files)
+				assert.Equal(t, len(expected), got.Count.Success)
+				assert.Zero(t, got.Count.Error)
+				require.Len(t, got.Entries, len(files))
+				for i, file := range files {
+					assert.Equal(t, path.Join(file.SrcDir, file.Info.Name()), got.Entries[i].File)
+				}
+				// Temporary session directories contain no files after completion.
+				checkFiles(t, dl.Output, expected)
+				again := client.Grab(files)
+				assert.Equal(t, len(expected), again.Count.Skip)
+				assert.Zero(t, again.Count.Error)
+				assert.Zero(t, again.Count.Success)
 			})
 		}
 	}
