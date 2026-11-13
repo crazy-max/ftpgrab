@@ -1,0 +1,103 @@
+name: ftpgrab-integration
+
+x-server-build: &server-build
+  context: ..
+  additional_contexts:
+    fixtures: service:fixtures
+
+services:
+  fixtures:
+    profiles: [build]
+    build:
+      context: ..
+      dockerfile: test/fixtures.Dockerfile
+      target: fixtures
+
+  vsftpd:
+    # Avoid vsftpd's PID 1 segfault (Patch59 in the downstream spec below).
+    # https://git.almalinux.org/rpms/vsftpd/src/commit/3b658dfddfb356fa254ad2e605fcd51daf53412b/SPECS/vsftpd.spec
+    init: true
+    build:
+      <<: *server-build
+      dockerfile: test/vsftpd.Dockerfile
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "21"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+
+  pureftpd:
+    build:
+      <<: *server-build
+      dockerfile: test/pureftpd.Dockerfile
+      target: pureftpd
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "21"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+
+  crazymax-pureftpd:
+    build:
+      <<: *server-build
+      dockerfile: test/pureftpd.Dockerfile
+      target: crazymax-pureftpd
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "2100"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+
+  proftpd:
+    build:
+      <<: *server-build
+      dockerfile: test/proftpd.Dockerfile
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "21"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+
+  sftpgo:
+    build:
+      <<: *server-build
+      dockerfile: test/sftpgo.Dockerfile
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 2121 && nc -z 127.0.0.1 2022"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+
+  sftp:
+    build:
+      <<: *server-build
+      dockerfile: test/sftp.Dockerfile
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "22"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+
+  tests:
+    build:
+      context: ..
+      target: integration
+    volumes:
+      - ${DESTDIR:-../bin}/coverage/integration:/coverage
+    depends_on:
+      vsftpd:
+        condition: service_healthy
+      pureftpd:
+        condition: service_healthy
+      crazymax-pureftpd:
+        condition: service_healthy
+      proftpd:
+        condition: service_healthy
+      sftpgo:
+        condition: service_healthy
+      sftp:
+        condition: service_healthy
+
+networks:
+  default:
+    internal: true
