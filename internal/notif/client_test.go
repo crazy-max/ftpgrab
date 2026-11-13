@@ -1,7 +1,12 @@
 package notif
 
 import (
+	"encoding/pem"
 	"errors"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -54,6 +59,97 @@ func TestSend(t *testing.T) {
 
 	assert.Equal(t, 1, first.calls)
 	assert.Equal(t, 1, second.calls)
+}
+
+func TestHTTPNotifierTLS(t *testing.T) {
+	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/discord" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(srv.Close)
+	certFile := filepath.Join(t.TempDir(), "ca.pem")
+	require.NoError(t, os.WriteFile(certFile, pem.EncodeToMemory(&pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: srv.Certificate().Raw,
+	}), 0o600))
+	tests := []struct {
+		name       string
+		skipVerify bool
+		caFiles    []string
+		wantError  bool
+	}{
+		{
+			name:      "untrusted server",
+			wantError: true,
+		},
+		{
+			name:    "custom CA",
+			caFiles: []string{certFile},
+		},
+		{
+			name:       "skip verification",
+			skipVerify: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client, err := New(&config.Notif{
+				Apprise: &config.NotifApprise{
+					Endpoint:       srv.URL + "/apprise",
+					Timeout:        new(time.Second),
+					TLSSkipVerify:  tt.skipVerify,
+					TLSCACertFiles: tt.caFiles,
+				},
+				Discord: &config.NotifDiscord{
+					WebhookURL:     srv.URL + "/discord",
+					RenderEmbeds:   new(false),
+					Timeout:        new(time.Second),
+					TLSSkipVerify:  tt.skipVerify,
+					TLSCACertFiles: tt.caFiles,
+				},
+				Gotify: &config.NotifGotify{
+					Endpoint:       srv.URL + "/gotify",
+					Timeout:        new(time.Second),
+					TLSSkipVerify:  tt.skipVerify,
+					TLSCACertFiles: tt.caFiles,
+				},
+				Ntfy: &config.NotifNtfy{
+					Endpoint:       srv.URL + "/ntfy",
+					Timeout:        new(time.Second),
+					TLSSkipVerify:  tt.skipVerify,
+					TLSCACertFiles: tt.caFiles,
+				},
+				Slack: &config.NotifSlack{
+					WebhookURL:     srv.URL + "/slack",
+					Timeout:        new(time.Second),
+					TLSSkipVerify:  tt.skipVerify,
+					TLSCACertFiles: tt.caFiles,
+				},
+				Webhook: &config.NotifWebhook{
+					Endpoint:       srv.URL + "/webhook",
+					Method:         http.MethodPost,
+					Timeout:        new(time.Second),
+					TLSSkipVerify:  tt.skipVerify,
+					TLSCACertFiles: tt.caFiles,
+				},
+			}, config.Meta{})
+			require.NoError(t, err)
+			require.Len(t, client.notifiers, 6)
+			for _, n := range client.notifiers {
+				t.Run(n.Name(), func(t *testing.T) {
+					err := n.Send(journal.Journal{})
+					if tt.wantError {
+						require.Error(t, err)
+					} else {
+						require.NoError(t, err)
+					}
+				})
+			}
+		})
+	}
 }
 
 type stubNotifier struct {

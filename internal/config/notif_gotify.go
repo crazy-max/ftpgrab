@@ -4,12 +4,14 @@ import "time"
 
 // NotifGotify holds Gotify notification configuration details.
 type NotifGotify struct {
-	Endpoint  string         `yaml:"endpoint,omitempty" json:"endpoint,omitempty" validate:"required"`
-	Token     string         `yaml:"token,omitempty" json:"token,omitempty" validate:"required_without=TokenFile"`
-	TokenFile string         `yaml:"tokenFile,omitempty" json:"tokenFile,omitempty" validate:"omitempty,file"`
-	Priority  int            `yaml:"priority,omitempty" json:"priority,omitempty" validate:"min=0"`
-	Timeout   *time.Duration `yaml:"timeout,omitempty" json:"timeout,omitempty" validate:"required,gt=0"`
-	Proxy     string         `yaml:"proxy,omitempty" json:"proxy,omitempty" validate:"omitempty,url"`
+	Endpoint       string         `yaml:"endpoint,omitempty" json:"endpoint,omitempty" validate:"required"`
+	Token          string         `yaml:"token,omitempty" json:"token,omitempty" validate:"required_without=TokenFile"`
+	TokenFile      string         `yaml:"tokenFile,omitempty" json:"tokenFile,omitempty" validate:"omitempty,file"`
+	Priority       int            `yaml:"priority,omitempty" json:"priority,omitempty" validate:"min=0"`
+	Timeout        *time.Duration `yaml:"timeout,omitempty" json:"timeout,omitempty" validate:"required,gt=0"`
+	Proxy          string         `yaml:"proxy,omitempty" json:"proxy,omitempty" validate:"omitempty,url"`
+	TLSSkipVerify  bool           `yaml:"tlsSkipVerify,omitempty" json:"tlsSkipVerify,omitempty"`
+	TLSCACertFiles []string       `yaml:"tlsCaCertFiles,omitempty" json:"tlsCaCertFiles,omitempty" validate:"omitempty,dive,file"`
 }
 
 // GetDefaults gets the default values.

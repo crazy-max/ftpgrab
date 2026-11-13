@@ -73,7 +73,7 @@ func (c *Client) Send(jnl journal.Journal) error {
 
 	ctx, cancel := context.WithTimeoutCause(context.Background(), *c.cfg.Timeout, errors.WithStack(context.DeadlineExceeded))
 	defer cancel()
-	hc, err := httputil.NewClient(c.cfg.Proxy)
+	hc, err := httputil.NewClient(c.cfg.Proxy, c.cfg.TLSSkipVerify, c.cfg.TLSCACertFiles)
 	if err != nil {
 		return errors.Wrap(err, "cannot create HTTP client for Gotify notifier")
 	}

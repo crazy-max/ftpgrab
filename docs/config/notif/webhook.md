@@ -22,14 +22,18 @@ You can send webhook notifications with the following settings.
     * `FTPGRAB_NOTIF_WEBHOOK_HEADERS_<KEY>`
     * `FTPGRAB_NOTIF_WEBHOOK_TIMEOUT`
     * `FTPGRAB_NOTIF_WEBHOOK_PROXY`
+    * `FTPGRAB_NOTIF_WEBHOOK_TLSSKIPVERIFY`
+    * `FTPGRAB_NOTIF_WEBHOOK_TLSCACERTFILES` (comma separated)
 
-| Name               | Default       | Description   |
-|--------------------|---------------|---------------|
-| `endpoint`[^1]     |               | URL of the HTTP request |
-| `method`[^1]       | `GET`         | HTTP method |
-| `headers`          |               | Map of additional headers to be sent (key is case insensitive) |
-| `timeout`          | `10s`         | Timeout specifies a time limit for the request to be made |
-| `proxy`            |               | HTTP proxy URL to use for requests |
+| Name             | Default | Description                                                    |
+| ---------------- | ------- | -------------------------------------------------------------- |
+| `endpoint`[^1]   |         | URL of the HTTP request                                        |
+| `method`[^1]     | `GET`   | HTTP method                                                    |
+| `headers`        |         | Map of additional headers to be sent (key is case insensitive) |
+| `timeout`        | `10s`   | Timeout specifies a time limit for the request to be made      |
+| `proxy`          |         | HTTP proxy URL to use for requests                             |
+| `tlsSkipVerify`  | `false` | Skip TLS certificate verification                              |
+| `tlsCaCertFiles` |         | Custom CA PEM files (replace system roots)                     |
 
 ## Sample
 

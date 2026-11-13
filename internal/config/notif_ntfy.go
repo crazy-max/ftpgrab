@@ -4,16 +4,18 @@ import "time"
 
 // NotifNtfy holds ntfy notification configuration details.
 type NotifNtfy struct {
-	Endpoint  string         `yaml:"endpoint,omitempty" json:"endpoint,omitempty" validate:"required"`
-	Token     string         `yaml:"token,omitempty" json:"token,omitempty"`
-	TokenFile string         `yaml:"tokenFile,omitempty" json:"tokenFile,omitempty" validate:"omitempty,file"`
-	Topic     string         `yaml:"topic,omitempty" json:"topic,omitempty" validate:"required"`
-	Priority  int            `yaml:"priority,omitempty" json:"priority,omitempty" validate:"min=0,max=5"`
-	Tags      []string       `yaml:"tags,omitempty" json:"tags,omitempty"`
-	Icon      string         `yaml:"icon,omitempty" json:"icon,omitempty"`
-	Click     string         `yaml:"click,omitempty" json:"click,omitempty"`
-	Timeout   *time.Duration `yaml:"timeout,omitempty" json:"timeout,omitempty" validate:"required,gt=0"`
-	Proxy     string         `yaml:"proxy,omitempty" json:"proxy,omitempty" validate:"omitempty,url"`
+	Endpoint       string         `yaml:"endpoint,omitempty" json:"endpoint,omitempty" validate:"required"`
+	Token          string         `yaml:"token,omitempty" json:"token,omitempty"`
+	TokenFile      string         `yaml:"tokenFile,omitempty" json:"tokenFile,omitempty" validate:"omitempty,file"`
+	Topic          string         `yaml:"topic,omitempty" json:"topic,omitempty" validate:"required"`
+	Priority       int            `yaml:"priority,omitempty" json:"priority,omitempty" validate:"min=0,max=5"`
+	Tags           []string       `yaml:"tags,omitempty" json:"tags,omitempty"`
+	Icon           string         `yaml:"icon,omitempty" json:"icon,omitempty"`
+	Click          string         `yaml:"click,omitempty" json:"click,omitempty"`
+	Timeout        *time.Duration `yaml:"timeout,omitempty" json:"timeout,omitempty" validate:"required,gt=0"`
+	Proxy          string         `yaml:"proxy,omitempty" json:"proxy,omitempty" validate:"omitempty,url"`
+	TLSSkipVerify  bool           `yaml:"tlsSkipVerify,omitempty" json:"tlsSkipVerify,omitempty"`
+	TLSCACertFiles []string       `yaml:"tlsCaCertFiles,omitempty" json:"tlsCaCertFiles,omitempty" validate:"omitempty,dive,file"`
 }
 
 // GetDefaults gets the default values.

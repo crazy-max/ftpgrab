@@ -11,7 +11,7 @@ import (
 )
 
 func TestNewClient(t *testing.T) {
-	client, err := NewClient("")
+	client, err := NewClient("", false, nil)
 	require.NoError(t, err)
 	transport, ok := client.Transport.(*http.Transport)
 	require.True(t, ok)
@@ -30,7 +30,7 @@ func TestNewClient(t *testing.T) {
 		w.WriteHeader(http.StatusNoContent)
 	}))
 	t.Cleanup(proxy.Close)
-	client, err = NewClient(proxy.URL)
+	client, err = NewClient(proxy.URL, false, nil)
 	require.NoError(t, err)
 	t.Cleanup(client.CloseIdleConnections)
 	req, err = http.NewRequestWithContext(context.Background(), http.MethodGet, "http://example.invalid/report", nil)
@@ -46,7 +46,7 @@ func TestNewClient(t *testing.T) {
 func TestInvalidProxy(t *testing.T) {
 	for _, proxy := range []string{":", "proxy.example.com:3128", "http:///", "http://%"} {
 		t.Run(proxy, func(t *testing.T) {
-			_, err := NewClient(proxy)
+			_, err := NewClient(proxy, false, nil)
 			require.Error(t, err)
 		})
 	}
