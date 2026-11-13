@@ -19,6 +19,7 @@
 * Reject HTTP errors and support proxies for webhook notifications by @crazy-max in #614
 * Add TLS configuration for HTTP notifications by @crazy-max in #620
 * Migrate SMTP delivery to `wneessen/go-mail` by @crazy-max in #616
+* Migrate Slack notifications to `slack-go/slack` by @crazy-max in #630
 * Support custom SMTP HELO names and multiple mail recipients by @crazy-max in #621
 * Add `freebsd/arm64` artifacts and `linux/riscv64` and `linux/s390x` images by @crazy-max in #603 #604
 * Drop `386` artifacts and images and `linux/arm/v5` artifacts by @crazy-max in #603 #604
