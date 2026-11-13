@@ -4,6 +4,7 @@ package config
 type Notif struct {
 	Discord *NotifDiscord `yaml:"discord,omitempty" json:"discord,omitempty"`
 	Mail    *NotifMail    `yaml:"mail,omitempty" json:"mail,omitempty"`
+	Ntfy    *NotifNtfy    `yaml:"ntfy,omitempty" json:"ntfy,omitempty"`
 	Script  *NotifScript  `yaml:"script,omitempty" json:"script,omitempty"`
 	Slack   *NotifSlack   `yaml:"slack,omitempty" json:"slack,omitempty"`
 	Webhook *NotifWebhook `yaml:"webhook,omitempty" json:"webhook,omitempty"`

@@ -121,6 +121,7 @@ nav:
     - .notif:
       - .discord: config/notif/discord.md
       - .mail: config/notif/mail.md
+      - .ntfy: config/notif/ntfy.md
       - .script: config/notif/script.md
       - .slack: config/notif/slack.md
       - .webhook: config/notif/webhook.md

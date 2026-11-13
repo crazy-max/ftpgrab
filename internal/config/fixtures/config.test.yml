@@ -36,6 +36,8 @@ notif:
     insecureSkipVerify: false
     from: ftpgrab@example.com
     to: webmaster@example.com
+  ntfy:
+    topic: ftpgrab-reports
   script:
     cmd: "uname"
     args:
