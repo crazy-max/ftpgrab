@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/crazy-max/ftpgrab/v7/internal/config"
+	"github.com/crazy-max/ftpgrab/v7/internal/httputil"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/notifier"
 	"github.com/pkg/errors"
@@ -54,7 +56,11 @@ func (c *Client) Send(jnl journal.Journal) error {
 	timeoutCtx, cancel := context.WithTimeoutCause(context.Background(), *c.cfg.Timeout, errors.WithStack(context.DeadlineExceeded))
 	defer cancel()
 
-	hc := http.Client{}
+	hc, err := httputil.NewClient(c.cfg.Proxy)
+	if err != nil {
+		return errors.Wrap(err, "cannot create HTTP client for Webhook notifier")
+	}
+	defer hc.CloseIdleConnections()
 	req, err := http.NewRequestWithContext(timeoutCtx, c.cfg.Method, c.cfg.Endpoint, bytes.NewBuffer(body))
 	if err != nil {
 		return err
@@ -73,6 +79,14 @@ func (c *Client) Send(jnl journal.Journal) error {
 		return err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return errors.Wrap(err, "cannot read Webhook error response")
+		}
+		return errors.Errorf("unexpected HTTP status %d: %s", resp.StatusCode, string(body))
+	}
 
 	return nil
 }
