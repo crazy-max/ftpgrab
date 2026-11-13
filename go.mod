@@ -20,7 +20,7 @@ require (
 	github.com/stretchr/testify v1.12.1
 	github.com/wneessen/go-mail v0.8.2
 	go.etcd.io/bbolt v1.5.0
-	golang.org/x/crypto v0.58.0
+	golang.org/x/crypto v0.59.0
 	golang.org/x/sys v0.50.0
 	golang.org/x/text v0.44.0
 )
@@ -53,6 +53,6 @@ require (
 	github.com/vanng822/css v0.0.0-20190504095207-a21e860bcd04 // indirect
 	github.com/vanng822/go-premailer v0.0.0-20191214114701-be27abe028fe // indirect
 	go.yaml.in/yaml/v3 v3.0.6 // indirect
-	golang.org/x/net v0.60.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
