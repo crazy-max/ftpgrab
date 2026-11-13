@@ -13,6 +13,7 @@ import (
 	"github.com/crazy-max/ftpgrab/v7/internal/httputil"
 	"github.com/crazy-max/ftpgrab/v7/internal/journal"
 	"github.com/crazy-max/ftpgrab/v7/internal/notif/notifier"
+	"github.com/crazy-max/ftpgrab/v7/internal/secret"
 	"github.com/hako/durafmt"
 	"github.com/nlopes/slack"
 	"github.com/pkg/errors"
@@ -44,6 +45,10 @@ func (c *Client) Name() string {
 
 // Send creates and sends a slack notification with journal entries
 func (c *Client) Send(jnl journal.Journal) error {
+	webhookURL, err := secret.GetSecret(c.cfg.WebhookURL, c.cfg.WebhookURLFile)
+	if err != nil {
+		return errors.Wrap(err, "cannot retrieve webhook URL for Slack notifier")
+	}
 	var textBuf bytes.Buffer
 	textTpl := template.Must(template.New("text").Parse("FTPGrab has successfully downloaded *{{ .Success }}* files in *{{ .Duration }}*.\n*{{ .Skip }}* have been skipped and *{{ .Error }}* errors occurred."))
 	if err := textTpl.Execute(&textBuf, struct {
@@ -99,7 +104,7 @@ func (c *Client) Send(jnl journal.Journal) error {
 	defer hc.CloseIdleConnections()
 	hc.Timeout = *c.cfg.Timeout
 	for attempt := 1; attempt <= slackMaxRateLimitAttempts; attempt++ {
-		err = slack.PostWebhookCustomHTTP(c.cfg.WebhookURL, &hc, payload)
+		err = slack.PostWebhookCustomHTTP(webhookURL, &hc, payload)
 		if err == nil {
 			return nil
 		}

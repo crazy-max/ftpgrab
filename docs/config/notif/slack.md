@@ -17,21 +17,23 @@ You can send notifications to your Slack channel using an [incoming webhook URL]
 
 !!! abstract "Environment variables"
     * `FTPGRAB_NOTIF_SLACK_WEBHOOKURL`
+    * `FTPGRAB_NOTIF_SLACK_WEBHOOKURLFILE`
     * `FTPGRAB_NOTIF_SLACK_TIMEOUT`
     * `FTPGRAB_NOTIF_SLACK_PROXY`
     * `FTPGRAB_NOTIF_SLACK_TLSSKIPVERIFY`
     * `FTPGRAB_NOTIF_SLACK_TLSCACERTFILES` (comma separated)
 
-| Name             | Default | Description                                                            |
-| ---------------- | ------- | ---------------------------------------------------------------------- |
-| `webhookURL`[^1] |         | Slack [incoming webhook URL](https://api.slack.com/messaging/webhooks) |
-| `timeout`        | `10s`   | Timeout for each HTTP request                                          |
-| `proxy`          |         | Explicit proxy URL                                                     |
-| `tlsSkipVerify`  | `false` | Skip TLS certificate verification                                      |
-| `tlsCaCertFiles` |         | Custom CA PEM files (replace system roots)                             |
+| Name                 | Default | Description                                                            |
+| -------------------- | ------- | ---------------------------------------------------------------------- |
+| `webhookURL`[^1]     |         | Slack [incoming webhook URL](https://api.slack.com/messaging/webhooks) |
+| `webhookURLFile`[^1] |         | Secret file used when `webhookURL` is unset                            |
+| `timeout`            | `10s`   | Timeout for each HTTP request                                          |
+| `proxy`              |         | Explicit proxy URL                                                     |
+| `tlsSkipVerify`      | `false` | Skip TLS certificate verification                                      |
+| `tlsCaCertFiles`     |         | Custom CA PEM files (replace system roots)                             |
 
 ## Sample
 
 ![](../../assets/notif/slack.png)
 
-[^1]: Value required
+[^1]: One of `webhookURL` or `webhookURLFile` is required.
