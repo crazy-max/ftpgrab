@@ -142,6 +142,12 @@ func TestLoadFile(t *testing.T) {
 					CreateBaseDir: new(false),
 				},
 				Notif: &Notif{
+					Discord: &NotifDiscord{
+						WebhookURL:   "https://discord.com/api/webhooks/1234567890/token",
+						RenderEmbeds: new(true),
+						RenderFields: new(true),
+						Timeout:      new(10 * time.Second),
+					},
 					Mail: &NotifMail{
 						Host:               "localhost",
 						Port:               25,
@@ -609,6 +615,89 @@ func TestWebhookProxyConfig(t *testing.T) {
 	cfg, err := Load(Cli{Cfgfile: "./fixtures/config.test.yml"}, Meta{})
 	require.NoError(t, err)
 	assert.Equal(t, "http://localhost:3128", cfg.Notif.Webhook.Proxy)
+}
+
+func TestDiscordConfig(t *testing.T) {
+	filename := filepath.Join(t.TempDir(), "webhook_url")
+	require.NoError(t, os.WriteFile(filename, []byte("https://example.com/discord"), 0o600))
+	tests := []struct {
+		name      string
+		environ   map[string]string
+		wantError string
+	}{
+		{
+			name: "defaults",
+			environ: map[string]string{
+				"WEBHOOKURL": "https://example.com/discord",
+			},
+		},
+		{
+			name: "custom options",
+			environ: map[string]string{
+				"WEBHOOKURL":   "https://example.com/discord",
+				"MENTIONS":     "<@123>,<@&456>",
+				"RENDEREMBEDS": "false",
+				"RENDERFIELDS": "false",
+				"TIMEOUT":      "2s",
+				"PROXY":        "http://localhost:3128",
+			},
+		},
+		{
+			name: "secret file",
+			environ: map[string]string{
+				"WEBHOOKURLFILE": filename,
+			},
+		},
+		{
+			name:      "missing URL",
+			wantError: "WebhookURL",
+		},
+		{
+			name: "missing secret file",
+			environ: map[string]string{
+				"WEBHOOKURLFILE": filename + ".missing",
+			},
+			wantError: "WebhookURLFile",
+		},
+		{
+			name: "zero timeout",
+			environ: map[string]string{
+				"WEBHOOKURL": "https://example.com/discord",
+				"TIMEOUT":    "0s",
+			},
+			wantError: "Timeout",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Cleanup(UnsetEnv("FTPGRAB_"))
+			t.Setenv("FTPGRAB_NOTIF_DISCORD_RENDEREMBEDS", "true")
+			for key, value := range tt.environ {
+				t.Setenv("FTPGRAB_NOTIF_DISCORD_"+key, value)
+			}
+			cfg, err := Load(Cli{Cfgfile: "./fixtures/config.ftp.yml"}, Meta{})
+			if tt.wantError != "" {
+				require.ErrorContains(t, err, tt.wantError)
+				return
+			}
+			require.NoError(t, err)
+			require.NotNil(t, cfg.Notif.Discord)
+			discord := cfg.Notif.Discord
+			assert.Equal(t, tt.environ["WEBHOOKURL"], discord.WebhookURL)
+			assert.Equal(t, tt.environ["WEBHOOKURLFILE"], discord.WebhookURLFile)
+			assert.Equal(t, tt.environ["PROXY"], discord.Proxy)
+			if tt.name == "custom options" {
+				assert.Equal(t, []string{"<@123>", "<@&456>"}, discord.Mentions)
+				assert.False(t, *discord.RenderEmbeds)
+				assert.False(t, *discord.RenderFields)
+				assert.Equal(t, 2*time.Second, *discord.Timeout)
+			} else {
+				assert.True(t, *discord.RenderEmbeds)
+				assert.True(t, *discord.RenderFields)
+				assert.Equal(t, 10*time.Second, *discord.Timeout)
+			}
+		})
+	}
 }
 
 func UnsetEnv(prefix string) (restore func()) {

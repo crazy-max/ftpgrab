@@ -181,6 +181,7 @@ Can be transposed to:
     * [sftp](server/sftp.md)
 * [download](download.md)
 * notif
+    * [discord](notif/discord.md)
     * [mail](notif/mail.md)
     * [script](notif/script.md)
     * [slack](notif/slack.md)
