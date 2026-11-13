@@ -28,6 +28,7 @@ reliably from remote storage to your own machine. FTPGrab is available as a
 
 * FTP and SFTP support
 * Multiple remote sources per job
+* [Concurrent downloads](config/download.md#concurrency) with configurable workers
 * Prevent re-downloads by tracking files that were already grabbed
 * Efficient key/value store to audit downloaded files
 * Built-in scheduling with cron expressions
@@ -36,7 +37,7 @@ reliably from remote storage to your own machine. FTPGrab is available as a
 * Retry failed downloads
 * Change file and folder permissions and ownership
 * Preserve translated modification times on downloaded files
-* Notifications through Mail, Slack, Webhook, scripts, and [more](config/index.md#reference)
+* Send notifications through Mail, Slack, Webhook, scripts, and [more](config/index.md#reference)
 * Enhanced logging
 * Official [container image available](install/docker.md)
 

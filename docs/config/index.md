@@ -58,6 +58,8 @@ You can override this using the [`--config` flag or `CONFIG` env var](../usage/c
         - \.nfo$
       since: 2019-02-01T18:50:05Z
       retry: 3
+      concurrency: 1
+      force: false
       hideSkipped: false
       tempFirst: false
       createBaseDir: false
@@ -118,6 +120,8 @@ All configuration from file can be transposed into environment variables. As an 
         - \.nfo$
       since: 2019-02-01T18:50:05Z
       retry: 3
+      concurrency: 1
+      force: false
       hideSkipped: false
       tempFirst: false
       createBaseDir: false
@@ -161,6 +165,8 @@ Can be transposed to:
     FTPGRAB_DOWNLOAD_EXCLUDE=\.nfo$
     FTPGRAB_DOWNLOAD_SINCE=2019-02-01T18:50:05Z
     FTPGRAB_DOWNLOAD_RETRY=3
+    FTPGRAB_DOWNLOAD_CONCURRENCY=1
+    FTPGRAB_DOWNLOAD_FORCE=false
     FTPGRAB_DOWNLOAD_HIDESKIPPED=false
     FTPGRAB_DOWNLOAD_TEMPFIRST=false
     FTPGRAB_DOWNLOAD_CREATEBASEDIR=false
