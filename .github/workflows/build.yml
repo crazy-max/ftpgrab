@@ -13,7 +13,13 @@ on:
       - 'master'
     tags:
       - 'v*'
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - 'README.md'
   pull_request:
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - 'README.md'
 
 env:
   DOCKERHUB_SLUG: crazymax/ftpgrab
