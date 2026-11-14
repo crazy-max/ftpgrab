@@ -29,6 +29,7 @@ type Client struct {
 	server     *server.Client
 	root       *os.Root
 	tempdirRun string
+	tempMu     sync.Mutex // Serializes staging creation and empty-parent cleanup.
 	closeOnce  sync.Once
 }
 
@@ -81,6 +82,8 @@ func New(dlConfig *config.Download, dbConfig *config.Db, serverConfig *config.Se
 		if client.tempdirRun, err = client.makeTempDir("."); err != nil {
 			return nil, errors.Wrap(err, "Cannot create temporary destination dir")
 		}
+	} else {
+		client.tempdirRun = ".ftpgrab-tmp-" + rand.Text()
 	}
 
 	return client, nil
@@ -183,7 +186,7 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 	entry := &journal.Entry{
 		File: srcpath,
 	}
-	if !validRemoteName(file.Info.Name()) || !filepath.IsLocal(file.DestDir) {
+	if !validRemoteName(file.Info.Name()) || !filepath.IsLocal(file.DestDir) || c.reservedDestination(destpath) {
 		entry.Level = journal.EntryLevelError
 		entry.Text = "Unsafe download destination"
 		log.Error().Str("src", srcpath).Str("dest", destpath).Msg(entry.Text)
@@ -300,9 +303,22 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 }
 
 func (c *Client) createDownloadFile(filename string) (*os.File, string, error) {
-	parent := filepath.Dir(filename)
-	if *c.config.TempFirst {
-		parent = c.tempdirRun
+	c.tempMu.Lock()
+	defer c.tempMu.Unlock()
+
+	parent := c.tempdirRun
+	if !*c.config.TempFirst {
+		parent = filepath.Join(filepath.Dir(filename), c.tempdirRun)
+		if err := c.root.MkdirAll(parent, 0o700); err != nil {
+			return nil, "", err
+		}
+		info, err := c.root.Lstat(parent)
+		if err != nil {
+			return nil, "", err
+		}
+		if !info.IsDir() {
+			return nil, "", errors.Errorf("staging path is not a directory: %s", parent)
+		}
 	}
 	tempdir, err := c.makeTempDir(parent)
 	if err != nil {
@@ -312,7 +328,7 @@ func (c *Client) createDownloadFile(filename string) (*os.File, string, error) {
 	// Never open an existing inode, including links, devices, and FIFOs.
 	file, err := c.root.OpenFile(temppath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 	if err != nil {
-		if cleanupErr := c.root.Remove(tempdir); cleanupErr != nil {
+		if cleanupErr := c.removeTempDir(tempdir); cleanupErr != nil {
 			log.Warn().Err(cleanupErr).Str("path", tempdir).Msg("Cannot clean temporary destination folder")
 		}
 		return nil, "", err
@@ -374,6 +390,8 @@ func (c *Client) Close() {
 			log.Warn().Err(err).Msg("Cannot close server connection")
 		}
 		if c.root != nil {
+			c.tempMu.Lock()
+			defer c.tempMu.Unlock()
 			if c.tempdirRun != "" {
 				if err := c.root.RemoveAll(c.tempdirRun); err != nil {
 					log.Warn().Err(err).Str("path", c.tempdirRun).Msg("Cannot remove temporary session folder")
@@ -409,10 +427,25 @@ func (c *Client) closeAndRemoveTempFile(file *os.File, filename string) error {
 }
 
 func (c *Client) removeTempPath(filename string) error {
+	c.tempMu.Lock()
+	defer c.tempMu.Unlock()
+
 	if err := c.root.Remove(filename); err != nil && !os.IsNotExist(err) {
 		return err
 	}
-	return c.root.Remove(filepath.Dir(filename))
+	return c.removeTempDir(filepath.Dir(filename))
+}
+
+// removeTempDir requires tempMu to exclude concurrent staging creation.
+func (c *Client) removeTempDir(dirname string) error {
+	if err := c.root.Remove(dirname); err != nil {
+		return err
+	}
+	if parent := filepath.Dir(dirname); parent != c.tempdirRun {
+		// Other transfers may still use this destination's session directory.
+		_ = c.root.Remove(parent)
+	}
+	return nil
 }
 
 func matchString(exp string, s string) bool {

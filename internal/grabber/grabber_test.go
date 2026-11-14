@@ -2,6 +2,7 @@ package grabber
 
 import (
 	"bytes"
+	"crypto/rand"
 	"fmt"
 	"io"
 	"os"
@@ -567,6 +568,8 @@ func initTestOutput(t *testing.T, client *Client) {
 	if *client.config.TempFirst {
 		client.tempdirRun, err = client.makeTempDir(".")
 		require.NoError(t, err)
+	} else {
+		client.tempdirRun = ".ftpgrab-tmp-" + rand.Text()
 	}
 }
 
@@ -817,7 +820,7 @@ func TestGrabReplacesFilesAfterSuccess(t *testing.T) {
 						if tempFirst {
 							assert.Equal(t, filepath.Join(output, client.tempdirRun), parent)
 						} else {
-							assert.Equal(t, filepath.Join(output, "shows"), parent)
+							assert.Equal(t, filepath.Join(output, "shows", client.tempdirRun), parent)
 						}
 						_, err := io.WriteString(writer, "download")
 						require.NoError(t, err)
@@ -915,7 +918,7 @@ func TestGrabKeepsDestinationDirectory(t *testing.T) {
 			} else {
 				entries, err := os.ReadDir(cfg.Output)
 				require.NoError(t, err)
-				assert.Len(t, entries, 1)
+				assert.Len(t, entries, 2)
 			}
 		})
 	}
@@ -945,4 +948,42 @@ func TestCloseRemovesSessionOnce(t *testing.T) {
 	assert.Equal(t, 1, closed)
 	_, err = client.root.Stat(".")
 	assert.ErrorIs(t, err, os.ErrClosed)
+}
+
+func TestReservedSessionDestination(t *testing.T) {
+	client := &Client{tempdirRun: ".ftpgrab-tmp-SESSION"}
+	for _, name := range []string{client.tempdirRun, strings.ToLower(client.tempdirRun)} {
+		for _, dir := range []bool{false, true} {
+			assert.Empty(t, client.readFile("/source", "/source", ".", stubFileInfo{name: name, dir: dir}))
+		}
+		assert.Empty(t, client.readFile("/source", "/source", filepath.Join("nested", name), stubFileInfo{name: "file"}))
+		entry := client.download(File{DestDir: name, Info: stubFileInfo{name: "file"}}, 0)
+		assert.Equal(t, journal.EntryLevelError, entry.Level)
+	}
+	assert.False(t, client.reservedDestination(".ftpgrab-tmp-backup"))
+}
+
+func TestConcurrentStagingCleanup(t *testing.T) {
+	client := &Client{config: tempFirstDownloadConfig(t.TempDir(), false)}
+	initTestOutput(t, client)
+	for i := range 16 {
+		t.Run(fmt.Sprint(i), func(t *testing.T) {
+			t.Parallel()
+			for range 20 {
+				file, name, err := client.createDownloadFile(filepath.Join("shows", "file"))
+				require.NoError(t, err)
+				require.NoError(t, client.closeAndRemoveTempFile(file, name))
+			}
+		})
+	}
+}
+
+func TestFailedStagingFileCreationCleansDirectory(t *testing.T) {
+	client := &Client{config: tempFirstDownloadConfig(t.TempDir(), false)}
+	initTestOutput(t, client)
+	_, _, err := client.createDownloadFile(filepath.Join("shows", strings.Repeat("x", 256)))
+	require.Error(t, err)
+	entries, err := os.ReadDir(filepath.Join(client.config.Output, "shows"))
+	require.NoError(t, err)
+	assert.Empty(t, entries)
 }
