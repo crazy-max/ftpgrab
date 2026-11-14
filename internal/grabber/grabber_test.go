@@ -41,10 +41,7 @@ func TestGrabForce(t *testing.T) {
 					},
 				}},
 			}
-			openTestRoot(t, client)
-			if tempFirst {
-				require.NoError(t, client.initTempDir())
-			}
+			initTestOutput(t, client)
 			t.Cleanup(client.Close)
 			file := File{
 				Base:    "/backups",
@@ -135,10 +132,7 @@ func TestGrabConcurrency(t *testing.T) {
 					db:     dbCli,
 					server: newSession(),
 				}
-				openTestRoot(t, client)
-				if tempFirst {
-					require.NoError(t, client.initTempDir())
-				}
+				initTestOutput(t, client)
 				t.Cleanup(client.Close)
 				t.Cleanup(func() { release.Do(func() { close(gate) }) })
 				var files []File
@@ -216,8 +210,7 @@ func TestGrabHistoryConflicts(t *testing.T) {
 					},
 				}},
 			}
-			openTestRoot(t, client)
-			require.NoError(t, client.initTempDir())
+			initTestOutput(t, client)
 			t.Cleanup(client.Close)
 			var files []File
 			for i, src := range []string{"/a", "/b", "/c"} {
@@ -276,10 +269,7 @@ func TestGrabDestinationConflicts(t *testing.T) {
 					db:     dbCli,
 					server: &server.Client{Handler: handler},
 				}
-				openTestRoot(t, client)
-				if tempFirst {
-					require.NoError(t, client.initTempDir())
-				}
+				initTestOutput(t, client)
 				t.Cleanup(client.Close)
 				var files []File
 				for _, src := range []string{"/a", "/b", "/c"} {
@@ -437,7 +427,7 @@ func TestGetStatus(t *testing.T) {
 		db:     dbCli,
 	}
 
-	openTestRoot(t, client)
+	initTestOutput(t, client)
 	cases := []struct {
 		name  string
 		build func(t *testing.T) File
@@ -551,7 +541,7 @@ func TestGetStatusDigestExists(t *testing.T) {
 		db:     dbCli,
 	}
 
-	openTestRoot(t, client)
+	initTestOutput(t, client)
 	assert.Equal(t, journal.EntryStatusDigestExists, client.getStatus(file))
 }
 
@@ -568,19 +558,22 @@ func tempFirstDownloadConfig(output string, tempFirst bool) *config.Download {
 	return cfg
 }
 
-func openTestRoot(t *testing.T, client *Client) {
+func initTestOutput(t *testing.T, client *Client) {
 	t.Helper()
 	root, err := os.OpenRoot(client.config.Output)
 	require.NoError(t, err)
 	client.root = root
 	t.Cleanup(func() { _ = root.Close() })
+	if *client.config.TempFirst {
+		client.tempdirRun, err = client.makeTempDir(".")
+		require.NoError(t, err)
+	}
 }
 
 func tempFirstClient(t *testing.T, output string) *Client {
 	t.Helper()
 	client := &Client{config: tempFirstDownloadConfig(output, true)}
-	openTestRoot(t, client)
-	require.NoError(t, client.initTempDir())
+	initTestOutput(t, client)
 	t.Cleanup(func() { _ = client.root.RemoveAll(client.tempdirRun) })
 	return client
 }
@@ -711,10 +704,7 @@ func TestGrabConfinesDestination(t *testing.T) {
 						},
 					}},
 				}
-				openTestRoot(t, client)
-				if tempFirst {
-					require.NoError(t, client.initTempDir())
-				}
+				initTestOutput(t, client)
 				t.Cleanup(client.Close)
 				dir := "."
 				switch escape {
@@ -806,10 +796,7 @@ func TestGrabReplacesFilesAfterSuccess(t *testing.T) {
 					config: cfg,
 					db:     dbCli,
 				}
-				openTestRoot(t, client)
-				if tempFirst {
-					require.NoError(t, client.initTempDir())
-				}
+				initTestOutput(t, client)
 				assertUnpublished := func() {
 					t.Helper()
 					if tc.existing {
@@ -907,10 +894,7 @@ func TestGrabKeepsDestinationDirectory(t *testing.T) {
 					},
 				}},
 			}
-			openTestRoot(t, client)
-			if tempFirst {
-				require.NoError(t, client.initTempDir())
-			}
+			initTestOutput(t, client)
 			t.Cleanup(client.Close)
 			got := client.Grab([]File{
 				{
@@ -952,8 +936,7 @@ func TestCloseRemovesSessionOnce(t *testing.T) {
 			},
 		}},
 	}
-	openTestRoot(t, client)
-	require.NoError(t, client.initTempDir())
+	initTestOutput(t, client)
 	stage := filepath.Join(cfg.Output, client.tempdirRun)
 	require.DirExists(t, stage)
 	client.Close()
