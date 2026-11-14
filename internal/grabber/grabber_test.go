@@ -591,3 +591,42 @@ func (f stubFileInfo) IsDir() bool {
 func (f stubFileInfo) Sys() any {
 	return nil
 }
+
+func TestReadFileRejectsUnsafeNames(t *testing.T) {
+	for _, name := range []string{"", ".", "..", "../outside", "dir/file", "/absolute", "./file", "nested/../file", "/", `dir\file`, `..\outside`, `C:\outside`, `\\server\share`, "nul\x00byte"} {
+		for _, dir := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%q/dir=%t", name, dir), func(t *testing.T) {
+				client := &Client{}
+				// An invalid directory must be rejected before contacting the server.
+				assert.Empty(t, client.readFile("/source", "/source", t.TempDir(), stubFileInfo{
+					name: name,
+					dir:  dir,
+				}))
+			})
+		}
+	}
+}
+
+func TestValidRemoteName(t *testing.T) {
+	for _, name := range []string{"episode.mkv", "a..b", ".hidden", "spaces and 日本語", ".ftpgrab-tmp-backup", "file [1](a)+.^$.txt", "café-世界.txt"} {
+		t.Run(name, func(t *testing.T) {
+			assert.True(t, validRemoteName(name))
+		})
+	}
+}
+
+func FuzzValidRemoteName(f *testing.F) {
+	for _, name := range []string{"", ".", "..", "../escape", `..\escape`, "nul\x00byte", ".. ", "café-日本語.txt", ".ftpgrab-tmp-backup"} {
+		f.Add(name)
+	}
+	f.Fuzz(func(t *testing.T, name string) {
+		if !validRemoteName(name) {
+			return
+		}
+		base := filepath.Join("downloads", "nested")
+		joined := filepath.Join(base, name)
+		if filepath.Dir(joined) != base || filepath.Base(joined) != name {
+			t.Fatalf("accepted name %q changes the destination path to %q", name, joined)
+		}
+	})
+}

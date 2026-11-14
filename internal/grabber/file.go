@@ -3,6 +3,7 @@ package grabber
 import (
 	"os"
 	"path"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 )
@@ -51,6 +52,11 @@ func (c *Client) readDir(base string, srcdir string, destdir string) []File {
 }
 
 func (c *Client) readFile(base string, srcdir string, destdir string, file os.FileInfo) []File {
+	if !validRemoteName(file.Name()) {
+		log.Error().Str("source", srcdir).Str("name", file.Name()).Msg("Skipping unsafe remote filename")
+		return nil
+	}
+
 	srcfile := path.Join(srcdir, file.Name())
 	destfile := path.Join(destdir, file.Name())
 
@@ -66,4 +72,10 @@ func (c *Client) readFile(base string, srcdir string, destdir string, file os.Fi
 			Info:    file,
 		},
 	}
+}
+
+// validRemoteName checks that a decoded listing entry is one local filename.
+// Do not clean names before validation.
+func validRemoteName(name string) bool {
+	return name != "." && validLocalName(name) && !strings.ContainsAny(name, "/\\\x00")
 }
