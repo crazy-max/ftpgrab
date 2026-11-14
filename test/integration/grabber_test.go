@@ -15,6 +15,7 @@ import (
 	"path"
 	"path/filepath"
 	"slices"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -260,7 +261,7 @@ func TestDownloads(t *testing.T) {
 					assert.Zero(t, result.Count.Error)
 					checkFiles(t, dl.Output, expected)
 				}))
-				require.NoDirExists(t, filepath.Join(dl.Output, ".ftpgrab-tmp"))
+				assertNoTemporaryDirectories(t, dl.Output)
 				t.Run("existing files", func(t *testing.T) {
 					client := openGrabber(t, dl, db, srv)
 					result := client.Grab(client.ListFiles())
@@ -386,7 +387,7 @@ download:
 	logs, err := cmd.CombinedOutput()
 	require.NoError(t, err, "%s", logs)
 	checkFiles(t, output, fixtureFiles())
-	assert.NoDirExists(t, filepath.Join(output, ".ftpgrab-tmp"))
+	assertNoTemporaryDirectories(t, output)
 }
 
 func serverConfig(name string) *config.Server {
@@ -504,4 +505,150 @@ func checkFiles(t *testing.T, output string, expected map[string]fixture) {
 	slices.Sort(wantNames)
 	slices.Sort(gotNames)
 	assert.Equal(t, wantNames, gotNames)
+}
+
+func assertNoTemporaryDirectories(t *testing.T, output string) {
+	t.Helper()
+	require.NoError(t, filepath.WalkDir(output, func(_ string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		assert.False(t, strings.HasPrefix(entry.Name(), ".ftpgrab-tmp-"), "staging entry remains: %s", entry.Name())
+		return nil
+	}))
+}
+
+func TestRemoteSymlinkDownload(t *testing.T) {
+	for _, name := range serverNames {
+		if name != "vsftpd" && name != "sftp" {
+			continue
+		}
+		for _, tempFirst := range []bool{false, true} {
+			t.Run(fmt.Sprintf("%s/tempFirst=%t", name, tempFirst), func(t *testing.T) {
+				dl := (&config.Download{}).GetDefaults()
+				dl.Output = t.TempDir()
+				dl.TempFirst = new(tempFirst)
+				srv := serverConfig(name)
+				if srv.FTP != nil {
+					srv.FTP.Sources[0] = "/symlink-fixtures"
+				} else {
+					srv.SFTP.Sources[0] = "/symlink-fixtures"
+				}
+				client := openGrabber(t, dl, nil, srv)
+				files := client.ListFiles()
+				require.Len(t, files, 2)
+				if name == "sftp" {
+					// OpenSSH exposes the fixture's lstat mode. FTP servers may
+					// instead report the target's type in directory listings.
+					var linked bool
+					for _, file := range files {
+						if file.Info.Name() == "alias.txt" {
+							linked = file.Info.Mode()&os.ModeSymlink != 0
+						}
+					}
+					require.True(t, linked, "the remote fixture must actually be a symlink")
+				}
+				got := client.Grab(files)
+				assert.Equal(t, 2, got.Count.Success)
+				assert.Zero(t, got.Count.Error)
+				for _, filename := range []string{"alias.txt", "original.txt"} {
+					local := filepath.Join(dl.Output, filename)
+					info, err := os.Lstat(local)
+					require.NoError(t, err)
+					assert.True(t, info.Mode().IsRegular(), "download must create a regular file")
+					data, err := os.ReadFile(local)
+					require.NoError(t, err)
+					assert.Equal(t, "linked file\n", string(data))
+					assert.Equal(t, time.Date(2024, time.January, 2, 0, 0, 0, 0, time.UTC), info.ModTime().UTC())
+				}
+				client.Close()
+				assertNoTemporaryDirectories(t, dl.Output)
+			})
+		}
+	}
+}
+
+func TestDownloadLocalLinks(t *testing.T) {
+	for _, name := range serverNames {
+		for _, tempFirst := range []bool{false, true} {
+			for _, link := range []string{"file symlink", "directory symlink", "relative directory symlink", "hard link"} {
+				t.Run(fmt.Sprintf("%s/tempFirst=%t/%s", name, tempFirst, link), func(t *testing.T) {
+					dl := (&config.Download{}).GetDefaults()
+					dl.Output = t.TempDir()
+					dl.TempFirst = new(tempFirst)
+					dl.Force = new(true)
+					outside := t.TempDir()
+					victim := filepath.Join(outside, "baz.txt")
+					require.NoError(t, os.WriteFile(victim, []byte("outside sentinel\n"), 0o600))
+					require.NoError(t, os.Chtimes(victim, time.Unix(1600000000, 0), time.Unix(1600000000, 0)))
+					before, err := os.Stat(victim)
+					require.NoError(t, err)
+					dirBefore, err := os.Stat(outside)
+					require.NoError(t, err)
+					local := filepath.Join(dl.Output, "bar.txt")
+					relative, err := filepath.Rel(dl.Output, outside)
+					require.NoError(t, err)
+					switch link {
+					case "file symlink":
+						require.NoError(t, os.Symlink(filepath.Join(relative, "baz.txt"), local))
+					case "directory symlink":
+						require.NoError(t, os.Symlink(relative, filepath.Join(dl.Output, "baz")))
+					case "relative directory symlink":
+						require.NoError(t, os.Mkdir(filepath.Join(dl.Output, "inside"), 0o755))
+						require.NoError(t, os.Symlink("inside", filepath.Join(dl.Output, "baz")))
+					case "hard link":
+						require.NoError(t, os.Link(victim, local))
+					}
+					srv := serverConfig(name)
+					if srv.FTP != nil {
+						srv.FTP.Sources[0] = path.Join(srv.FTP.Sources[0], "basic")
+					} else {
+						srv.SFTP.Sources[0] = path.Join(srv.SFTP.Sources[0], "basic")
+					}
+					client := openGrabber(t, dl, nil, srv)
+					files := client.ListFiles()
+					require.Len(t, files, 2)
+					got := client.Grab(files)
+					if link == "directory symlink" {
+						assert.Equal(t, 1, got.Count.Success)
+						require.Equal(t, 1, got.Count.Error)
+						for _, entry := range got.Entries {
+							if path.Base(entry.File) == "baz.txt" {
+								assert.Equal(t, journal.EntryLevelError, entry.Level)
+							}
+						}
+					} else {
+						assert.Equal(t, 2, got.Count.Success)
+						assert.Zero(t, got.Count.Error)
+					}
+					if link == "relative directory symlink" {
+						data, err := os.ReadFile(filepath.Join(dl.Output, "inside", "baz.txt"))
+						require.NoError(t, err)
+						assert.Equal(t, "baz\n", string(data))
+					}
+					data, err := os.ReadFile(victim)
+					require.NoError(t, err)
+					assert.Equal(t, "outside sentinel\n", string(data))
+					after, err := os.Stat(victim)
+					require.NoError(t, err)
+					assert.True(t, os.SameFile(before, after))
+					assert.Equal(t, before.Mode(), after.Mode())
+					assert.Equal(t, before.ModTime(), after.ModTime())
+					dirAfter, err := os.Stat(outside)
+					require.NoError(t, err)
+					assert.Equal(t, dirBefore.Mode(), dirAfter.Mode())
+					assert.Equal(t, dirBefore.ModTime(), dirAfter.ModTime())
+					info, err := os.Lstat(local)
+					require.NoError(t, err)
+					assert.True(t, info.Mode().IsRegular())
+					assert.False(t, os.SameFile(info, after))
+					data, err = os.ReadFile(local)
+					require.NoError(t, err)
+					assert.Equal(t, "bar\n", string(data))
+					client.Close()
+					assertNoTemporaryDirectories(t, dl.Output)
+				})
+			}
+		}
+	}
 }
