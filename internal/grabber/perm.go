@@ -2,17 +2,18 @@
 
 package grabber
 
-func (c *Client) fixPerms(filepath string) error {
-	fileinfo, err := c.root.Stat(filepath)
-	if err != nil {
-		return err
-	}
-	chmod := c.config.ChmodFile
-	if fileinfo.IsDir() {
-		chmod = c.config.ChmodDir
-	}
-	if err = c.root.Chmod(filepath, chmod); err != nil {
+import (
+	stderrors "errors"
+	"os"
+)
+
+func (c *Client) fixDirPerms(filepath string) error {
+	if err := c.root.Chmod(filepath, c.config.ChmodDir); err != nil {
 		return err
 	}
 	return c.root.Chown(filepath, c.config.UID, c.config.GID)
+}
+
+func (c *Client) fixFilePerms(file *os.File) error {
+	return stderrors.Join(file.Chown(c.config.UID, c.config.GID), file.Chmod(c.config.ChmodFile))
 }

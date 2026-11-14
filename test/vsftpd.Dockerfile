@@ -6,6 +6,7 @@ FROM alpine:${ALPINE_VERSION}
 RUN apk add --no-cache vsftpd && \
     adduser -D -h /home/foo foo && echo 'foo:bar' | chpasswd
 COPY --from=fixtures /fixtures /fixtures
+COPY --from=fixtures /symlink-fixtures /symlink-fixtures
 COPY <<EOF /etc/vsftpd/vsftpd.conf
 listen=YES
 listen_ipv6=NO

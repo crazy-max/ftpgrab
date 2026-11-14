@@ -18,6 +18,13 @@ mkdir -p /fixtures/basic/baz /fixtures/empty-dir /fixtures/many \
   "/fixtures/quotes 'single'" '/fixtures/quotes "double"' \
   '/fixtures/日本語' /fixtures/nested/one/two/three
 
+# Separate link fixtures keep server-specific link metadata out of the
+# ordinary size-based skip and history checks.
+mkdir -p /symlink-fixtures
+
+printf 'linked file\n' > /symlink-fixtures/original.txt
+ln -s original.txt /symlink-fixtures/alias.txt
+
 printf 'bar\n' > /fixtures/basic/bar.txt
 printf 'baz\n' > /fixtures/basic/baz/baz.txt
 printf '' > /fixtures/empty.bin
@@ -45,4 +52,5 @@ done
 
 # Older FTP LIST entries only expose the date, so use midnight UTC.
 find /fixtures -type f -exec touch -t 202401020000.00 {} +
+find /symlink-fixtures -exec touch -h -t 202401020000.00 {} +
 EOT

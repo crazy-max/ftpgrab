@@ -29,6 +29,7 @@ type Client struct {
 	server     *server.Client
 	root       *os.Root
 	tempdirRun string
+	closeOnce  sync.Once
 }
 
 // New creates new grabber instance
@@ -223,11 +224,11 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 		entry.Text = fmt.Sprintf("Cannot create destination dir: %v", err)
 		return entry
 	}
-	if err := c.fixPerms(destfolder); err != nil {
+	if err := c.fixDirPerms(destfolder); err != nil {
 		sublogger.Warn().Err(err).Msg("Cannot fix parent folder permissions")
 	}
 
-	destfile, err := c.createDownloadFile(destpath)
+	destfile, temppath, err := c.createDownloadFile(destpath)
 	if err != nil {
 		sublogger.Error().Err(err).Msg("Cannot create destination file")
 		entry.Level = journal.EntryLevelError
@@ -236,7 +237,7 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 	}
 
 	if err := c.server.Retrieve(srcpath, destfile); err != nil {
-		if cleanupErr := c.closeAndRemoveTempFile(destfile, c.tempFilePath(destpath)); cleanupErr != nil {
+		if cleanupErr := c.closeAndRemoveTempFile(destfile, temppath); cleanupErr != nil {
 			sublogger.Warn().Err(cleanupErr).Str("path", destfile.Name()).Msg("Cannot clean destination file after download failure")
 		}
 		retry++
@@ -249,8 +250,11 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 			return c.download(file, retry)
 		}
 	} else {
+		if err := c.fixFilePerms(destfile); err != nil {
+			sublogger.Warn().Err(err).Msg("Cannot fix file permissions")
+		}
 		if err := destfile.Close(); err != nil {
-			if cleanupErr := c.removeTempPath(c.tempFilePath(destpath)); cleanupErr != nil {
+			if cleanupErr := c.removeTempPath(temppath); cleanupErr != nil {
 				sublogger.Warn().Err(cleanupErr).Str("path", destfile.Name()).Msg("Cannot clean temporary destination file")
 			}
 			sublogger.Error().Err(err).Msg("Cannot close destination file")
@@ -259,20 +263,21 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 			return entry
 		}
 
-		if *c.config.TempFirst {
-			log.Debug().
-				Str("tempfile", destfile.Name()).
-				Str("destfile", destpath).
-				Msgf("Move temp file")
-			if err := c.root.Rename(c.tempFilePath(destpath), destpath); err != nil {
-				if cleanupErr := c.removeTempPath(c.tempFilePath(destpath)); cleanupErr != nil {
-					sublogger.Warn().Err(cleanupErr).Str("path", destfile.Name()).Msg("Cannot clean temporary destination file")
-				}
-				sublogger.Error().Err(err).Msg("Cannot move file")
-				entry.Level = journal.EntryLevelError
-				entry.Text = fmt.Sprintf("Cannot move file: %v", err)
-				return entry
+		if err := c.root.Chtimes(temppath, file.Info.ModTime(), file.Info.ModTime()); err != nil {
+			sublogger.Warn().Err(err).Msg("Cannot change modtime of destination file")
+		}
+
+		if err := c.root.Rename(temppath, destpath); err != nil {
+			if cleanupErr := c.removeTempPath(temppath); cleanupErr != nil {
+				sublogger.Warn().Err(cleanupErr).Str("path", temppath).Msg("Cannot clean temporary destination file")
 			}
+			sublogger.Error().Err(err).Msg("Cannot move file")
+			entry.Level = journal.EntryLevelError
+			entry.Text = fmt.Sprintf("Cannot move file: %v", err)
+			return entry
+		}
+		if err := c.removeTempPath(temppath); err != nil {
+			sublogger.Warn().Err(err).Str("path", temppath).Msg("Cannot clean temporary destination folder")
 		}
 
 		sublogger.Info().
@@ -284,32 +289,35 @@ func (c *Client) download(file File, retry int) *journal.Entry {
 			units.HumanSize(float64(file.Info.Size())),
 			time.Since(retrieveStart).Round(time.Millisecond).String(),
 		)
-		if err := c.fixPerms(destpath); err != nil {
-			sublogger.Warn().Err(err).Msg("Cannot fix file permissions")
-		}
 		if err := c.db.PutDigest(file.Base, file.SrcDir, file.Info); err != nil {
 			sublogger.Error().Err(err).Msg("Cannot add digest into db")
 			entry.Level = journal.EntryLevelWarning
 			entry.Text = fmt.Sprintf("Successfully downloaded but cannot add digest into db: %v", err)
-		}
-		if err = c.root.Chtimes(destpath, file.Info.ModTime(), file.Info.ModTime()); err != nil {
-			sublogger.Warn().Err(err).Msg("Cannot change modtime of destination file")
 		}
 	}
 
 	return entry
 }
 
-func (c *Client) createDownloadFile(filename string) (*os.File, error) {
-	if !*c.config.TempFirst {
-		return c.root.Create(filename)
+func (c *Client) createDownloadFile(filename string) (*os.File, string, error) {
+	parent := filepath.Dir(filename)
+	if *c.config.TempFirst {
+		parent = c.tempdirRun
 	}
-	tempfilepath := c.tempFilePath(filename)
-	tempdir := filepath.Dir(tempfilepath)
-	if err := c.root.MkdirAll(tempdir, os.ModePerm); err != nil {
-		return nil, err
+	tempdir, err := c.makeTempDir(parent)
+	if err != nil {
+		return nil, "", err
 	}
-	return c.root.Create(tempfilepath)
+	temppath := filepath.Join(tempdir, filepath.Base(filename))
+	// Never open an existing inode, including links, devices, and FIFOs.
+	file, err := c.root.OpenFile(temppath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+	if err != nil {
+		if cleanupErr := c.root.Remove(tempdir); cleanupErr != nil {
+			log.Warn().Err(cleanupErr).Str("path", tempdir).Msg("Cannot clean temporary destination folder")
+		}
+		return nil, "", err
+	}
+	return file, temppath, nil
 }
 
 func (c *Client) getStatus(file File) journal.EntryStatus {
@@ -358,40 +366,43 @@ func (c *Client) isExcluded(file File) bool {
 
 // Close closes grabber
 func (c *Client) Close() {
-	if err := c.db.Close(); err != nil {
-		log.Warn().Err(err).Msg("Cannot close database")
-	}
-	if err := c.server.Close(); err != nil {
-		log.Warn().Err(err).Msg("Cannot close server connection")
-	}
-	if c.root != nil {
-		if c.tempdirRun != "" {
-			if err := c.root.RemoveAll(c.tempdirRun); err != nil {
-				log.Warn().Err(err).Str("path", c.tempdirRun).Msg("Cannot remove temporary session folder")
+	c.closeOnce.Do(func() {
+		if err := c.db.Close(); err != nil {
+			log.Warn().Err(err).Msg("Cannot close database")
+		}
+		if err := c.server.Close(); err != nil {
+			log.Warn().Err(err).Msg("Cannot close server connection")
+		}
+		if c.root != nil {
+			if c.tempdirRun != "" {
+				if err := c.root.RemoveAll(c.tempdirRun); err != nil {
+					log.Warn().Err(err).Str("path", c.tempdirRun).Msg("Cannot remove temporary session folder")
+				}
+			}
+			if err := c.root.Close(); err != nil {
+				log.Warn().Err(err).Msg("Cannot close download output folder")
 			}
 		}
-		if err := c.root.Close(); err != nil {
-			log.Warn().Err(err).Msg("Cannot close download output folder")
-		}
-	}
+	})
 }
 
 func (c *Client) initTempDir() error {
+	var err error
+	c.tempdirRun, err = c.makeTempDir(".")
+	return err
+}
+
+func (c *Client) makeTempDir(parent string) (string, error) {
 	// Root has no MkdirTemp. Mkdir exclusively claims a random private directory.
 	for {
-		name := ".ftpgrab-tmp-" + rand.Text()
+		name := filepath.Join(parent, ".ftpgrab-tmp-"+rand.Text())
 		if err := c.root.Mkdir(name, 0o700); os.IsExist(err) {
 			continue
 		} else if err != nil {
-			return err
+			return "", err
 		}
-		c.tempdirRun = name
-		return nil
+		return name, nil
 	}
-}
-
-func (c *Client) tempFilePath(filename string) string {
-	return filepath.Join(c.tempdirRun, filename)
 }
 
 func (c *Client) closeAndRemoveTempFile(file *os.File, filename string) error {
@@ -404,13 +415,10 @@ func (c *Client) closeAndRemoveTempFile(file *os.File, filename string) error {
 }
 
 func (c *Client) removeTempPath(filename string) error {
-	if !*c.config.TempFirst {
-		return nil
-	}
 	if err := c.root.Remove(filename); err != nil && !os.IsNotExist(err) {
 		return err
 	}
-	return nil
+	return c.root.Remove(filepath.Dir(filename))
 }
 
 func matchString(exp string, s string) bool {
