@@ -23,7 +23,11 @@
 
 ## `output`
 
-Output destination folder of downloaded files. Env var `FTPGRAB_DOWNLOAD_OUTPUT` overrides this value.
+Output destination folder of downloaded files. Env var
+`FTPGRAB_DOWNLOAD_OUTPUT` overrides this value.
+
+Downloads stay within this directory. Symlinks with absolute targets or
+relative targets outside it cannot be followed.
 
 !!! example "Config file"
     ```yaml
@@ -177,8 +181,6 @@ recorded in the database, and database errors retain their usual behavior.
 Disabling this option restores the usual checks against local files and history.
 
 This is useful for files such as nightly backups that reuse the same filename.
-Enable `tempFirst` to download to a temporary location before replacing an
-existing file.
 
 !!! example "Config file"
     ```yaml
@@ -204,7 +206,11 @@ Not display skipped downloads. (default: `false`)
 
 ## `tempFirst`
 
-First download the files to a temporary location and then move them to the final destination. (default `false`)
+With `false`, temporary files are stored beside each destination. With `true`,
+they are stored under `output`; destinations must be on the same filesystem.
+(default: `false`)
+
+Files reach their final paths only after a successful download.
 
 !!! example "Config file"
     ```yaml

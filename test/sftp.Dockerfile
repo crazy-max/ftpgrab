@@ -8,6 +8,7 @@ RUN apk add --no-cache openssh && \
     ssh-keygen -A
 COPY --from=fixtures /ssh/ssh_host_ed25519_key /etc/ssh/ssh_host_ed25519_key
 COPY --from=fixtures /fixtures /fixtures
+COPY --from=fixtures /symlink-fixtures /symlink-fixtures
 COPY <<EOF /etc/ssh/sshd_config
 PasswordAuthentication yes
 HostKey /etc/ssh/ssh_host_ed25519_key
