@@ -3,6 +3,7 @@ package grabber
 import (
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -12,7 +13,7 @@ import (
 type File struct {
 	Base    string
 	SrcDir  string
-	DestDir string
+	DestDir string // Relative to the download output root.
 	Info    os.FileInfo
 }
 
@@ -24,9 +25,14 @@ func (c *Client) ListFiles() []File {
 		log.Debug().Str("source", src).Msg("Listing files")
 
 		// Check basedir
-		dest := c.config.Output
-		if src != "/" && *c.config.CreateBaseDir {
-			dest = path.Join(dest, src)
+		dest := "."
+		if cleanSrc := path.Clean(src); cleanSrc != "/" && *c.config.CreateBaseDir {
+			var err error
+			dest, err = filepath.Localize(strings.TrimPrefix(cleanSrc, "/"))
+			if err != nil {
+				log.Error().Err(err).Str("source", src).Msg("Cannot map source to destination")
+				continue
+			}
 		}
 
 		files = append(files, c.readDir(src, src, dest)...)
@@ -58,7 +64,7 @@ func (c *Client) readFile(base string, srcdir string, destdir string, file os.Fi
 	}
 
 	srcfile := path.Join(srcdir, file.Name())
-	destfile := path.Join(destdir, file.Name())
+	destfile := filepath.Join(destdir, file.Name())
 
 	if file.IsDir() {
 		return c.readDir(base, srcfile, destfile)

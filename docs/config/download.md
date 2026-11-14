@@ -23,7 +23,11 @@
 
 ## `output`
 
-Output destination folder of downloaded files. Env var `FTPGRAB_DOWNLOAD_OUTPUT` overrides this value.
+Output destination folder of downloaded files. Env var
+`FTPGRAB_DOWNLOAD_OUTPUT` overrides this value.
+
+Downloads stay within this directory. Symlinks with absolute targets or
+relative targets outside it cannot be followed.
 
 !!! example "Config file"
     ```yaml

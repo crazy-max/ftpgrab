@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -40,6 +41,7 @@ func TestGrabForce(t *testing.T) {
 					},
 				}},
 			}
+			openTestRoot(t, client)
 			if tempFirst {
 				require.NoError(t, client.initTempDir())
 			}
@@ -47,10 +49,10 @@ func TestGrabForce(t *testing.T) {
 			file := File{
 				Base:    "/backups",
 				SrcDir:  "/backups",
-				DestDir: cfg.Output,
+				DestDir: ".",
 				Info:    stubFileInfo{name: "nightly.tar", size: 5, modTime: time.Now()},
 			}
-			dest := filepath.Join(file.DestDir, file.Info.Name())
+			dest := filepath.Join(cfg.Output, file.DestDir, file.Info.Name())
 			for run := 1; run <= 3; run++ {
 				if run == 3 {
 					// History alone must not prevent another download either.
@@ -133,6 +135,7 @@ func TestGrabConcurrency(t *testing.T) {
 					db:     dbCli,
 					server: newSession(),
 				}
+				openTestRoot(t, client)
 				if tempFirst {
 					require.NoError(t, client.initTempDir())
 				}
@@ -143,7 +146,7 @@ func TestGrabConcurrency(t *testing.T) {
 					files = append(files, File{
 						Base:    "/source",
 						SrcDir:  "/source",
-						DestDir: cfg.Output,
+						DestDir: ".",
 						Info:    stubFileInfo{name: fmt.Sprintf("file-%d", i), size: 4, modTime: time.Now().Add(-time.Hour)},
 					})
 				}
@@ -174,14 +177,14 @@ func TestGrabConcurrency(t *testing.T) {
 						assert.False(t, dbCli.HasDigest(file.Base, file.SrcDir, file.Info))
 						continue
 					}
-					data, err := os.ReadFile(filepath.Join(file.DestDir, file.Info.Name()))
+					data, err := os.ReadFile(filepath.Join(cfg.Output, file.DestDir, file.Info.Name()))
 					require.NoError(t, err)
 					assert.Equal(t, "data", string(data))
 					assert.True(t, dbCli.HasDigest(file.Base, file.SrcDir, file.Info))
 				}
 				if tempFirst {
 					var remaining []string
-					require.NoError(t, filepath.WalkDir(client.tempdirRun, func(name string, entry os.DirEntry, err error) error {
+					require.NoError(t, filepath.WalkDir(filepath.Join(cfg.Output, client.tempdirRun), func(name string, entry os.DirEntry, err error) error {
 						if err == nil && !entry.IsDir() {
 							remaining = append(remaining, name)
 						}
@@ -213,6 +216,7 @@ func TestGrabHistoryConflicts(t *testing.T) {
 					},
 				}},
 			}
+			openTestRoot(t, client)
 			require.NoError(t, client.initTempDir())
 			t.Cleanup(client.Close)
 			var files []File
@@ -220,7 +224,7 @@ func TestGrabHistoryConflicts(t *testing.T) {
 				file := File{
 					Base:    src,
 					SrcDir:  src,
-					DestDir: filepath.Join(cfg.Output, src),
+					DestDir: strings.TrimPrefix(src, "/"),
 					Info:    stubFileInfo{name: "file", size: 7, modTime: time.Now()},
 				}
 				if transitive {
@@ -245,7 +249,7 @@ func TestGrabHistoryConflicts(t *testing.T) {
 				assert.Equal(t, journal.EntryStatusDigestExists, got.Entries[1].Status)
 			}
 			assert.Equal(t, journal.EntryStatusDigestExists, got.Entries[2].Status)
-			require.NoFileExists(t, filepath.Join(files[2].DestDir, "file"))
+			require.NoFileExists(t, filepath.Join(cfg.Output, files[2].DestDir, "file"))
 		})
 	}
 }
@@ -272,6 +276,7 @@ func TestGrabDestinationConflicts(t *testing.T) {
 					db:     dbCli,
 					server: &server.Client{Handler: handler},
 				}
+				openTestRoot(t, client)
 				if tempFirst {
 					require.NoError(t, client.initTempDir())
 				}
@@ -281,7 +286,7 @@ func TestGrabDestinationConflicts(t *testing.T) {
 					files = append(files, File{
 						Base:    src,
 						SrcDir:  src,
-						DestDir: cfg.Output,
+						DestDir: ".",
 						Info:    stubFileInfo{name: "file", size: int64(len(src + "/file")), modTime: time.Now()},
 					})
 				}
@@ -307,27 +312,27 @@ func TestGrabDestinationConflicts(t *testing.T) {
 
 func TestCreateDownloadFileUsesSessionTempDirectory(t *testing.T) {
 	destdir := t.TempDir()
-	client := tempFirstClient(destdir)
+	client := tempFirstClient(t, destdir)
 
-	file, err := client.createDownloadFile(filepath.Join(destdir, "shows", "episode.mkv"))
+	file, err := client.createDownloadFile(filepath.Join("shows", "episode.mkv"))
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		_ = file.Close()
 		_ = os.Remove(file.Name())
 	})
 
-	assert.Equal(t, filepath.Join(destdir, ".ftpgrab-tmp", "session", "shows"), filepath.Dir(file.Name()))
-	assert.Equal(t, filepath.Join(destdir, ".ftpgrab-tmp", "session", "shows", "episode.mkv"), file.Name())
+	assert.Equal(t, filepath.Join(destdir, client.tempdirRun, "shows"), filepath.Dir(file.Name()))
+	assert.Equal(t, filepath.Join(destdir, client.tempdirRun, "shows", "episode.mkv"), file.Name())
 	assert.Equal(t, "episode.mkv", filepath.Base(file.Name()))
 }
 
 func TestCloseAndRemoveTempFileRemovesTempFile(t *testing.T) {
 	destdir := t.TempDir()
-	client := tempFirstClient(destdir)
+	client := tempFirstClient(t, destdir)
 
-	file, err := client.createDownloadFile(filepath.Join(destdir, "shows", "episode.mkv"))
+	file, err := client.createDownloadFile(filepath.Join("shows", "episode.mkv"))
 	require.NoError(t, err)
-	require.NoError(t, client.closeAndRemoveTempFile(file))
+	require.NoError(t, client.closeAndRemoveTempFile(file, client.tempFilePath(filepath.Join("shows", "episode.mkv"))))
 
 	_, err = os.Stat(file.Name())
 	assert.ErrorIs(t, err, os.ErrNotExist)
@@ -335,45 +340,79 @@ func TestCloseAndRemoveTempFileRemovesTempFile(t *testing.T) {
 
 func TestTempFilePathUsesRunDirectoryAndPreservesRelativePath(t *testing.T) {
 	destdir := t.TempDir()
-	client := tempFirstClient(destdir)
+	client := tempFirstClient(t, destdir)
 
 	assert.Equal(
 		t,
-		filepath.Join(destdir, ".ftpgrab-tmp", "session", "shows", "episode.mkv"),
-		client.tempFilePath(filepath.Join(destdir, "shows", "episode.mkv")),
+		filepath.Join(client.tempdirRun, "shows", "episode.mkv"),
+		client.tempFilePath(filepath.Join("shows", "episode.mkv")),
 	)
 }
 
 func TestListFiles(t *testing.T) {
-	client := &Client{
-		config: &config.Download{
-			Output:        "downloads",
-			CreateBaseDir: new(true),
+	cases := []struct {
+		source string
+		dest   string
+	}{
+		{
+			source: "/shows",
+			dest:   filepath.Join("shows", "season1"),
 		},
-		server: &server.Client{
-			Handler: &stubServerHandler{
-				common: config.ServerCommon{
-					Sources: []string{"/shows"},
-				},
-				entries: map[string][]os.FileInfo{
-					"/shows": {
-						stubFileInfo{name: "season1", dir: true},
-					},
-					"/shows/season1": {
-						stubFileInfo{name: "episode.mkv", size: 42, modTime: time.Unix(1700000000, 0)},
-					},
-				},
-			},
+		{
+			source: "/shows/.",
+			dest:   filepath.Join("shows", "season1"),
+		},
+		{
+			source: "/",
+			dest:   "season1",
+		},
+		{
+			source: "/.",
+			dest:   "season1",
+		},
+		{
+			source: "//",
+			dest:   "season1",
+		},
+		{
+			source: "/./",
+			dest:   "season1",
 		},
 	}
+	for _, tc := range cases {
+		t.Run(tc.source, func(t *testing.T) {
+			srcdir := path.Join(tc.source, "season1")
+			client := &Client{
+				config: &config.Download{
+					Output:        "downloads",
+					CreateBaseDir: new(true),
+				},
+				server: &server.Client{
+					Handler: &stubServerHandler{
+						common: config.ServerCommon{
+							Sources: []string{tc.source},
+						},
+						entries: map[string][]os.FileInfo{
+							tc.source: {
+								stubFileInfo{name: "season1", dir: true},
+							},
+							srcdir: {
+								stubFileInfo{name: "episode.mkv", size: 42, modTime: time.Unix(1700000000, 0)},
+							},
+						},
+					},
+				},
+			}
 
-	files := client.ListFiles()
-	require.Len(t, files, 1)
-	assert.Equal(t, "/shows", files[0].Base)
-	assert.Equal(t, "/shows/season1", files[0].SrcDir)
-	assert.Equal(t, path.Join("downloads", "/shows", "season1"), files[0].DestDir)
-	assert.Equal(t, "episode.mkv", files[0].Info.Name())
-	assert.Equal(t, int64(42), files[0].Info.Size())
+			files := client.ListFiles()
+			require.Len(t, files, 1)
+			assert.Equal(t, tc.source, files[0].Base)
+			assert.Equal(t, srcdir, files[0].SrcDir)
+			assert.Equal(t, tc.dest, files[0].DestDir)
+			assert.Equal(t, "episode.mkv", files[0].Info.Name())
+			assert.Equal(t, int64(42), files[0].Info.Size())
+		})
+	}
 }
 
 func TestGetStatus(t *testing.T) {
@@ -393,6 +432,7 @@ func TestGetStatus(t *testing.T) {
 		db:     dbCli,
 	}
 
+	openTestRoot(t, client)
 	cases := []struct {
 		name  string
 		build func(t *testing.T) File
@@ -402,7 +442,7 @@ func TestGetStatus(t *testing.T) {
 			name: "not included",
 			build: func(t *testing.T) File {
 				return File{
-					DestDir: filepath.Join(output, t.Name()),
+					DestDir: filepath.FromSlash(t.Name()),
 					Info:    stubFileInfo{name: "readme.txt", size: 5, modTime: now},
 				}
 			},
@@ -412,7 +452,7 @@ func TestGetStatus(t *testing.T) {
 			name: "excluded",
 			build: func(t *testing.T) File {
 				return File{
-					DestDir: filepath.Join(output, t.Name()),
+					DestDir: filepath.FromSlash(t.Name()),
 					Info:    stubFileInfo{name: "sample.mkv", size: 5, modTime: now},
 				}
 			},
@@ -422,7 +462,7 @@ func TestGetStatus(t *testing.T) {
 			name: "outdated",
 			build: func(t *testing.T) File {
 				return File{
-					DestDir: filepath.Join(output, t.Name()),
+					DestDir: filepath.FromSlash(t.Name()),
 					Info:    stubFileInfo{name: "old.mkv", size: 5, modTime: now.Add(-2 * time.Hour)},
 				}
 			},
@@ -435,7 +475,7 @@ func TestGetStatus(t *testing.T) {
 				require.NoError(t, os.MkdirAll(destdir, os.ModePerm))
 				require.NoError(t, os.WriteFile(filepath.Join(destdir, "episode.mkv"), bytes.Repeat([]byte("a"), 4), 0o644))
 				return File{
-					DestDir: destdir,
+					DestDir: filepath.FromSlash(t.Name()),
 					Info:    stubFileInfo{name: "episode.mkv", size: 4, modTime: now},
 				}
 			},
@@ -448,7 +488,7 @@ func TestGetStatus(t *testing.T) {
 				require.NoError(t, os.MkdirAll(destdir, os.ModePerm))
 				require.NoError(t, os.WriteFile(filepath.Join(destdir, "episode.mkv"), bytes.Repeat([]byte("a"), 3), 0o644))
 				return File{
-					DestDir: destdir,
+					DestDir: filepath.FromSlash(t.Name()),
 					Info:    stubFileInfo{name: "episode.mkv", size: 4, modTime: now},
 				}
 			},
@@ -458,7 +498,7 @@ func TestGetStatus(t *testing.T) {
 			name: "never downloaded",
 			build: func(t *testing.T) File {
 				return File{
-					DestDir: filepath.Join(output, t.Name()),
+					DestDir: filepath.FromSlash(t.Name()),
 					Info:    stubFileInfo{name: "new.mkv", size: 4, modTime: now},
 				}
 			},
@@ -495,7 +535,7 @@ func TestGetStatusDigestExists(t *testing.T) {
 	file := File{
 		Base:    "/shows",
 		SrcDir:  "/shows/season1",
-		DestDir: filepath.Join(cfg.Output, "downloads"),
+		DestDir: "downloads",
 		Info:    stubFileInfo{name: "episode.mkv", size: 4, modTime: time.Now()},
 	}
 
@@ -506,6 +546,7 @@ func TestGetStatusDigestExists(t *testing.T) {
 		db:     dbCli,
 	}
 
+	openTestRoot(t, client)
 	assert.Equal(t, journal.EntryStatusDigestExists, client.getStatus(file))
 }
 
@@ -522,11 +563,21 @@ func tempFirstDownloadConfig(output string, tempFirst bool) *config.Download {
 	return cfg
 }
 
-func tempFirstClient(output string) *Client {
-	return &Client{
-		config:     tempFirstDownloadConfig(output, true),
-		tempdirRun: filepath.Join(output, ".ftpgrab-tmp", "session"),
-	}
+func openTestRoot(t *testing.T, client *Client) {
+	t.Helper()
+	root, err := os.OpenRoot(client.config.Output)
+	require.NoError(t, err)
+	client.root = root
+	t.Cleanup(func() { _ = root.Close() })
+}
+
+func tempFirstClient(t *testing.T, output string) *Client {
+	t.Helper()
+	client := &Client{config: tempFirstDownloadConfig(output, true)}
+	openTestRoot(t, client)
+	require.NoError(t, client.initTempDir())
+	t.Cleanup(func() { _ = client.root.RemoveAll(client.tempdirRun) })
+	return client
 }
 
 type stubServerHandler struct {
@@ -629,4 +680,71 @@ func FuzzValidRemoteName(f *testing.F) {
 			t.Fatalf("accepted name %q changes the destination path to %q", name, joined)
 		}
 	})
+}
+
+func TestGrabConfinesDestination(t *testing.T) {
+	for _, tempFirst := range []bool{false, true} {
+		for _, escape := range []string{"parent", "symlink directory", "symlink file"} {
+			t.Run(fmt.Sprintf("%s/tempFirst=%t", escape, tempFirst), func(t *testing.T) {
+				output := t.TempDir()
+				outside := t.TempDir()
+				victim := filepath.Join(outside, "file")
+				require.NoError(t, os.WriteFile(victim, []byte("untouched"), 0o600))
+				before, err := os.Stat(victim)
+				require.NoError(t, err)
+				cfg := tempFirstDownloadConfig(output, tempFirst)
+				cfg.Force = new(true)
+				dbCli, err := db.New(nil)
+				require.NoError(t, err)
+				client := &Client{
+					config: cfg,
+					db:     dbCli,
+					server: &server.Client{Handler: &stubServerHandler{
+						retrieve: func(_ string, dest io.Writer) error {
+							_, err := io.WriteString(dest, "overwrite")
+							return err
+						},
+					}},
+				}
+				openTestRoot(t, client)
+				if tempFirst {
+					require.NoError(t, client.initTempDir())
+				}
+				t.Cleanup(client.Close)
+				dir := "."
+				switch escape {
+				case "parent":
+					dir = filepath.Join("..", filepath.Base(outside))
+				case "symlink directory":
+					if err := os.Symlink(outside, filepath.Join(output, "link")); err != nil {
+						t.Skipf("symlinks unavailable: %v", err)
+					}
+					dir = "link"
+				case "symlink file":
+					if err := os.Symlink(victim, filepath.Join(output, "file")); err != nil {
+						t.Skipf("symlinks unavailable: %v", err)
+					}
+				}
+				got := client.Grab([]File{{
+					Base:    "/source",
+					SrcDir:  "/source",
+					DestDir: dir,
+					Info:    stubFileInfo{name: "file", size: 9, modTime: time.Now()},
+				}})
+				if escape == "symlink file" && tempFirst {
+					// Rename replaces the link itself without following its target.
+					assert.Equal(t, 1, got.Count.Success)
+				} else {
+					assert.Equal(t, 1, got.Count.Error)
+				}
+				data, err := os.ReadFile(victim)
+				require.NoError(t, err)
+				assert.Equal(t, "untouched", string(data))
+				after, err := os.Stat(victim)
+				require.NoError(t, err)
+				assert.Equal(t, before.Mode(), after.Mode())
+				assert.Equal(t, before.ModTime(), after.ModTime())
+			})
+		}
+	}
 }
