@@ -63,6 +63,11 @@ func (c *Client) readFile(base string, srcdir string, destdir string, file os.Fi
 		return nil
 	}
 
+	if c.reservedDestination(filepath.Join(destdir, file.Name())) {
+		log.Error().Str("source", srcdir).Str("name", file.Name()).Msg("Skipping reserved staging destination")
+		return nil
+	}
+
 	srcfile := path.Join(srcdir, file.Name())
 	destfile := filepath.Join(destdir, file.Name())
 
@@ -84,4 +89,14 @@ func (c *Client) readFile(base string, srcdir string, destdir string, file os.Fi
 // Do not clean names before validation.
 func validRemoteName(name string) bool {
 	return name != "." && validLocalName(name) && !strings.ContainsAny(name, "/\\\x00")
+}
+
+// Reserve only this client's session name, including on case-insensitive filesystems.
+func (c *Client) reservedDestination(name string) bool {
+	for component := range strings.SplitSeq(filepath.ToSlash(name), "/") {
+		if strings.EqualFold(component, c.tempdirRun) {
+			return true
+		}
+	}
+	return false
 }
