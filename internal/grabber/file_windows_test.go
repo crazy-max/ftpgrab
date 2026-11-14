@@ -85,10 +85,7 @@ func TestGrabJunctions(t *testing.T) {
 						},
 					}},
 				}
-				openTestRoot(t, client)
-				if tempFirst {
-					require.NoError(t, client.initTempDir())
-				}
+				initTestOutput(t, client)
 				t.Cleanup(client.Close)
 				got := client.Grab([]File{
 					{

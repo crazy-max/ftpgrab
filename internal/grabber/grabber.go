@@ -78,7 +78,7 @@ func New(dlConfig *config.Download, dbConfig *config.Db, serverConfig *config.Se
 	}
 
 	if *dlConfig.TempFirst {
-		if err := client.initTempDir(); err != nil {
+		if client.tempdirRun, err = client.makeTempDir("."); err != nil {
 			return nil, errors.Wrap(err, "Cannot create temporary destination dir")
 		}
 	}
@@ -384,12 +384,6 @@ func (c *Client) Close() {
 			}
 		}
 	})
-}
-
-func (c *Client) initTempDir() error {
-	var err error
-	c.tempdirRun, err = c.makeTempDir(".")
-	return err
 }
 
 func (c *Client) makeTempDir(parent string) (string, error) {
