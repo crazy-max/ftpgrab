@@ -92,6 +92,52 @@ func TestUnsafeRemoteListings(t *testing.T) {
 	}
 }
 
+func TestDestinationLocalStaging(t *testing.T) {
+	for _, protocol := range []string{"ftp", "sftp"} {
+		t.Run(protocol, func(t *testing.T) {
+			output := t.TempDir()
+			require.NoError(t, os.Mkdir(filepath.Join(output, "nested"), 0o755))
+			if os.Geteuid() >= 0 {
+				require.NoError(t, os.Chmod(output, 0o555))
+				t.Cleanup(func() { _ = os.Chmod(output, 0o755) })
+			}
+			fixture := &listingFixture{
+				entries:   listingInfos{listingInfo{name: "nested", dir: true}},
+				wantFiles: []string{"/source/nested/child.txt"},
+			}
+			var srv *config.Server
+			if protocol == "sftp" {
+				srv = serveListingSFTP(t, fixture)
+			} else {
+				srv = serveListingFTP(t, fixture, false)
+			}
+			dl := (&config.Download{}).GetDefaults()
+			dl.Output = output
+			dl.TempFirst = new(false)
+			client := openGrabber(t, dl, nil, srv)
+			// Catch eager staging even when root privileges bypass the mode above.
+			entries, err := os.ReadDir(output)
+			require.NoError(t, err)
+			require.Len(t, entries, 1)
+			assert.Equal(t, "nested", entries[0].Name())
+
+			result := client.Grab(client.ListFiles())
+			assert.Equal(t, 1, result.Count.Success)
+			assert.Zero(t, result.Count.Error)
+			client.Close()
+			data, err := os.ReadFile(filepath.Join(output, "nested", "child.txt"))
+			require.NoError(t, err)
+			assert.Equal(t, "payload", string(data))
+			assertNoTemporaryDirectories(t, output)
+			if os.Geteuid() >= 0 {
+				info, err := os.Stat(output)
+				require.NoError(t, err)
+				assert.Equal(t, os.FileMode(0o555), info.Mode().Perm())
+			}
+		})
+	}
+}
+
 type listingInfo struct {
 	name string
 	dir  bool
