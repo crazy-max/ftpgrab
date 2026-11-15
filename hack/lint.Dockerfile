@@ -5,9 +5,10 @@ ARG XX_VERSION="1.10.0"
 ARG ALPINE_VERSION="3.24"
 ARG GOLANGCI_LINT_VERSION="v2.15.0"
 ARG GOLANGCI_FROM_SOURCE="true"
-ARG GOPLS_VERSION="v0.24.0"
+ARG GOPLS_ANALYZERS_VERSION="latest"
 
 FROM --platform=$BUILDPLATFORM tonistiigi/xx:${XX_VERSION} AS xx
+FROM --platform=$BUILDPLATFORM crazymax/gopls-analyzers:${GOPLS_ANALYZERS_VERSION} AS gopls-analyzers
 
 FROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine${ALPINE_VERSION} AS base
 ENV GOFLAGS="-buildvcs=false"
@@ -28,51 +29,11 @@ FROM scratch AS golangci-binary-true
 COPY --from=golangci-build /out/golangci-lint golangci-lint
 FROM golangci-binary-${GOLANGCI_FROM_SOURCE} AS golangci-binary
 
-FROM base AS gopls-build
-ARG GOPLS_VERSION
-ADD "https://github.com/golang/tools.git#gopls/${GOPLS_VERSION}" /tools
-WORKDIR /tools/gopls
-COPY <<'EOF' internal/cmd/ftpgrab-analyzers/main.go
-package main
-
-import (
-	"golang.org/x/tools/go/analysis/multichecker"
-	"golang.org/x/tools/gopls/internal/analysis/embeddirective"
-	"golang.org/x/tools/gopls/internal/analysis/fillreturns"
-	"golang.org/x/tools/gopls/internal/analysis/infertypeargs"
-	"golang.org/x/tools/gopls/internal/analysis/maprange"
-	"golang.org/x/tools/gopls/internal/analysis/nonewvars"
-	"golang.org/x/tools/gopls/internal/analysis/noresultvalues"
-	"golang.org/x/tools/gopls/internal/analysis/simplifycompositelit"
-	"golang.org/x/tools/gopls/internal/analysis/simplifyslice"
-	"golang.org/x/tools/gopls/internal/analysis/unusedparams"
-	"golang.org/x/tools/gopls/internal/analysis/yield"
-)
-
-func main() {
-	multichecker.Main(
-		embeddirective.Analyzer,
-		fillreturns.Analyzer,
-		infertypeargs.Analyzer,
-		maprange.Analyzer,
-		nonewvars.Analyzer,
-		noresultvalues.Analyzer,
-		simplifycompositelit.Analyzer,
-		simplifyslice.Analyzer,
-		unusedparams.Analyzer,
-		yield.Analyzer,
-	)
-}
-EOF
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/ \
-  go build -o /out/gopls-analyzers ./internal/cmd/ftpgrab-analyzers
-
 FROM base AS gopls-analyze
 ARG TARGETPLATFORM
 RUN --mount=type=bind,target=. \
     --mount=type=cache,target=/root/.cache,id=gopls-cache-$TARGETPLATFORM \
-    --mount=from=gopls-build,source=/out/gopls-analyzers,target=/usr/bin/gopls-analyzers \
+    --mount=from=gopls-analyzers,source=/usr/local/bin/gopls-analyzers,target=/usr/bin/gopls-analyzers \
   xx-go --wrap && \
   go vet -mod=vendor -vettool=/usr/bin/gopls-analyzers ./...
 
