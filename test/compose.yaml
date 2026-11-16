@@ -83,7 +83,7 @@ services:
       <<: *server-build
       target: integration
     volumes:
-      - ${DESTDIR:-../bin}/coverage/integration:/coverage
+      - ${DESTDIR:-../bin}/testreports/integration:/testreports
     depends_on:
       vsftpd:
         condition: service_healthy

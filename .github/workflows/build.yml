@@ -26,8 +26,7 @@ env:
   GHCR_SLUG: ghcr.io/crazy-max/ftpgrab
   DESTDIR: ./bin
   DOCKER_BUILD_SUMMARY: false
-  GO_VERSION: 1.27
-  GOTESTSUM_VERSION: v1.13.0
+  GO_VERSION: "1.27"
 
 jobs:
   prepare:
@@ -124,21 +123,16 @@ jobs:
         name: Prepare
         shell: bash
         run: |
-          testreportsName=${{ github.job }}--${{ matrix.os }}
-          testreportsDir=${{ env.DESTDIR }}/testreports/$testreportsName
-          echo "TESTREPORTS_NAME=$testreportsName" >> "$GITHUB_ENV"
+          testreportsDir=${{ env.DESTDIR }}/testreports/${{ github.job }}--${{ matrix.os }}
           echo "TESTREPORTS_DIR=$testreportsDir" >> "$GITHUB_ENV"
           mkdir -p "$testreportsDir"
-      -
-        name: Install gotestsum
-        run: go install gotest.tools/gotestsum@${{ env.GOTESTSUM_VERSION }}
       -
         name: Test
         shell: bash
         env:
           TMPDIR: ${{ runner.temp }}
         run: |
-          gotestsum \
+          go tool gotestsum \
             --format=standard-verbose \
             --jsonfile="${{ env.TESTREPORTS_DIR }}/go-test-report.json" \
             --junitfile="${{ env.TESTREPORTS_DIR }}/junit-report.xml" \
@@ -174,13 +168,6 @@ jobs:
         uses: crazy-max/.github/.github/actions/gotest-annotations@f91220cba053bd54299ba645a599ee8ed436f222 # v1.11.0
         with:
           directory: ${{ env.TESTREPORTS_DIR }}
-      -
-        name: Upload test reports
-        if: always()
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: test-reports-${{ env.TESTREPORTS_NAME }}
-          path: ${{ env.TESTREPORTS_DIR }}
 
   test-integration:
     runs-on: ubuntu-latest
@@ -196,6 +183,7 @@ jobs:
     env:
       DESTDIR: ${{ github.workspace }}/bin
       TEST_SERVER: ${{ matrix.server }}
+      TESTREPORTS_DIR: ./bin/testreports/integration
     steps:
       -
         name: Checkout
@@ -215,12 +203,29 @@ jobs:
           docker compose -f test/compose.yaml run --build --rm --no-deps --env TEST_SERVER tests
       -
         name: Upload coverage
+        if: always()
         uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
-          files: bin/coverage/integration/coverage.txt
+          directory: ${{ env.TESTREPORTS_DIR }}
           flags: integration
           use_oidc: true
           disable_file_fixes: true # needed for Go language https://docs.codecov.com/docs/fixing-reports
+      -
+        name: Upload test results
+        if: always()
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          report_type: test_results
+          directory: ${{ env.TESTREPORTS_DIR }}
+          flags: integration
+          use_oidc: true
+          disable_file_fixes: true # needed for Go language https://docs.codecov.com/docs/fixing-reports
+      -
+        name: Generate annotations
+        if: always()
+        uses: crazy-max/.github/.github/actions/gotest-annotations@f91220cba053bd54299ba645a599ee8ed436f222 # v1.11.0
+        with:
+          directory: ${{ env.TESTREPORTS_DIR }}
       -
         name: Logs
         if: always()
