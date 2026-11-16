@@ -6,6 +6,10 @@ Run from the repository root with Docker Compose:
 docker compose -f test/compose.yaml up --build --abort-on-container-exit --exit-code-from tests
 ```
 
+Tests run through the vendored `go tool gotestsum`. Coverage, JSON, and JUnit
+reports are written to `bin/testreports/integration` (or under `DESTDIR` when
+set).
+
 Clean up afterward:
 
 ```console

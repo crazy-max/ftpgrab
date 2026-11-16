@@ -44,7 +44,7 @@ RUN --mount=type=bind,target=. \
     --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build <<EOT
   set -ex
-  go test -v -coverprofile=/tmp/coverage.txt -covermode=atomic -race ./...
+  go tool gotestsum --format=standard-verbose --packages=./... -- -coverprofile=/tmp/coverage.txt -covermode=atomic -race -timeout=10m
   go tool cover -func=/tmp/coverage.txt
 EOT
 
@@ -55,8 +55,7 @@ FROM test-base AS integration
 COPY --from=fixtures /ssh/known_hosts /etc/ftpgrab/known_hosts
 COPY --from=build /usr/bin/ftpgrab /usr/local/bin/ftpgrab
 COPY . .
-RUN mkdir /coverage
-CMD ["sh", "-ec", "go test -race -tags=integration -v -count=1 -timeout=15m -coverpkg=./internal/... -coverprofile=/coverage/coverage.txt -covermode=atomic ./test/integration/...; go tool cover -func=/coverage/coverage.txt"]
+CMD ["sh", "-ec", "exec go tool gotestsum --format=standard-verbose --jsonfile=/testreports/go-test-report.json --junitfile=/testreports/junit-report.xml --packages=./test/integration/... -- -race -tags=integration -count=1 -timeout=15m -coverpkg=./internal/... -coverprofile=/testreports/coverage.txt -covermode=atomic"]
 
 FROM scratch AS binary-unix
 COPY --link --from=build /usr/bin/ftpgrab /
