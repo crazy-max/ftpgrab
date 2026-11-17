@@ -101,8 +101,8 @@ github.com/shurcooL/sanitized_anchor_name v1.0.0 h1:PdmoCO6wvbs+7yrJyMORt4/BmY5I
 github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeVRXNmyL/1OwPU0+IJeTBvfc=
 github.com/skeema/knownhosts v1.3.3 h1:tiFvsjIW+xqP5cqVsod7atn/xm57OY6v9KwxB1xWUyA=
 github.com/skeema/knownhosts v1.3.3/go.mod h1:2y0ntYxeqSNxOw5pfqSVDcRyBt2FqfxhzNDPoKz/ifQ=
-github.com/slack-go/slack v0.35.0 h1:lxUmPzkYYlSHLMNdmgvtdzGFnKAJiApA5gZiMcGEYiw=
-github.com/slack-go/slack v0.35.0/go.mod h1:swfK2lWHa2StZ3TXdUdK9sBzcC+oDXpW+jsHd5PoPRM=
+github.com/slack-go/slack v0.36.0 h1:YZTAijN2MWhKgpH22kxcygiRK+V9N+UW8yXlPIMpoOo=
+github.com/slack-go/slack v0.36.0/go.mod h1:D7yMVdS5Yidk5fDP+U6aySggGrRV9Gzs5L5nr7C5DoM=
 github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf h1:pvbZ0lM0XWPBqUKqFU8cmavspvIl9nulOYwdy6IFRRo=
 github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf/go.mod h1:RJID2RhlZKId02nZ62WenDCkgHFerpIOmW0iT7GKmXM=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
