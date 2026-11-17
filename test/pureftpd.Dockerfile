@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1
 
+# renovate: datasource=docker depName=alpine versioning=docker
 ARG ALPINE_VERSION="3.24"
+# renovate: datasource=docker depName=crazymax/pure-ftpd versioning=docker
 ARG CRAZYMAX_PUREFTPD_VERSION="1.0.54"
 
 FROM alpine:${ALPINE_VERSION} AS pureftpd
