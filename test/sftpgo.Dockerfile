@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
 
+# renovate: datasource=docker depName=drakkan/sftpgo versioning=docker
 ARG SFTPGO_VERSION="v2.7.6"
 
 FROM drakkan/sftpgo:${SFTPGO_VERSION}-alpine

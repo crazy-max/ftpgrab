@@ -30,7 +30,7 @@ env:
 
 jobs:
   prepare:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       validate-includes: ${{ steps.validate.outputs.matrix }}
       artifact-includes: ${{ steps.artifact.outputs.matrix }}
@@ -68,7 +68,7 @@ jobs:
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
 
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs:
       - prepare
     strategy:
@@ -100,7 +100,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-latest
+          - ubuntu-26.04
           - macos-26
           - macos-26-intel
           - windows-2025
@@ -170,7 +170,7 @@ jobs:
           directory: ${{ env.TESTREPORTS_DIR }}
 
   test-integration:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read # same as global permissions
       id-token: write # for Codecov authentication
@@ -236,7 +236,7 @@ jobs:
         run: docker compose -f test/compose.yaml down --volumes --remove-orphans
 
   artifact:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs:
       - prepare
       - validate
@@ -294,7 +294,7 @@ jobs:
           if-no-files-found: error
 
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: write # required to create GitHub release
     needs:
@@ -338,7 +338,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   image:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read # same as global permissions
       packages: write # required to push to GHCR
