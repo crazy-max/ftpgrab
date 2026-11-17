@@ -10,7 +10,7 @@
     "github-actions",
     "custom.regex"
   ],
-  "ignorePaths": ["**/node_modules/**", "**/vendor/**", ".dev/**"],
+  "ignorePaths": ["vendor/**"],
   "postUpdateOptions": ["gomodTidy", "gomodVendor"],
   "prHourlyLimit": 0,
   "minimumReleaseAge": "2 days",
