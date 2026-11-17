@@ -16,7 +16,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/zerolog v1.35.1
 	github.com/skeema/knownhosts v1.3.3
-	github.com/slack-go/slack v0.35.0
+	github.com/slack-go/slack v0.36.0
 	github.com/stretchr/testify v1.12.1
 	github.com/wneessen/go-mail v0.8.2
 	go.etcd.io/bbolt v1.5.0
